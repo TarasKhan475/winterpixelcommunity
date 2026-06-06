@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Friend Code Converter – Winterpixel Community</title>
+  <meta name="description" content="Convert a Rocket Bot Royale friend code into a User ID, then look up their stats." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <style>
+    html, body { height: 100%; margin: 0; }
+
+    /* ── Tile Background ── */
+    .ftoid-page {
+      min-height: calc(100vh - 55px - 52px);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.25rem;
+      overflow: hidden;
+    }
+
+    .ftoid-tile-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('ui/tile.png');
+      background-repeat: repeat;
+      background-size: auto;
+      animation: tile-scroll 20s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ftoid-tile-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(255,255,255,0.10) 0%,
+        rgba(255,255,255,0.70) 40%,
+        rgba(255,255,255,0.95) 80%,
+        #ffffff 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes tile-scroll {
+      from { background-position: 0 0; }
+      to   { background-position: 120px 120px; }
+    }
+
+    /* ── Content wrapper ── */
+    .ftoid-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ── Page heading ── */
+    .ftoid-heading {
+      text-align: center;
+    }
+    .ftoid-heading-label {
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1.5px; color: white; margin-bottom: 6px;
+    }
+    .ftoid-heading h1 {
+      font-size: clamp(22px, 4vw, 30px); font-weight: 800;
+      color: white; margin: 0 0 8px; line-height: 1.2;
+    }
+    .ftoid-heading p {
+      font-size: 14px; color: rgba(255,255,255,0.8); font-weight: 500;
+      line-height: 1.6; margin: 0;
+    }
+
+    /* ── Converter card ── */
+    .converter-card {
+      background: white;
+      border: 1.5px solid var(--gray-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(30,58,138,0.08);
+    }
+    .converter-header {
+      background: var(--blue-pale); border-bottom: 1.5px solid var(--gray-border);
+      padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+    }
+    .converter-header-icon {
+      width: 34px; height: 34px; border-radius: var(--radius-sm);
+      background: var(--blue); display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
+    }
+    .converter-title { font-size: 15px; font-weight: 800; color: var(--blue-deep); }
+    .converter-sub   { font-size: 12px; color: var(--gray-muted); font-weight: 500; margin-top: 1px; }
+
+    .converter-body {
+      padding: 20px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .converter-field { display: flex; flex-direction: column; gap: 6px; }
+    .converter-label {
+      font-size: 11px; font-weight: 800; color: var(--blue-deep);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .converter-input-row { display: flex; gap: 8px; }
+    .converter-input {
+      flex: 1;
+      border: 1.5px solid var(--gray-border); border-radius: var(--radius-sm);
+      padding: 10px 14px; font-family: 'Baloo 2', cursive;
+      font-size: 16px; font-weight: 700;
+      color: var(--blue-deep); background: #F8FAFF; outline: none;
+      transition: border-color var(--transition);
+      letter-spacing: 2px; text-transform: uppercase;
+    }
+    .converter-input:focus { border-color: var(--blue); }
+    .converter-input::placeholder {
+      letter-spacing: 0; font-weight: 500; color: var(--blue-muted);
+      text-transform: none;
+    }
+    .converter-btn {
+      padding: 10px 22px; background: var(--blue); color: white; border: none;
+      border-radius: var(--radius-sm); font-family: 'Baloo 2', cursive;
+      font-size: 14px; font-weight: 800; cursor: pointer; white-space: nowrap;
+      transition: background 0.15s, transform 0.1s; flex-shrink: 0;
+    }
+    .converter-btn:hover   { background: var(--blue-dark); }
+    .converter-btn:active  { transform: scale(0.97); }
+    .converter-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Result box ── */
+    .converter-result {
+      margin: 0 20px 18px; padding: 12px 16px;
+      border-radius: var(--radius-sm); font-size: 13px; font-weight: 600;
+      display: none; align-items: center; gap: 10px;
+    }
+    .converter-result.visible { display: flex; }
+    .converter-result.success { background: #D1FAE5; color: #065F46; border: 1.5px solid #6EE7B7; }
+    .converter-result.error   { background: var(--red-light); color: var(--red); border: 1.5px solid #FECACA; }
+
+    .converter-result-inner { flex: 1; min-width: 0; }
+    .converter-result-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; opacity: 0.7; }
+    .converter-result-id {
+      font-family: monospace; font-size: 13px; word-break: break-all;
+      font-weight: 700;
+    }
+
+    .converter-result-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .converter-copy-btn {
+      background: rgba(6,95,70,0.1); border: 1px solid rgba(6,95,70,0.2);
+      cursor: pointer; color: #065F46; padding: 5px 8px;
+      border-radius: var(--radius-sm); display: flex; align-items: center; gap: 4px;
+      font-family: 'Baloo 2', cursive; font-size: 11px; font-weight: 700;
+      transition: background 0.12s;
+    }
+    .converter-copy-btn:hover { background: rgba(6,95,70,0.18); }
+    .converter-lookup-btn {
+      padding: 5px 14px; background: #065F46; color: white; border: none;
+      border-radius: var(--radius-sm); font-family: 'Baloo 2', cursive;
+      font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+      transition: opacity 0.15s; text-decoration: none;
+      display: flex; align-items: center;
+    }
+    .converter-lookup-btn:hover { opacity: 0.85; }
+
+    /* ── Back link ── */
+    .ftoid-back {
+      text-align: center;
+    }
+    .ftoid-back a {
+      font-size: 13px; font-weight: 700; color: var(--blue); text-decoration: none;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: opacity 0.15s;
+    }
+    .ftoid-back a:hover { opacity: 0.7; }
+
+    @media (max-width: 600px) {
+      .ftoid-page { padding: 2rem 1rem; }
+      .converter-input { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community Logo" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html" class="active">Tools</a>
+      <a href="index.html#sites">Sites</a>
+    </nav>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="news.html">News</a>
+    <a href="forum.html">Forum</a>
+    <a href="tools.html">Tools</a>
+    <a href="index.html#sites">Sites</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<!-- ===================== PAGE ===================== -->
+<div class="ftoid-page">
+  <div class="ftoid-tile-bg"></div>
+  <div class="ftoid-tile-fade"></div>
+
+  <div class="ftoid-content">
+
+    <!-- Heading -->
+    <div class="ftoid-heading">
+      <div class="ftoid-heading-label">Rocket Bot Royale</div>
+      <h1>Friend Code to User ID</h1>
+    </div>
+
+    <!-- Converter card -->
+    <div class="converter-card">
+      <div class="converter-header">
+        <div class="converter-header-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+            <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+            <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+          </svg>
+        </div>
+        <div>
+          <div class="converter-title">Friend Code Converter</div>
+        </div>
+      </div>
+
+      <div class="converter-body">
+        <div class="converter-field">
+          <label class="converter-label" for="conv-input">Friend Code</label>
+          <div class="converter-input-row">
+            <input
+              class="converter-input" type="text" id="conv-input"
+              placeholder="e.g. ABC123" autocomplete="off" spellcheck="false"
+              maxlength="12"
+            />
+            <button class="converter-btn" id="conv-btn" onclick="convertFriendCode()">Convert</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="converter-result" id="conv-result">
+        <div class="converter-result-inner">
+          <div class="converter-result-label" id="conv-result-label">User ID</div>
+          <div class="converter-result-id" id="conv-result-id"></div>
+        </div>
+        <div class="converter-result-actions" id="conv-result-actions">
+          <button class="converter-copy-btn" id="conv-copy-btn" title="Copy User ID">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copy
+          </button>
+          <a class="converter-lookup-btn" id="conv-lookup-btn" href="#">Look Up Stats →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back link -->
+    <div class="ftoid-back">
+      <a href="stats.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back to Player Stats Tracker
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<script src="js/bottom-bar-loader.js"></script>
+<script>
+/* ── Firebase + API config ── */
+var FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDyrbOkMUrDcXmeE3WlwNrWbkOVNg-UGEg",
+  authDomain:        "winterpixelcommunity.firebaseapp.com",
+  projectId:         "winterpixelcommunity",
+  storageBucket:     "winterpixelcommunity.firebasestorage.app",
+  messagingSenderId: "590927242514",
+  appId:             "1:590927242514:web:d99b37ff6ad67f1b83ffcb"
+};
+
+var BASE_URL = 'https://dev-nakama.winterpixel.io/v2';
+var BASE_HEADERS = {
+  accept:        'application/json',
+  authorization: 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=',
+  origin:        'https://rocketbotroyale2.winterpixel.io',
+  referer:       'https://rocketbotroyale2.winterpixel.io/',
+  'content-type':'application/json'
+};
+
+if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+var db = firebase.firestore();
+
+var _cachedToken    = null;
+var _tokenExpiresAt = 0;
+
+async function getToken() {
+  if (_cachedToken && Date.now() < _tokenExpiresAt) return _cachedToken;
+  var resp = await fetch(BASE_URL + '/account/authenticate/email?create=false', {
+    method: 'POST', headers: BASE_HEADERS,
+    body: JSON.stringify({ email: 'test6969khan@test.com', password: 'password', vars: { client_version: '9999999999' } })
+  });
+  if (!resp.ok) throw new Error('Game auth failed (' + resp.status + ')');
+  var data = await resp.json();
+  _cachedToken    = data.token;
+  _tokenExpiresAt = Date.now() + 55 * 60 * 1000;
+  return _cachedToken;
+}
+
+async function convertFriendCode() {
+  var raw  = document.getElementById('conv-input').value.trim().toUpperCase();
+  var btn  = document.getElementById('conv-btn');
+  var res  = document.getElementById('conv-result');
+  var resId    = document.getElementById('conv-result-id');
+  var resLabel = document.getElementById('conv-result-label');
+  var resActions = document.getElementById('conv-result-actions');
+
+  if (!raw) return;
+
+  btn.disabled    = true;
+  btn.textContent = 'Converting…';
+  res.className   = 'converter-result';
+
+  try {
+    var token = await getToken();
+    var resp  = await fetch(BASE_URL + '/rpc/winterpixel_query_user_id_for_friend_code', {
+      method: 'POST',
+      headers: {
+        accept:'application/json',
+        origin:'https://rocketbotroyale2.winterpixel.io',
+        referer:'https://rocketbotroyale2.winterpixel.io/',
+        authorization:'Bearer ' + token,
+        'content-type':'application/json'
+      },
+      body: JSON.stringify(JSON.stringify({ friend_code: raw }))
+    });
+
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var data    = await resp.json();
+    var payload = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
+    var userId  = payload && (payload.user_id || payload.id);
+
+    if (!userId) {
+      // Not found via friend code API — check Firebase username index as fallback
+      resLabel.textContent = 'Not found via friend code — checking username index…';
+      resActions.style.display = 'none';
+      res.className = 'converter-result visible error';
+
+      var lowerRaw = raw.toLowerCase();
+      var snap = await db.collection('playerIndex')
+                         .where('displayName_lower', '==', lowerRaw)
+                         .limit(1).get();
+      if (!snap.empty) {
+        userId = snap.docs[0].id;
+      } else {
+        throw new Error('No user found for this code or username. Check the friend code and try again.');
+      }
+    }
+
+    // Success
+    resLabel.textContent = 'User ID';
+    resId.textContent = userId;
+    resActions.style.display = 'flex';
+    res.className = 'converter-result visible success';
+
+    // Copy button
+    document.getElementById('conv-copy-btn').onclick = function() {
+      navigator.clipboard.writeText(userId).then(function() {
+        var b = document.getElementById('conv-copy-btn');
+        b.textContent = '✓ Copied';
+        setTimeout(function() { b.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy'; }, 1500);
+      });
+    };
+
+    // Look Up Stats link
+    var lookupBtn = document.getElementById('conv-lookup-btn');
+    lookupBtn.href = 'stats.html';
+    lookupBtn.onclick = function(e) {
+      // Pass userId via sessionStorage so stats.html can auto-fill
+      try { sessionStorage.setItem('ftoid_prefill', userId); } catch(ex) {}
+    };
+
+  } catch(e) {
+    resLabel.textContent = 'Error';
+    resId.textContent = e.message || 'Could not convert this friend code.';
+    resActions.style.display = 'none';
+    res.className = 'converter-result visible error';
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Convert';
+  }
+}
+
+// Allow Enter key
+document.getElementById('conv-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') convertFriendCode();
+});
+
+// Auto-uppercase as user types
+document.getElementById('conv-input').addEventListener('input', function() {
+  var pos = this.selectionStart;
+  this.value = this.value.toUpperCase();
+  this.setSelectionRange(pos, pos);
+});
+
+/* ── Hamburger ── */
+(function() {
+  var btn  = document.getElementById('hamburger');
+  var menu = document.getElementById('mobile-menu');
+  btn.addEventListener('click', function() {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded','false');
+      menu.setAttribute('aria-hidden','true');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

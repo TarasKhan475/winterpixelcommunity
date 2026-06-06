@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community – Winterpixel Community</title>
+  <meta name="description" content="Community polls, art showcase, videos and tools." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    /* ── Tile hero ── */
+    .page-hero { position:relative; overflow:hidden; background:var(--blue-deep); padding:2.4rem 1.5rem 2rem; }
+    .page-hero-tile { position:absolute; inset:0; background-image:url('ui/tile.png'); background-repeat:repeat; background-size:auto; animation:tile-scroll 20s linear infinite; opacity:.18; pointer-events:none; }
+    .page-hero-fade { position:absolute; inset:0; background:linear-gradient(to bottom,rgba(0,20,40,.5) 0%,rgba(0,20,40,.15) 100%); pointer-events:none; }
+    @keyframes tile-scroll { from{background-position:0 0} to{background-position:120px 120px} }
+    .page-hero-inner { position:relative; z-index:1; max-width:900px; margin:0 auto; text-align:center; }
+    .page-hero-inner h1 { font-size:clamp(22px,4vw,32px); font-weight:800; color:#fff; margin:0 0 8px; letter-spacing:-.5px; }
+    .page-hero-inner p  { font-size:14px; color:rgba(255,255,255,.72); margin:0; }
+
+    .comm-wrap { max-width:960px; margin:0 auto; padding:2rem 1.25rem 3rem; display:flex; flex-direction:column; gap:2.5rem; }
+
+    /* ── Section head ── */
+    .sec-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+    .sec-title { display:flex; align-items:center; gap:9px; font-size:16px; font-weight:800; color:var(--blue-deep); }
+    .sec-icon { width:28px; height:28px; border-radius:var(--radius-sm); background:var(--blue); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+    /* ── Polls ── */
+    .polls-list { display:flex; flex-direction:column; gap:10px; }
+    .poll-card { background:white; border:1.5px solid var(--blue-light); border-radius:var(--radius-md); padding:16px 18px; }
+    .poll-q { font-size:14px; font-weight:800; color:var(--blue-deep); margin-bottom:12px; }
+    .poll-options { display:flex; flex-direction:column; gap:7px; }
+    .poll-opt { position:relative; border:1.5px solid var(--blue-light); border-radius:var(--radius-sm); overflow:hidden; cursor:pointer; transition:border-color .15s; background:white; }
+    .poll-opt:hover:not(.voted):not(.disabled) { border-color:var(--blue); }
+    .poll-opt.voted { border-color:var(--blue); }
+    .poll-opt.winner { border-color:#10B981; }
+    .poll-bar { position:absolute; inset:0; background:var(--blue-pale); transform-origin:left; transition:width .5s ease; z-index:0; }
+    .poll-opt.winner .poll-bar { background:#D1FAE5; }
+    .poll-opt-inner { position:relative; z-index:1; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; font-weight:700; color:var(--blue-deep); }
+    .poll-pct { font-size:12px; font-weight:800; color:var(--gray-muted); white-space:nowrap; }
+    .poll-opt.voted .poll-pct { color:var(--blue); }
+    .poll-opt.winner .poll-pct { color:#065F46; }
+    .poll-meta { font-size:11px; color:var(--gray-muted); margin-top:10px; }
+    .poll-signin-note { font-size:12px; color:var(--gray-muted); font-style:italic; margin-top:8px; }
+    .polls-loading { padding:2rem; text-align:center; color:var(--blue-muted); font-size:13px; }
+
+    /* ── Art showcase ── */
+    .art-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
+    .art-card { border-radius:var(--radius-md); overflow:hidden; border:1.5px solid var(--blue-light); cursor:pointer; transition:transform .15s,border-color .15s; background:var(--blue-pale); aspect-ratio:1; position:relative; }
+    .art-card:hover { transform:scale(1.03); border-color:var(--blue); }
+    .art-card img { width:100%; height:100%; object-fit:cover; display:block; }
+    .art-card-credit { position:absolute; bottom:0; left:0; right:0; padding:6px 8px; background:linear-gradient(to top,rgba(0,0,0,.65) 0%,transparent 100%); font-size:11px; font-weight:700; color:white; text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; }
+
+    /* Art lightbox */
+    .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:900; align-items:center; justify-content:center; padding:1rem; }
+    .lightbox.open { display:flex; }
+    .lightbox img { max-width:90vw; max-height:88vh; border-radius:var(--radius-md); display:block; }
+    .lightbox-close { position:absolute; top:16px; right:16px; background:rgba(255,255,255,.15); border:none; color:white; width:36px; height:36px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .lightbox-credit { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); color:white; font-size:13px; font-weight:700; background:rgba(0,0,0,.5); padding:5px 14px; border-radius:99px; white-space:nowrap; }
+
+    /* ── Tool buttons (guides + thumbnails) ── */
+    .tool-btns { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .tool-btn-card { border-radius:var(--radius-md); overflow:hidden; border:1.5px solid var(--blue-light); text-decoration:none; color:inherit; transition:border-color .15s,transform .15s; display:block; }
+    .tool-btn-card:hover { border-color:var(--blue); transform:translateY(-3px); }
+    .tool-btn-card img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+    .tool-btn-card-ph { width:100%; aspect-ratio:16/9; background:var(--blue-pale); display:flex; align-items:center; justify-content:center; font-size:36px; }
+    @media(max-width:500px){ .tool-btns { grid-template-columns:1fr; } }
+
+    /* ── YouTube videos ── */
+    .yt-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+    .yt-card { border-radius:var(--radius-md); overflow:hidden; border:1.5px solid var(--blue-light); background:white; text-decoration:none; color:inherit; display:flex; flex-direction:column; transition:border-color .15s,transform .15s; }
+    .yt-card:hover { border-color:var(--blue); transform:translateY(-2px); }
+    .yt-thumb { aspect-ratio:16/9; overflow:hidden; background:var(--blue-pale); position:relative; }
+    .yt-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .yt-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .15s; background:rgba(0,0,0,.3); }
+    .yt-card:hover .yt-play { opacity:1; }
+    .yt-body { padding:9px 11px 11px; flex:1; }
+    .yt-title { font-size:12px; font-weight:700; color:var(--blue-deep); line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .yt-channel { font-size:10px; color:var(--gray-muted); margin-top:4px; }
+    .yt-loading { padding:2rem; text-align:center; color:var(--blue-muted); font-size:13px; }
+    .yt-error { padding:1rem; text-align:center; font-size:12px; color:var(--gray-muted); }
+    .yt-key-warn { background:#FEF3C7; border:1.5px solid #FCD34D; border-radius:var(--radius-sm); padding:10px 14px; font-size:12px; color:#92400E; font-weight:600; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html">Tools</a>
+      <a href="community.html" class="active">Community</a>
+    </nav>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a><a href="news.html">News</a><a href="forum.html">Forum</a>
+    <a href="tools.html">Tools</a><a href="community.html">Community</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="page-hero-tile"></div>
+  <div class="page-hero-fade"></div>
+  <div class="page-hero-inner">
+    <h1>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="vertical-align:-4px;margin-right:6px;">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Community
+    </h1>
+    <p>Polls, art, videos and tools — all things community.</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="comm-wrap">
+
+  <!-- ══ POLLS ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-title">
+        <div class="sec-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        </div>
+        Community Polls
+      </div>
+    </div>
+    <div class="polls-list" id="polls-list">
+      <div class="polls-loading">Loading polls…</div>
+    </div>
+  </section>
+
+  <!-- ══ ART SHOWCASE ═══════════════════════════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-title">
+        <div class="sec-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
+        </div>
+        Community Art
+      </div>
+    </div>
+    <div class="art-grid" id="art-grid">
+      <!--
+      ═══════════════════════════════════════════════════════════════
+      TO ADD ART: copy one .art-card div and fill in:
+        img src  → ui/art/filename.png
+        credit   → artist name / Discord username
+
+      <div class="art-card" onclick="openLightbox('ui/art/filename.png','Artist Name')">
+        <img src="ui/art/filename.png" alt="Art by Artist Name" loading="lazy" />
+        <div class="art-card-credit">Artist Name</div>
+      </div>
+      ═══════════════════════════════════════════════════════════════
+      -->
+      <div style="padding:2rem;text-align:center;color:var(--gray-muted);font-size:13px;grid-column:1/-1;">
+        Art coming soon — submissions open in Discord.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TOOLS ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-title">
+        <div class="sec-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        Creator Tools
+      </div>
+    </div>
+    <div class="tool-btns">
+      <a href="guide-creator.html" class="tool-btn-card">
+        <img src="ui/thumbnails/guidecreator.png" alt="Guide Creator"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-btn-card-ph" style="display:none;">📖</div>
+      </a>
+      <a href="https://winterpixelthumbnails.netlify.app/" class="tool-btn-card" target="_blank" rel="noopener">
+        <img src="ui/thumbnails/pixelthumbnails.png" alt="Thumbnail Editor"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-btn-card-ph" style="display:none;">🖼️</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ YOUTUBE VIDEOS ═════════════════════════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-title">
+        <div class="sec-icon" style="background:#FF0000;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="var(--blue-deep)"/></svg>
+        </div>
+        Latest Videos
+      </div>
+    </div>
+    <!-- ─────────────────────────────────────────────────────────────────
+    YouTube Data API v3 setup:
+    1. Go to console.cloud.google.com → New project → Enable "YouTube Data API v3"
+    2. Create an API key → restrict it to your domain
+    3. Replace YOUR_YOUTUBE_API_KEY below with your key
+    ──────────────────────────────────────────────────────────────────── -->
+    <div id="yt-container">
+      <div class="yt-key-warn" id="yt-key-warn" style="display:none;">
+        YouTube API key not set — add your key to community.html to enable this section.
+      </div>
+      <div class="yt-grid" id="yt-grid">
+        <div class="yt-loading" id="yt-loading">Loading videos…</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links"><a href="#">About</a><a href="#">Contact</a></div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<!-- Art lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
+  <div class="lightbox-credit" id="lightbox-credit"></div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="js/bottom-bar-loader.js"></script>
+<script>
+/* ── Hamburger ── */
+(function(){
+  var b=document.getElementById('hamburger'),m=document.getElementById('mobile-menu');
+  b.addEventListener('click',function(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o);m.setAttribute('aria-hidden',!o);});
+  m.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){m.classList.remove('open');b.setAttribute('aria-expanded','false');m.setAttribute('aria-hidden','true');});});
+})();
+
+/* ── Art lightbox ── */
+function openLightbox(src, credit){
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-credit').textContent = credit || '';
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeLightbox(); });
+
+/* ════════════════════════════════════════════════════════
+   POLLS
+   Firestore structure:
+   polls/{pollId} {
+     question: string,
+     options:  string[],
+     active:   boolean,
+     created:  timestamp,
+     votes:    { [optionIndex]: number }   — updated server-side via increment
+     voters:   { [uid]: optionIndex }
+   }
+════════════════════════════════════════════════════════ */
+var db, auth, currentUser = null;
+
+function waitForFirebase(cb){
+  var t=setInterval(function(){
+    if(typeof firebase!=='undefined'&&firebase.apps&&firebase.apps.length){
+      clearInterval(t);
+      db   = firebase.firestore();
+      auth = firebase.auth();
+      auth.onAuthStateChanged(function(u){ currentUser=u; });
+      cb();
+    }
+  },80);
+}
+
+function loadPolls(){
+  waitForFirebase(function(){
+    db.collection('polls')
+      .where('active','==',true)
+      .orderBy('created','desc')
+      .limit(10)
+      .onSnapshot(function(snap){
+        var list = document.getElementById('polls-list');
+        if(snap.empty){ list.innerHTML='<div style="padding:1.5rem;text-align:center;color:var(--gray-muted);font-size:13px;">No active polls right now.</div>'; return; }
+        list.innerHTML='';
+        snap.forEach(function(doc){ list.appendChild(buildPollCard(doc.id, doc.data())); });
+      }, function(e){
+        document.getElementById('polls-list').innerHTML='<div style="padding:1rem;text-align:center;color:var(--gray-muted);font-size:13px;">Could not load polls.</div>';
+      });
+  });
+}
+
+function buildPollCard(pollId, data){
+  var card = document.createElement('div');
+  card.className = 'poll-card';
+  card.id = 'poll-'+pollId;
+
+  var votes  = data.votes  || {};
+  var voters = data.voters || {};
+  var total  = data.options.reduce(function(s,_,i){ return s+(votes[i]||0); },0);
+  var myVote = currentUser ? voters[currentUser.uid] : undefined;
+  var hasVoted = myVote !== undefined;
+  var maxVotes = Math.max.apply(null, data.options.map(function(_,i){ return votes[i]||0; }));
+
+  var html = '<div class="poll-q">'+esc(data.question)+'</div><div class="poll-options">';
+  data.options.forEach(function(opt, i){
+    var n   = votes[i] || 0;
+    var pct = total > 0 ? Math.round(100*n/total) : 0;
+    var isMyVote = hasVoted && myVote == i;
+    var isWinner = hasVoted && n === maxVotes && n > 0;
+    var cls = 'poll-opt'+(isMyVote?' voted':'')+(isWinner&&!isMyVote?' winner':'');
+    html += '<div class="'+cls+'" data-poll="'+pollId+'" data-idx="'+i+'">'
+      +'<div class="poll-bar" style="width:'+(hasVoted?pct:0)+'%"></div>'
+      +'<div class="poll-opt-inner"><span>'+esc(opt)+(isMyVote?' ✓':'')+'</span>'
+      +'<span class="poll-pct">'+(hasVoted?pct+'%':'')+'</span></div>'
+      +'</div>';
+  });
+  html += '</div>';
+  html += '<div class="poll-meta">'+(total>0?total+' vote'+(total===1?'':'s'):'No votes yet')+(data.endsAt?' · Ends '+data.endsAt:'')+'</div>';
+  if(!currentUser) html += '<div class="poll-signin-note">Sign in to vote.</div>';
+
+  card.innerHTML = html;
+
+  if(!hasVoted && currentUser){
+    card.querySelectorAll('.poll-opt').forEach(function(el){
+      el.addEventListener('click', function(){ castVote(pollId, parseInt(el.dataset.idx), data.options.length); });
+    });
+  }
+  return card;
+}
+
+async function castVote(pollId, optIdx, numOptions){
+  if(!currentUser) return;
+  var uid = currentUser.uid;
+  var ref = db.collection('polls').doc(pollId);
+  try {
+    var snap = await ref.get();
+    if(!snap.exists) return;
+    var d = snap.data();
+    if(d.voters && d.voters[uid] !== undefined) return; // already voted
+    var update = {};
+    update['voters.'+uid] = optIdx;
+    update['votes.'+optIdx] = firebase.firestore.FieldValue.increment(1);
+    await ref.update(update);
+  } catch(e){ console.error('Vote failed:',e.message); }
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+loadPolls();
+
+/* ════════════════════════════════════════════════════════
+   YOUTUBE
+   Replace YOUR_YOUTUBE_API_KEY with your actual key.
+   To get one: console.cloud.google.com → Enable YouTube Data API v3 → Create key
+════════════════════════════════════════════════════════ */
+var YT_API_KEY = 'YOUR_YOUTUBE_API_KEY';
+var YT_QUERY   = 'Rocket Bot Royale';
+var YT_MAX     = 8;
+
+function loadYouTube(){
+  if(YT_API_KEY === 'YOUR_YOUTUBE_API_KEY'){
+    document.getElementById('yt-loading').style.display='none';
+    document.getElementById('yt-key-warn').style.display='block';
+    return;
+  }
+  var url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&order=date&maxResults='+YT_MAX+'&q='+encodeURIComponent(YT_QUERY)+'&key='+YT_API_KEY;
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var grid = document.getElementById('yt-grid');
+      document.getElementById('yt-loading').remove();
+      if(!data.items||!data.items.length){ grid.innerHTML='<div class="yt-error">No videos found.</div>'; return; }
+      data.items.forEach(function(item){
+        var vid  = item.id.videoId;
+        var snip = item.snippet;
+        var a    = document.createElement('a');
+        a.className = 'yt-card';
+        a.href      = 'https://www.youtube.com/watch?v='+vid;
+        a.target    = '_blank'; a.rel = 'noopener';
+        a.innerHTML = '<div class="yt-thumb">'
+          +'<img src="'+snip.thumbnails.medium.url+'" alt="'+esc(snip.title)+'" loading="lazy" />'
+          +'<div class="yt-play"><svg width="36" height="36" viewBox="0 0 24 24" fill="white" opacity=".9"><circle cx="12" cy="12" r="12" fill="rgba(0,0,0,.5)"/><polygon points="10,8 16,12 10,16"/></svg></div>'
+          +'</div>'
+          +'<div class="yt-body"><div class="yt-title">'+esc(snip.title)+'</div><div class="yt-channel">'+esc(snip.channelTitle)+'</div></div>';
+        grid.appendChild(a);
+      });
+    })
+    .catch(function(){ document.getElementById('yt-grid').innerHTML='<div class="yt-error">Could not load videos.</div>'; });
+}
+
+loadYouTube();
+</script>
+</body>
+</html>

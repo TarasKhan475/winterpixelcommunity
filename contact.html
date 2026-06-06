@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact – Winterpixel Community</title>
+  <meta name="description" content="Send a message to the Winterpixel Community team." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+
+  <style>
+    html, body { height: 100%; margin: 0; }
+
+    /* ── Tile Background ── */
+    .contact-page {
+      min-height: calc(100vh - 55px - 52px);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.25rem;
+      overflow: hidden;
+    }
+
+    .contact-tile-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('ui/tile.png');
+      background-repeat: repeat;
+      background-size: auto;
+      animation: tile-scroll 20s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .contact-tile-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(255,255,255,0.10) 0%,
+        rgba(255,255,255,0.70) 40%,
+        rgba(255,255,255,0.95) 80%,
+        #ffffff 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes tile-scroll {
+      from { background-position: 0 0; }
+      to   { background-position: 120px 120px; }
+    }
+
+    /* ── Content wrapper ── */
+    .contact-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ── Page heading ── */
+    .contact-heading {
+      text-align: center;
+    }
+    .contact-heading-label {
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1.5px; color: white; margin-bottom: 6px;
+    }
+    .contact-heading h1 {
+      font-size: clamp(22px, 4vw, 30px); font-weight: 800;
+      color: white; margin: 0 0 8px; line-height: 1.2;
+    }
+    .contact-heading p {
+      font-size: 14px; color: rgba(255,255,255,0.8); font-weight: 500;
+      line-height: 1.6; margin: 0;
+    }
+
+    /* ── Form card ── */
+    .contact-card {
+      background: white;
+      border: 1.5px solid var(--gray-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(30,58,138,0.08);
+    }
+
+    .contact-card-header {
+      background: var(--blue-pale);
+      border-bottom: 1.5px solid var(--gray-border);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .contact-card-icon {
+      width: 34px; height: 34px; border-radius: var(--radius-sm);
+      background: var(--blue); display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
+    }
+
+    .contact-card-title { font-size: 15px; font-weight: 800; color: var(--blue-deep); }
+    .contact-card-sub   { font-size: 12px; color: var(--gray-muted); font-weight: 500; margin-top: 1px; }
+
+    .contact-form {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .contact-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .contact-label {
+      font-size: 11px; font-weight: 800; color: var(--blue-deep);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .contact-input,
+    .contact-textarea {
+      border: 1.5px solid var(--gray-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: 'Baloo 2', cursive;
+      font-size: 14px; font-weight: 600;
+      color: var(--blue-deep);
+      background: #F8FAFF;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      width: 100%; box-sizing: border-box;
+    }
+
+    .contact-input::placeholder,
+    .contact-textarea::placeholder {
+      color: var(--blue-muted); font-weight: 500;
+    }
+
+    .contact-input:focus,
+    .contact-textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0,198,255,0.12);
+    }
+
+    .contact-textarea {
+      resize: vertical;
+      min-height: 130px;
+      line-height: 1.6;
+    }
+
+    .contact-submit-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 4px;
+    }
+
+    .contact-hint {
+      font-size: 11px; color: var(--gray-muted); font-weight: 500; line-height: 1.5;
+    }
+
+    .contact-btn {
+      padding: 10px 26px;
+      background: var(--blue); color: white; border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Baloo 2', cursive;
+      font-size: 14px; font-weight: 800;
+      cursor: pointer; white-space: nowrap;
+      transition: background 0.15s, transform 0.1s;
+      display: flex; align-items: center; gap: 7px;
+      flex-shrink: 0;
+    }
+    .contact-btn:hover  { background: var(--blue-dark); }
+    .contact-btn:active { transform: scale(0.97); }
+    .contact-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Success state ── */
+    .contact-success {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 36px 24px;
+      gap: 12px;
+    }
+    .contact-success.visible { display: flex; }
+
+    .contact-success-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: #D1FAE5; border: 2px solid #6EE7B7;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .contact-success h3 {
+      font-size: 18px; font-weight: 800; color: var(--blue-deep); margin: 0;
+    }
+    .contact-success p {
+      font-size: 13px; color: var(--gray-mid); font-weight: 500;
+      line-height: 1.6; margin: 0; max-width: 340px;
+    }
+    .contact-success-back {
+      margin-top: 4px;
+      padding: 8px 20px;
+      background: var(--blue-pale); color: var(--blue-deep);
+      border: 1.5px solid var(--gray-border);
+      border-radius: var(--radius-sm);
+      font-family: 'Baloo 2', cursive;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-decoration: none;
+    }
+    .contact-success-back:hover { background: #dbeafe; }
+
+    /* ── Error banner ── */
+    .contact-error {
+      display: none;
+      align-items: center; gap: 10px;
+      background: var(--red-light); color: var(--red);
+      border: 1.5px solid #FECACA;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px; font-weight: 600;
+    }
+    .contact-error.visible { display: flex; }
+
+    @media (max-width: 500px) {
+      .contact-submit-row { flex-direction: column; align-items: stretch; }
+      .contact-btn { justify-content: center; }
+      .contact-hint { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community Logo" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html">Tools</a>
+      <a href="index.html#sites">Sites</a>
+    </nav>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="news.html">News</a>
+    <a href="forum.html">Forum</a>
+    <a href="tools.html">Tools</a>
+    <a href="index.html#sites">Sites</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<!-- ===================== PAGE ===================== -->
+<div class="contact-page">
+  <div class="contact-tile-bg"></div>
+  <div class="contact-tile-fade"></div>
+
+  <div class="contact-content">
+
+    <!-- Heading -->
+    <div class="contact-heading">
+      <h1>Contact</h1>
+      <p>Got a suggestion, bug report, or clan submission? Drop a message and I'll get back to you.</p>
+    </div>
+
+    <!-- Form card -->
+    <div class="contact-card">
+      <div class="contact-card-header">
+        <div class="contact-card-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="contact-card-title">Send a Message</div>
+          <div class="contact-card-sub">Replies will come to the email you provide</div>
+        </div>
+      </div>
+
+      <!-- Success state (shown after submit) -->
+      <div class="contact-success" id="contact-success">
+        <div class="contact-success-icon">✓</div>
+        <h3>Message sent!</h3>
+        <p>Thanks for reaching out. I'll reply to your email as soon as I can.</p>
+        <a href="index.html" class="contact-success-back">← Back to Home</a>
+      </div>
+
+      <!-- The form (hidden after submit) -->
+      <form
+        class="contact-form"
+        id="contact-form"
+        name="contact"
+        method="POST"
+        data-netlify="true"
+        netlify-honeypot="bot-field"
+        novalidate
+      >
+        <!-- Netlify required hidden fields -->
+        <input type="hidden" name="form-name" value="contact" />
+        <div style="display:none;">
+          <label>Don't fill this out: <input name="bot-field" /></label>
+        </div>
+
+        <div class="contact-field">
+          <label class="contact-label" for="contact-email">Your Email</label>
+          <input
+            class="contact-input" type="email" id="contact-email"
+            name="email" placeholder="you@example.com"
+            autocomplete="email" required
+          />
+        </div>
+
+        <div class="contact-field">
+          <label class="contact-label" for="contact-subject">Subject</label>
+          <input
+            class="contact-input" type="text" id="contact-subject"
+            name="subject" placeholder="e.g. Clan submission, Bug report, Suggestion…"
+            maxlength="120" required
+          />
+        </div>
+
+        <div class="contact-field">
+          <label class="contact-label" for="contact-message">Message</label>
+          <textarea
+            class="contact-textarea" id="contact-message"
+            name="message" placeholder="Write your message here…"
+            maxlength="2000" required
+          ></textarea>
+        </div>
+
+        <!-- Error banner -->
+        <div class="contact-error" id="contact-error">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span id="contact-error-msg">Please fill in all fields before sending.</span>
+        </div>
+
+        <div class="contact-submit-row">
+          <button type="submit" class="contact-btn" id="contact-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Send Message
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="contact.html" style="color:var(--blue);">Contact</a>
+    </div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<script src="js/bottom-bar-loader.js"></script>
+<script>
+(function () {
+  var form    = document.getElementById('contact-form');
+  var btn     = document.getElementById('contact-btn');
+  var success = document.getElementById('contact-success');
+  var error   = document.getElementById('contact-error');
+  var errorMsg= document.getElementById('contact-error-msg');
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    error.classList.add('visible');
+  }
+  function hideError() {
+    error.classList.remove('visible');
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    hideError();
+
+    var email   = form.email.value.trim();
+    var subject = form.subject.value.trim();
+    var message = form.message.value.trim();
+
+    // Basic validation
+    if (!email || !subject || !message) {
+      showError('Please fill in all fields before sending.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError('Please enter a valid email address.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Sending…';
+
+    try {
+      var body = new URLSearchParams({
+        'form-name': 'contact',
+        email:   email,
+        subject: subject,
+        message: message,
+      });
+      var resp = await fetch('/', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body:    body.toString(),
+      });
+
+      if (!resp.ok) throw new Error('Server returned ' + resp.status);
+
+      // Show success
+      form.style.display = 'none';
+      success.classList.add('visible');
+
+    } catch (err) {
+      showError('Something went wrong — please try again or reach out on Discord.');
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Message';
+    }
+  });
+
+  // Clear error on any input change
+  form.querySelectorAll('input, textarea').forEach(function (el) {
+    el.addEventListener('input', hideError);
+  });
+})();
+
+/* ── Hamburger ── */
+(function () {
+  var btn  = document.getElementById('hamburger');
+  var menu = document.getElementById('mobile-menu');
+  btn.addEventListener('click', function () {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+  });
+  menu.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      menu.setAttribute('aria-hidden', 'true');
+    });
+  });
+})();
+</script>
+
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+</body>
+</html>

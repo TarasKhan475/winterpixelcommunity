@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Stats – Winterpixel Community</title>
+  <meta name="description" content="Look up any Rocket Bot Royale player by username, User ID, or friend code. Track stats over time." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <style>
+    /* ── Tile Background ── */
+    .stats-page-wrap {
+      position: relative;
+      min-height: calc(100vh - 55px - 52px);
+    }
+    .stats-tile-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('ui/tile.png');
+      background-repeat: repeat;
+      background-size: auto;
+      animation: tile-scroll 20s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .stats-tile-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(255,255,255,0.15) 0%,
+        rgba(255,255,255,0.70) 35%,
+        rgba(255,255,255,0.95) 70%,
+        #ffffff 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes tile-scroll {
+      from { background-position: 0 0; }
+      to   { background-position: 120px 120px; }
+    }
+
+    .stats-layout {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Tracker Hero ── */
+    .tracker-hero {
+      background: linear-gradient(135deg, var(--blue-deep) 0%, #0a2a3f 100%);
+      border-radius: var(--radius-md); padding: 2rem 2rem 1.5rem;
+      margin-bottom: 1.5rem; color: white; position: relative;
+    }
+    .tracker-hero::before {
+      content: ''; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%);
+      width: 120px; height: 120px;
+      background: url('ui/icons/insight.png') center/contain no-repeat;
+      opacity: 0.12; pointer-events: none;
+      border-radius: var(--radius-md);
+    }
+    .tracker-hero-label {
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1.5px; color: #00c6ff; margin-bottom: 6px;
+    }
+    .tracker-hero h2 { font-size: clamp(20px,3vw,26px); font-weight: 800; margin: 0 0 6px; line-height: 1.2; }
+    .tracker-hero p  { font-size: 13px; color: rgba(255,255,255,0.65); margin: 0 0 1.4rem; max-width: 540px; }
+
+    .tracker-search-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+    .tracker-input-wrap { flex: 1; min-width: 200px; position: relative; }
+    .tracker-input {
+      width: 100%; box-sizing: border-box;
+      background: rgba(255,255,255,0.1); border: 1.5px solid rgba(0,198,255,0.3);
+      border-radius: var(--radius-sm); padding: 9px 14px;
+      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 600;
+      color: white; outline: none; transition: border-color 0.15s;
+    }
+    .tracker-input::placeholder { color: rgba(255,255,255,0.35); }
+    .tracker-input:focus { border-color: #00c6ff; }
+
+    .tracker-dropdown {
+      display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: white; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--blue-light);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 100; overflow: hidden;
+    }
+    .tracker-dropdown.open { display: block; }
+    .tracker-dropdown-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; cursor: pointer; border-bottom: 1px solid var(--blue-light);
+      transition: background 0.1s;
+    }
+    .tracker-dropdown-item:last-child { border-bottom: none; }
+    .tracker-dropdown-item:hover { background: var(--blue-pale); }
+    .tracker-dropdown-avatar {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--blue-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: var(--blue); flex-shrink: 0;
+    }
+    .tracker-dropdown-name { font-size: 13px; font-weight: 700; color: var(--blue-deep); }
+    .tracker-dropdown-id   { font-size: 10px; color: var(--gray-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tracker-dropdown-empty { padding: 10px 14px; font-size: 12px; color: var(--gray-muted); text-align: center; }
+
+    .tracker-btn {
+      padding: 9px 18px; background: #00c6ff; color: var(--blue-deep);
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 800;
+      cursor: pointer; white-space: nowrap; transition: background 0.15s, transform 0.1s;
+    }
+    .tracker-btn:hover   { background: #33d4ff; }
+    .tracker-btn:active  { transform: scale(0.97); }
+    .tracker-btn:disabled{ opacity: 0.5; cursor: not-allowed; transform: none; }
+    .tracker-btn.secondary {
+      background: rgba(255,255,255,0.12); color: white;
+      border: 1.5px solid rgba(255,255,255,0.2);
+    }
+    .tracker-btn.secondary:hover { background: rgba(255,255,255,0.2); }
+
+    .tracker-status { font-size: 12px; font-weight: 600; margin-top: 10px; color: rgba(255,255,255,0.7); min-height: 16px; }
+    .tracker-status.err { color: #ff6b6b; }
+
+    /* ── Stats panel ── */
+    .stats-panel {
+      background: white; border-radius: var(--radius-md);
+      border: 1.5px solid var(--blue-light); overflow: hidden;
+      margin-bottom: 2rem; display: none;
+    }
+    .stats-panel.visible { display: block; }
+    .stats-panel-header {
+      background: var(--blue-pale); border-bottom: 1.5px solid var(--blue-light);
+      padding: 14px 18px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .stats-panel-name { font-size: 16px; font-weight: 800; color: var(--blue-deep); }
+    .stats-panel-meta { font-size: 11px; color: var(--gray-muted); margin-top: 1px; }
+    .friend-code-wrap  { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+    .friend-code-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-muted); }
+    .friend-code-value {
+      font-size: 12px; font-weight: 800; color: var(--blue);
+      background: white; border: 1.5px solid var(--blue-light);
+      padding: 2px 8px; border-radius: 99px; letter-spacing: 0.5px;
+    }
+    .friend-code-copy {
+      background: none; border: none; cursor: pointer; color: var(--gray-muted);
+      padding: 2px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      transition: color 0.12s, background 0.12s;
+    }
+    .friend-code-copy:hover  { color: var(--blue); background: var(--blue-light); }
+    .friend-code-copy.copied { color: #16a34a; }
+    .stats-panel-actions { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+    .stats-action-btn {
+      padding: 5px 12px; border-radius: 99px;
+      border: 1.5px solid var(--blue-light); background: white;
+      font-family: 'Baloo 2', cursive; font-size: 11px; font-weight: 700; color: var(--blue);
+      cursor: pointer; transition: background 0.12s, border-color 0.12s;
+    }
+    .stats-action-btn:hover  { background: var(--blue-pale); border-color: var(--blue); }
+    .stats-action-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+    /* Stat grid */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1px; background: var(--blue-light);
+    }
+    .stat-cell        { background: white; padding: 12px 14px; }
+    .stat-cell-label  { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-muted); margin-bottom: 3px; }
+    .stat-cell-value  { font-size: 18px; font-weight: 800; color: var(--blue-deep); line-height: 1; }
+    .stat-cell-delta  { font-size: 11px; font-weight: 700; margin-top: 3px; }
+    .stat-cell-delta.up   { color: #16a34a; }
+    .stat-cell-delta.down { color: #dc2626; }
+    .stat-cell-delta.same { color: var(--gray-muted); }
+
+    /* Chart */
+    .chart-section         { padding: 18px; display: none; }
+    .chart-section.visible { display: block; }
+    .chart-stat-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chart-stat-pill {
+      padding: 4px 12px; border-radius: 99px;
+      border: 1.5px solid var(--blue-light); background: white;
+      font-family: 'Baloo 2', cursive; font-size: 11px; font-weight: 700; color: var(--blue);
+      cursor: pointer; transition: all 0.12s;
+    }
+    .chart-stat-pill.active { background: var(--blue); color: white; border-color: var(--blue); }
+    .chart-wrap { position: relative; height: 240px; }
+    .chart-no-data {
+      display: flex; align-items: center; justify-content: center;
+      height: 200px; color: var(--gray-muted); font-size: 13px;
+      flex-direction: column; gap: 8px;
+    }
+    .chart-no-data-icon { font-size: 36px; }
+
+    /* Loading skeleton */
+    @keyframes shimmer { from { background-position: -400px 0; } to { background-position: 400px 0; } }
+    .skeleton {
+      background: linear-gradient(90deg, #f0f4f8 25%, #e2eaf2 50%, #f0f4f8 75%);
+      background-size: 400px 100%; animation: shimmer 1.2s infinite; border-radius: 4px;
+    }
+
+    @media (max-width: 600px) {
+      .tracker-hero { padding: 1.4rem 1.2rem 1.2rem; }
+      .stats-panel-actions { width: 100%; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community Logo" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html" class="active">Tools</a>
+      <a href="index.html#sites">Sites</a>
+    </nav>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="news.html">News</a>
+    <a href="forum.html">Forum</a>
+    <a href="tools.html">Tools</a>
+    <a href="index.html#sites">Sites</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<!-- ===================== MAIN ===================== -->
+<div class="stats-page-wrap">
+  <div class="stats-tile-bg"></div>
+  <div class="stats-tile-fade"></div>
+
+  <main class="stats-layout">
+
+    <!-- Stats tracker hero -->
+    <div class="tracker-hero">
+      <div class="tracker-hero-label">Rocket Bot Royale</div>
+      <h2>Player Stats Tracker</h2>
+      <p>Search by Username, paste a User ID, or enter a Friend Code. Stats are tracked over time — look up a player again tomorrow to see their history graph!</p>
+      <div class="tracker-search-row">
+        <div class="tracker-input-wrap">
+          <input type="text" id="tracker-input" class="tracker-input"
+                 placeholder="Username, User ID, or Friend Code…" autocomplete="off" spellcheck="false" />
+          <div class="tracker-dropdown" id="tracker-dropdown"></div>
+        </div>
+        <button class="tracker-btn" id="tracker-search-btn" onclick="trackerSearch()">Look Up</button>
+      </div>
+      <div class="tracker-status" id="tracker-status"></div>
+    </div>
+
+    <!-- Stats result panel -->
+    <div class="stats-panel" id="stats-panel">
+      <div class="stats-panel-header">
+        <div>
+          <div class="stats-panel-name" id="stats-name">—</div>
+          <div class="stats-panel-meta" id="stats-meta">—</div>
+          <div class="friend-code-wrap" id="friend-code-wrap" style="display:none;">
+            <span class="friend-code-label">Friend Code</span>
+            <span class="friend-code-value" id="friend-code-value"></span>
+            <button class="friend-code-copy" id="friend-code-copy" title="Copy friend code">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="stats-panel-actions">
+          <button class="stats-action-btn active" id="tab-stats"   onclick="switchTab('stats')">Stats</button>
+          <button class="stats-action-btn"        id="tab-history" onclick="switchTab('history')">History</button>
+          <button class="stats-action-btn"        id="tab-raw"     onclick="switchTab('raw')">Raw</button>
+        </div>
+      </div>
+
+      <div id="view-stats">
+        <div class="stats-grid" id="stats-grid"></div>
+      </div>
+
+      <div class="chart-section" id="view-history">
+        <div class="chart-stat-pills" id="chart-pills"></div>
+        <div class="chart-wrap">
+          <canvas id="stats-chart"></canvas>
+          <div class="chart-no-data" id="chart-no-data" style="display:none;">
+            <div class="chart-no-data-icon">📈</div>
+            <div>No history yet. Look up this player again tomorrow!</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-raw" style="display:none;">
+        <div style="padding:10px 16px;border-bottom:1px solid var(--blue-light);display:flex;justify-content:flex-end;">
+          <button class="stats-action-btn" id="raw-download-btn">⬇ Download JSON</button>
+        </div>
+        <pre id="stats-raw" style="padding:16px;font-size:11px;overflow:auto;max-height:400px;background:#f8fafc;margin:0;"></pre>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<script src="js/bottom-bar-loader.js"></script>
+<script>
+/* ── Firebase + API config ── */
+var FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDyrbOkMUrDcXmeE3WlwNrWbkOVNg-UGEg",
+  authDomain:        "winterpixelcommunity.firebaseapp.com",
+  projectId:         "winterpixelcommunity",
+  storageBucket:     "winterpixelcommunity.firebasestorage.app",
+  messagingSenderId: "590927242514",
+  appId:             "1:590927242514:web:d99b37ff6ad67f1b83ffcb"
+};
+
+var BASE_URL     = 'https://dev-nakama.winterpixel.io/v2';
+var BASE_HEADERS = {
+  accept:        'application/json',
+  authorization: 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=',
+  origin:        'https://rocketbotroyale2.winterpixel.io',
+  referer:       'https://rocketbotroyale2.winterpixel.io/',
+  'content-type':'application/json'
+};
+
+var UUID_RE        = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+// Friend codes are exactly 8 lowercase hex characters e.g. 182e359f
+var FRIEND_CODE_RE = /^[a-f0-9]{8}$/i;
+
+if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+var db   = firebase.firestore();
+var auth = firebase.auth();
+var currentUser = null;
+auth.onAuthStateChanged(function(u) { currentUser = u; });
+
+var _cachedToken    = null;
+var _tokenExpiresAt = 0;
+
+async function getToken() {
+  if (_cachedToken && Date.now() < _tokenExpiresAt) return _cachedToken;
+  var resp = await fetch(BASE_URL + '/account/authenticate/email?create=false', {
+    method: 'POST', headers: BASE_HEADERS,
+    body: JSON.stringify({ email: 'test6969khan@test.com', password: 'password', vars: { client_version: '9999999999' } })
+  });
+  if (!resp.ok) throw new Error('Game auth failed (' + resp.status + ')');
+  var data = await resp.json();
+  _cachedToken    = data.token;
+  _tokenExpiresAt = Date.now() + 55 * 60 * 1000;
+  return _cachedToken;
+}
+
+async function fetchProfile(userId) {
+  var token = await getToken();
+  var resp = await fetch(BASE_URL + '/rpc/rpc_get_users_with_profile', {
+    method: 'POST',
+    headers: { accept:'application/json', origin:'https://rocketbotroyale2.winterpixel.io', referer:'https://rocketbotroyale2.winterpixel.io/', authorization:'Bearer ' + token, 'content-type':'application/json' },
+    body: JSON.stringify(JSON.stringify({ ids: [String(userId)] }))
+  });
+  if (!resp.ok) throw new Error('Profile fetch failed (' + resp.status + ')');
+  var data  = await resp.json();
+  var inner = JSON.parse(data.payload);
+  if (!inner || !inner[0]) throw new Error('Player not found');
+  return inner[0];
+}
+
+/* ── Friend code → User ID lookup ── */
+async function lookupFriendCode(friendCode) {
+  try {
+    var token = await getToken();
+    var resp  = await fetch(BASE_URL + '/rpc/winterpixel_query_user_id_for_friend_code', {
+      method: 'POST',
+      headers: { accept:'application/json', origin:'https://rocketbotroyale2.winterpixel.io', referer:'https://rocketbotroyale2.winterpixel.io/', authorization:'Bearer ' + token, 'content-type':'application/json' },
+      body: JSON.stringify(JSON.stringify({ friend_code: friendCode.toLowerCase() }))
+    });
+    if (!resp.ok) return null;
+    var data    = await resp.json();
+    var payload = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
+    return (payload && (payload.user_id || payload.id)) || null;
+  } catch(e) {
+    return null;
+  }
+}
+
+/* ── Input resolver: UUID → friend code → Firebase username ── */
+async function resolveInput(input) {
+  // 1. Direct UUID
+  if (UUID_RE.test(input)) return { userId: input, source: 'uuid' };
+
+  // 2. Looks like a friend code → try the API first
+  if (FRIEND_CODE_RE.test(input)) {
+    setStatus('Checking friend code…');
+    var fcUserId = await lookupFriendCode(input);
+    if (fcUserId) return { userId: fcUserId, source: 'friend_code' };
+  }
+
+  // 3. Fall back to Firebase username index
+  setStatus('Searching by username…');
+  var lowerInput = input.toLowerCase();
+  try {
+    var snap = await db.collection('playerIndex')
+                       .where('displayName_lower', '==', lowerInput)
+                       .limit(1).get();
+    if (!snap.empty) return { userId: snap.docs[0].id, source: 'index' };
+  } catch(e) {}
+
+  return { userId: null, source: 'not_found' };
+}
+
+/* ── Stat labels + formatters ── */
+var STAT_LABELS = {
+  player_kills:'Total Kills', deaths:'Deaths', games_won:'Wins',
+  games_played:'Games Played', most_player_kills:'Best Kill Game',
+  gems_found:'Gems Found', best_rank:'Best Rank',
+  _kdr:'KDR', _winrate:'Win Rate', _level:'Level', _awards_seen:'Skins Unlocked',
+};
+function statLabel(key) {
+  return STAT_LABELS[key] || key.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+}
+function formatStatValue(key, val) {
+  if (key === '_winrate') return Math.round(val) + '%';
+  if (key === '_kdr')     return (Math.round(val * 100) / 100).toFixed(2);
+  if (typeof val === 'number') return val.toLocaleString();
+  return String(val);
+}
+function todayKey() { return new Date().toISOString().slice(0,10); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── Firebase snapshot save/load ── */
+function saveSnapshot(gameUserId, statsFlat, displayName) {
+  if (!gameUserId) return;
+  var payload = { stats: statsFlat, timestamp: Date.now() };
+  if (currentUser) payload.uid = currentUser.uid;
+  db.collection('statHistory').doc(gameUserId)
+    .collection('snapshots').doc(todayKey())
+    .set(payload)
+    .then(function() {
+      if (displayName) {
+        db.collection('playerIndex').doc(gameUserId)
+          .set({ displayName: displayName, displayName_lower: displayName.toLowerCase() }, { merge: true })
+          .catch(function(e){ console.warn('PlayerIndex write:', e.message); });
+      }
+    })
+    .catch(function(e){ if (e.code !== 'permission-denied') console.warn('Snapshot write:', e.message); });
+  try { sessionStorage.removeItem('snapshots_' + gameUserId); } catch(e) {}
+}
+
+async function loadSnapshots(gameUserId) {
+  var cacheKey = 'snapshots_' + gameUserId;
+  try {
+    var cached = JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
+    if (cached) return cached;
+  } catch(e) {}
+  var snap = await db.collection('statHistory').doc(gameUserId)
+                     .collection('snapshots').orderBy('timestamp','asc').limit(60).get();
+  var results = [];
+  snap.forEach(function(doc){ results.push({ date: doc.id, stats: doc.data().stats || {} }); });
+  try { sessionStorage.setItem(cacheKey, JSON.stringify(results)); } catch(e) {}
+  return results;
+}
+
+/* ── Tracker search ── */
+var _lastProfile     = null;
+var _lastUserId      = null;
+var _snapshots       = [];
+var _activeChartStat = null;
+var _chart           = null;
+
+function setStatus(msg, isErr) {
+  var el = document.getElementById('tracker-status');
+  el.textContent = msg;
+  el.className = 'tracker-status' + (isErr ? ' err' : '');
+}
+
+async function trackerSearch() {
+  var input = document.getElementById('tracker-input').value.trim();
+  if (!input) return;
+  var btn = document.getElementById('tracker-search-btn');
+  btn.disabled = true;
+  setStatus('Looking up…');
+  document.getElementById('stats-panel').classList.remove('visible');
+
+  try {
+    var resolved = await resolveInput(input);
+    if (!resolved.userId) {
+      setStatus('No player found for "' + input + '". Try their User ID or check the spelling.', true);
+      btn.disabled = false;
+      return;
+    }
+    var profile = await fetchProfile(resolved.userId);
+    _lastProfile = profile;
+    _lastUserId  = resolved.userId;
+
+    var stats     = profile.metadata && profile.metadata.stats ? profile.metadata.stats : {};
+    var statsFlat = Object.assign({}, stats, {
+      _level:       profile.metadata && profile.metadata.progress ? profile.metadata.progress.level : 0,
+      _awards_seen: profile.metadata ? profile.metadata.awards_seen : 0,
+      _kdr:         stats.deaths       ? stats.player_kills / stats.deaths             : 0,
+      _winrate:     stats.games_played ? (100 * stats.games_won / stats.games_played)  : 0,
+    });
+
+    renderProfile(profile, statsFlat, []);
+    setStatus('');
+
+    saveSnapshot(resolved.userId, statsFlat, profile.display_name);
+    loadSnapshots(resolved.userId).then(function(snaps) {
+      _snapshots = snaps;
+      renderChartPills(statsFlat, snaps);
+    }).catch(function(e){ console.warn('History load failed:', e); });
+
+  } catch(e) {
+    setStatus('Error: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ── Render profile ── */
+function renderProfile(profile, statsFlat, snapshots) {
+  var name = profile.display_name || 'Unknown';
+  document.getElementById('stats-name').textContent = name;
+
+  var created = profile.create_time ? new Date(profile.create_time * 1000).toLocaleDateString('en-US',{year:'numeric',month:'short'}) : '';
+  var level   = profile.metadata && profile.metadata.progress ? profile.metadata.progress.level : '?';
+  document.getElementById('stats-meta').textContent =
+    'Level ' + level + (created ? ' · Joined ' + created : '') + (profile.online ? ' · 🟢 Online' : ' · ⚫ Offline');
+
+  var friendCode = profile.metadata && profile.metadata.friend_code;
+  var fcWrap = document.getElementById('friend-code-wrap');
+  if (friendCode) {
+    document.getElementById('friend-code-value').textContent = friendCode;
+    fcWrap.style.display = 'flex';
+    var copyBtn = document.getElementById('friend-code-copy');
+    copyBtn.onclick = function() {
+      navigator.clipboard.writeText(friendCode).then(function() {
+        copyBtn.classList.add('copied');
+        setTimeout(function(){ copyBtn.classList.remove('copied'); }, 1500);
+      });
+    };
+  } else {
+    fcWrap.style.display = 'none';
+  }
+
+  var prevStats = snapshots.length >= 2 ? snapshots[snapshots.length - 2].stats : null;
+  var grid = document.getElementById('stats-grid');
+  grid.innerHTML = '';
+  var orderedKeys = ['_level','_kdr','_winrate','player_kills','deaths','games_won','games_played','most_player_kills','gems_found','best_rank','_awards_seen'];
+  Object.keys(statsFlat).forEach(function(k){ if (orderedKeys.indexOf(k) === -1) orderedKeys.push(k); });
+
+  orderedKeys.forEach(function(key) {
+    if (!(key in statsFlat)) return;
+    var val   = statsFlat[key];
+    var prev  = prevStats ? prevStats[key] : null;
+    var delta = (prev !== null && prev !== undefined && typeof val === 'number') ? val - prev : null;
+    var deltaHtml = '';
+    if (delta !== null && delta !== 0) {
+      var sign = delta > 0 ? '+' : '';
+      var cls  = delta > 0 ? 'up' : 'down';
+      deltaHtml = '<div class="stat-cell-delta ' + cls + '">' + sign + formatStatValue(key, delta) + ' since last</div>';
+    } else if (delta === 0) {
+      deltaHtml = '<div class="stat-cell-delta same">No change</div>';
+    }
+    grid.innerHTML += '<div class="stat-cell"><div class="stat-cell-label">' + escHtml(statLabel(key)) + '</div><div class="stat-cell-value">' + escHtml(formatStatValue(key, val)) + '</div>' + deltaHtml + '</div>';
+  });
+
+  var rawJson = JSON.stringify(profile, null, 2);
+  document.getElementById('stats-raw').textContent = rawJson;
+  document.getElementById('raw-download-btn').onclick = function() {
+    var blob = new Blob([rawJson], { type:'application/json' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url; a.download = (profile.display_name || 'player') + '-stats.json'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  renderChartPills(statsFlat, snapshots);
+  document.getElementById('stats-panel').classList.add('visible');
+  switchTab('stats');
+}
+
+/* ── Chart ── */
+function renderChartPills(statsFlat, snapshots) {
+  var pills = document.getElementById('chart-pills');
+  pills.innerHTML = '';
+  var chartableKeys = Object.keys(statsFlat).filter(function(k){
+    return typeof statsFlat[k] === 'number' && snapshots.some(function(s){ return k in s.stats; });
+  });
+  if (!chartableKeys.length) return;
+  _activeChartStat = _activeChartStat || chartableKeys[0];
+  chartableKeys.forEach(function(key) {
+    var pill = document.createElement('button');
+    pill.className = 'chart-stat-pill' + (key === _activeChartStat ? ' active' : '');
+    pill.textContent = statLabel(key);
+    pill.onclick = function() {
+      _activeChartStat = key;
+      document.querySelectorAll('.chart-stat-pill').forEach(function(p){ p.classList.remove('active'); });
+      pill.classList.add('active');
+      drawChart(key, snapshots);
+    };
+    pills.appendChild(pill);
+  });
+  drawChart(_activeChartStat, snapshots);
+}
+
+function drawChart(statKey, snapshots) {
+  var noData = document.getElementById('chart-no-data');
+  var canvas = document.getElementById('stats-chart');
+  var points = snapshots.filter(function(s){ return statKey in s.stats; });
+  if (points.length < 2) {
+    noData.style.display = 'flex'; canvas.style.display = 'none';
+    if (_chart) { _chart.destroy(); _chart = null; }
+    return;
+  }
+  noData.style.display = 'none'; canvas.style.display = 'block';
+  if (_chart) _chart.destroy();
+  _chart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: points.map(function(p){ return p.date; }),
+      datasets: [{
+        label: statLabel(statKey),
+        data: points.map(function(p){ return p.stats[statKey]; }),
+        borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.08)',
+        borderWidth: 2.5, pointBackgroundColor: '#0ea5e9',
+        pointRadius: 4, pointHoverRadius: 6, tension: 0.35, fill: true,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx){ return statLabel(statKey) + ': ' + formatStatValue(statKey, ctx.parsed.y); } } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family:'Baloo 2', size:11 }, color:'#64748b' } },
+        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family:'Baloo 2', size:11 }, color:'#64748b', callback: function(v){ return formatStatValue(statKey, v); } } }
+      }
+    }
+  });
+}
+
+function switchTab(tab) {
+  document.getElementById('view-stats').style.display   = tab === 'stats'   ? '' : 'none';
+  document.getElementById('view-history').className     = 'chart-section' + (tab === 'history' ? ' visible' : '');
+  document.getElementById('view-raw').style.display     = tab === 'raw'     ? '' : 'none';
+  ['stats','history','raw'].forEach(function(t){
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'history' && _snapshots.length && _activeChartStat) drawChart(_activeChartStat, _snapshots);
+}
+
+/* ── Username autocomplete dropdown ── */
+(function() {
+  var input    = document.getElementById('tracker-input');
+  var dropdown = document.getElementById('tracker-dropdown');
+  var timer    = null;
+
+  function closeDropdown() { dropdown.classList.remove('open'); dropdown.innerHTML = ''; }
+
+  function selectResult(userId) { input.value = userId; closeDropdown(); trackerSearch(); }
+
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    var val = input.value.trim();
+    // Don't show autocomplete for UUIDs
+    if (!val || UUID_RE.test(val) || val.length < 2) { closeDropdown(); return; }
+    timer = setTimeout(function() {
+      var lower = val.toLowerCase();
+      db.collection('playerIndex')
+        .where('displayName_lower', '>=', lower)
+        .where('displayName_lower', '<=', lower + '\uf8ff')
+        .limit(6).get()
+        .then(function(snap) {
+          if (snap.empty) {
+            dropdown.innerHTML = '<div class="tracker-dropdown-empty">No players found — try their User ID or Friend Code</div>';
+            dropdown.classList.add('open'); return;
+          }
+          dropdown.innerHTML = '';
+          snap.forEach(function(doc) {
+            var d    = doc.data();
+            var name = d.displayName || doc.id;
+            var uid  = doc.id;
+            var item = document.createElement('div');
+            item.className = 'tracker-dropdown-item';
+            item.innerHTML =
+              '<div class="tracker-dropdown-avatar">' + escHtml(name.slice(0,2).toUpperCase()) + '</div>' +
+              '<div style="min-width:0;flex:1;"><div class="tracker-dropdown-name">' + escHtml(name) + '</div>' +
+              '<div class="tracker-dropdown-id">' + escHtml(uid) + '</div></div>';
+            item.addEventListener('mousedown', function(e){ e.preventDefault(); selectResult(uid); });
+            dropdown.appendChild(item);
+          });
+          dropdown.classList.add('open');
+        })
+        .catch(function(e){ console.warn('Dropdown query failed:', e.message); closeDropdown(); });
+    }, 250);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter')  { closeDropdown(); trackerSearch(); }
+    if (e.key === 'Escape') closeDropdown();
+  });
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) closeDropdown();
+  });
+  input.addEventListener('focus', function() {
+    if (input.value.trim().length >= 2 && dropdown.children.length) dropdown.classList.add('open');
+  });
+})();
+
+/* ── Auto-fill from friendtoid.html ── */
+(function() {
+  try {
+    var prefill = sessionStorage.getItem('ftoid_prefill');
+    if (prefill) {
+      sessionStorage.removeItem('ftoid_prefill');
+      document.getElementById('tracker-input').value = prefill;
+      trackerSearch();
+    }
+  } catch(e) {}
+})();
+
+/* ── Hamburger ── */
+(function() {
+  var btn  = document.getElementById('hamburger');
+  var menu = document.getElementById('mobile-menu');
+  btn.addEventListener('click', function() {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded','false');
+      menu.setAttribute('aria-hidden','true');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

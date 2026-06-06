@@ -1,0 +1,613 @@
+<!-- ===================== STYLES ===================== -->
+<style id="bottom-bar-styles">
+  /* ---- Auth modal ---- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 800;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: var(--radius-lg, 16px);
+    border: 1.5px solid var(--blue-light, #cff4ff);
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 14px; right: 14px;
+    background: none; border: none;
+    font-size: 20px; color: #94A3B8;
+    cursor: pointer; line-height: 1;
+    padding: 4px 8px; border-radius: 6px;
+  }
+  .modal-close:hover { background: var(--blue-pale, #e8faff); color: var(--blue-deep, #004d66); }
+
+  .modal h2 { font-size: 20px; font-weight: 800; color: var(--blue-deep, #004d66); margin-bottom: 4px; }
+  .modal-sub { font-size: 13px; color: #64748B; font-weight: 500; margin-bottom: 1.5rem; }
+
+  .auth-tabs {
+    display: flex;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--blue-light, #cff4ff);
+  }
+
+  .auth-tab {
+    flex: 1; background: none; border: none;
+    padding: 8px; font-family: 'Baloo 2', cursive;
+    font-size: 14px; font-weight: 700; color: #64748B;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .auth-tab.active { color: var(--blue-deep, #004d66); border-bottom-color: var(--blue, #00c6ff); }
+
+  .auth-field { margin-bottom: 1rem; }
+  .auth-field label { display: block; font-size: 13px; font-weight: 700; color: var(--blue-deep, #004d66); margin-bottom: 5px; }
+
+  .auth-field input {
+    width: 100%;
+    border: 1.5px solid var(--blue-light, #cff4ff);
+    border-radius: var(--radius-sm, 8px);
+    padding: 9px 12px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 14px; font-weight: 500;
+    color: var(--blue-deep, #004d66);
+    background: var(--blue-pale, #e8faff);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .auth-field input:focus { border-color: var(--blue, #00c6ff); background: white; }
+
+  .auth-field-hint { font-size: 11px; color: #94A3B8; margin-top: 4px; font-weight: 500; display: block; }
+  .auth-field-hint.ok  { color: #059669; }
+  .auth-field-hint.err { color: #dc2626; }
+
+  .auth-submit {
+    width: 100%;
+    background: var(--blue, #00c6ff);
+    color: white; border: none;
+    border-radius: var(--radius-sm, 8px);
+    padding: 11px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 15px; font-weight: 800;
+    cursor: pointer; margin-top: 0.5rem;
+    transition: background 0.15s;
+  }
+  .auth-submit:hover { background: var(--blue-mid, #00aadd); }
+  .auth-submit:disabled { background: var(--blue-muted, #66d9f5); cursor: not-allowed; }
+
+  .auth-error { font-size: 13px; color: #dc2626; font-weight: 600; margin-top: 0.75rem; text-align: center; display: none; }
+  .auth-error.visible { display: block; }
+
+  /* ---- Bottom bar ---- */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 52px;
+    background: rgba(0, 15, 25, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(0, 198, 255, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 500;
+  }
+
+  .bottom-bar-left { display: flex; align-items: center; gap: 10px; }
+
+  .notif-btn {
+    position: relative;
+    background: none; border: none;
+    color: #66d9f5;
+    display: flex; align-items: center; gap: 7px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .notif-btn:hover { background: rgba(0,198,255,0.1); color: #00c6ff; }
+  .notif-btn svg { width: 18px; height: 18px; }
+
+  .notif-count {
+    position: absolute; top: 2px; right: 4px;
+    background: #ef4444; color: white;
+    font-size: 10px; font-weight: 800;
+    min-width: 16px; height: 16px;
+    border-radius: 99px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px; line-height: 1;
+  }
+
+  .account-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,198,255,0.08);
+    border: 1px solid rgba(0,198,255,0.2);
+    border-radius: 9999px;
+    padding: 5px 14px 5px 6px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .account-pill:hover { background: rgba(0,198,255,0.15); border-color: rgba(0,198,255,0.4); }
+
+  .account-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #0099cc; overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .account-username { font-size: 13px; font-weight: 700; color: white; white-space: nowrap; }
+
+  .bb-signin-btn {
+    background: var(--blue, #00c6ff);
+    color: white; border: none;
+    border-radius: 8px;
+    padding: 5px 14px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .bb-signin-btn:hover { background: #00aadd; }
+
+  /* ---- Notification modal ---- */
+  .notif-modal {
+    position: fixed;
+    bottom: 60px; left: 1.5rem;
+    width: 320px; max-height: 380px;
+    background: #0a1a24;
+    border: 1px solid rgba(0,198,255,0.2);
+    border-radius: 12px;
+    overflow-y: auto;
+    z-index: 600; display: none;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
+  }
+  .notif-modal.open { display: block; }
+
+  .notif-modal-header {
+    padding: 12px 16px 8px;
+    font-size: 12px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    color: #66d9f5;
+    border-bottom: 1px solid rgba(0,198,255,0.1);
+  }
+
+  .notif-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(0,198,255,0.07);
+    text-decoration: none; color: inherit;
+    transition: background 0.15s; cursor: pointer;
+  }
+  .notif-item:hover { background: rgba(0,198,255,0.06); }
+  .notif-item:last-child { border-bottom: none; }
+
+  .notif-item-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #0099cc; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .notif-item-text { flex: 1; min-width: 0; }
+  .notif-item-name { font-size: 12px; font-weight: 700; color: white; }
+  .notif-item-msg { font-size: 11px; color: #66d9f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .notif-item-time { font-size: 10px; color: #475569; margin-top: 2px; }
+
+  /* ---- Account menu ---- */
+  .account-menu {
+    position: fixed;
+    bottom: 60px; right: 1.5rem;
+    background: #0a1a24;
+    border: 1px solid rgba(0,198,255,0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    z-index: 600; display: none;
+    min-width: 160px;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
+  }
+  .account-menu.open { display: block; }
+
+  .account-menu a, .account-menu button {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 11px 16px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 13px; font-weight: 600;
+    color: #99e8fa; text-decoration: none;
+    background: none; border: none;
+    border-bottom: 1px solid rgba(0,198,255,0.07);
+    cursor: pointer; text-align: left;
+    transition: background 0.15s, color 0.15s;
+  }
+  .account-menu a:last-child, .account-menu button:last-child { border-bottom: none; }
+  .account-menu a:hover, .account-menu button:hover { background: rgba(0,198,255,0.08); color: white; }
+  .account-menu .bb-logout { color: #f87171; }
+  .account-menu .bb-logout:hover { background: rgba(239,68,68,0.08); color: #fca5a5; }
+
+  @media (max-width: 480px) {
+    .notif-modal { left: 0.75rem; right: 0.75rem; width: auto; }
+    .account-menu { right: 0.75rem; }
+    .bottom-bar { padding: 0 1rem; }
+  }
+</style>
+
+<!-- ===================== HTML ===================== -->
+<div class="bottom-bar" id="bb-bar">
+  <div class="bottom-bar-left">
+    <button class="notif-btn" id="bb-notif-btn" title="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      Notifications
+      <span class="notif-count" id="bb-notif-count" style="display:none;">0</span>
+    </button>
+  </div>
+
+  <div id="bb-account-area">
+    <button class="bb-signin-btn" id="bb-signin-btn">Sign in</button>
+    <div class="account-pill" id="bb-account-pill" style="display:none;">
+      <div class="account-avatar" id="bb-avatar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#66d9f5" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <span class="account-username" id="bb-username">Username</span>
+    </div>
+  </div>
+</div>
+
+<!-- Notification modal -->
+<div class="notif-modal" id="bb-notif-modal">
+  <div class="notif-modal-header">Notifications</div>
+  <div id="bb-notif-list">
+    <div style="padding:1.5rem;text-align:center;font-size:13px;color:#475569;">No notifications yet</div>
+  </div>
+</div>
+
+<!-- Account menu -->
+<div class="account-menu" id="bb-account-menu">
+  <a href="profile.html" id="bb-profile-link">👤 My Profile</a>
+  <a href="forum.html">💬 Forum</a>
+  <button class="bb-logout" id="bb-logout-btn">Sign out</button>
+</div>
+
+<!-- Auth modal -->
+<div class="modal-overlay" id="bb-auth-modal">
+  <div class="modal">
+    <button class="modal-close" id="bb-auth-close">✕</button>
+    <h2 id="bb-auth-title">Welcome back</h2>
+    <p class="modal-sub" id="bb-auth-sub">Sign in to join the community</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-bbtab="login">Sign in</button>
+      <button class="auth-tab" data-bbtab="register">Register</button>
+    </div>
+
+    <div id="bb-login-form">
+      <div class="auth-field">
+        <label for="bb-login-username">Username</label>
+        <input type="text" id="bb-login-username" placeholder="Your username" autocomplete="username" />
+      </div>
+      <div class="auth-field">
+        <label for="bb-login-password">Password</label>
+        <input type="password" id="bb-login-password" placeholder="Your password" autocomplete="current-password" />
+      </div>
+      <button class="auth-submit" id="bb-login-submit">Sign in</button>
+      <p class="auth-error" id="bb-login-error"></p>
+    </div>
+
+    <div id="bb-register-form" style="display:none;">
+      <div class="auth-field">
+        <label for="bb-reg-username">Username</label>
+        <input type="text" id="bb-reg-username" placeholder="Choose a username" autocomplete="off" maxlength="24" />
+        <span class="auth-field-hint" id="bb-reg-hint">3–24 characters, letters/numbers/underscores only</span>
+      </div>
+      <div class="auth-field">
+        <label for="bb-reg-password">Password</label>
+        <input type="password" id="bb-reg-password" placeholder="Choose a password (min 6 characters)" autocomplete="new-password" />
+      </div>
+      <button class="auth-submit" id="bb-reg-submit">Create account</button>
+      <p class="auth-error" id="bb-reg-error"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCRIPT ===================== -->
+<script>
+(function() {
+  var firebaseConfig = {
+    apiKey:            "AIzaSyDyrbOkMUrDcXmeE3WlwNrWbkOVNg-UGEg",
+    authDomain:        "winterpixelcommunity.firebaseapp.com",
+    projectId:         "winterpixelcommunity",
+    storageBucket:     "winterpixelcommunity.firebasestorage.app",
+    messagingSenderId: "590927242514",
+    appId:             "1:590927242514:web:d99b37ff6ad67f1b83ffcb"
+  };
+  // ============================================================
+
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+  var auth = firebase.auth();
+  var db   = firebase.firestore();
+
+    var currentUser    = null;
+    var currentProfile = null;
+    var notifOpen      = false;
+    var accountOpen    = false;
+    var unsubNotif     = null;
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function timeAgo(ms) {
+      var diff = Date.now() - ms;
+      if (diff < 60000)  return 'just now';
+      if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+      if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+      return Math.floor(diff/86400000) + 'd ago';
+    }
+
+    function renderNotifications(notifs) {
+      var list = document.getElementById('bb-notif-list');
+      if (!notifs.length) {
+        list.innerHTML = '<div style="padding:1.5rem;text-align:center;font-size:13px;color:#475569;">No notifications yet</div>';
+        return;
+      }
+      list.innerHTML = notifs.map(function(n) {
+        var text = n.type === 'reply'
+          ? '<strong style="color:white;">' + escHtml(n.fromUser || 'Someone') + '</strong> replied: ' + escHtml(n.preview || '')
+          : escHtml(n.preview || 'New notification');
+        var ts = n.createdAt && n.createdAt.toDate ? n.createdAt.toDate().getTime()
+               : (typeof n.createdAt === 'number' ? n.createdAt : Date.now());
+        return '<div class="notif-item' + (n.read ? '' : ' unread') + '" data-id="' + n.id + '">' +
+          '<div class="notif-item-avatar">' + (n.type === 'reply' ? '↩' : '🔔') + '</div>' +
+          '<div class="notif-item-text">' +
+            '<div class="notif-item-name">' + text + '</div>' +
+            '<div class="notif-item-time">' + timeAgo(ts) + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      // Mark all as read when panel is open
+      if (notifOpen) markNotifsRead(notifs);
+    }
+
+    function markNotifsRead(notifs) {
+      var unread = notifs.filter(function(n){ return !n.read; });
+      if (!unread.length || !currentUser) return;
+      var batch = db.batch();
+      unread.forEach(function(n) {
+        batch.update(
+          db.collection('users').doc(currentUser.uid).collection('notifications').doc(n.id),
+          { read: true }
+        );
+      });
+      batch.commit().catch(function(){});
+    }
+
+    function subscribeNotifications(uid) {
+      if (unsubNotif) { unsubNotif(); unsubNotif = null; }
+      unsubNotif = db.collection('users').doc(uid).collection('notifications')
+        .orderBy('createdAt', 'desc').limit(20)
+        .onSnapshot(function(snap) {
+          var notifs = [];
+          snap.forEach(function(doc) {
+            notifs.push(Object.assign({ id: doc.id }, doc.data()));
+          });
+          var unreadCount = notifs.filter(function(n){ return !n.read; }).length;
+          var countEl = document.getElementById('bb-notif-count');
+          if (unreadCount > 0) {
+            countEl.textContent = unreadCount > 9 ? '9+' : unreadCount;
+            countEl.style.display = 'flex';
+          } else {
+            countEl.style.display = 'none';
+          }
+          renderNotifications(notifs);
+          // If panel is open, mark as read immediately
+          if (notifOpen) markNotifsRead(notifs);
+        }, function(e) { console.warn('Notif listener:', e.message); });
+    }
+
+    function fakeEmail(u) { return u.toLowerCase() + '@winterpixel.community.local'; }
+
+    // ---- Auth state ----
+    auth.onAuthStateChanged(function(user) {
+      currentUser = user;
+      if (user) {
+        db.collection('users').doc(user.uid).get().then(function(doc) {
+          currentProfile = doc.exists ? doc.data() : { username: 'Unknown' };
+          document.getElementById('bb-signin-btn').style.display    = 'none';
+          document.getElementById('bb-account-pill').style.display  = 'flex';
+          document.getElementById('bb-username').textContent = currentProfile.username || 'User';
+          if (currentProfile.pfp) {
+            document.getElementById('bb-avatar').innerHTML =
+              '<img src="' + currentProfile.pfp + '" alt="" onerror="this.style.display=\'none\'"/>';
+          }
+          document.getElementById('bb-profile-link').href =
+            'profile.html?user=' + encodeURIComponent(currentProfile.username);
+        });
+        subscribeNotifications(user.uid);
+      } else {
+        currentProfile = null;
+        if (unsubNotif) { unsubNotif(); unsubNotif = null; }
+        document.getElementById('bb-signin-btn').style.display   = 'block';
+        document.getElementById('bb-account-pill').style.display = 'none';
+        document.getElementById('bb-notif-count').style.display  = 'none';
+        document.getElementById('bb-notif-list').innerHTML =
+          '<div style="padding:1.5rem;text-align:center;font-size:13px;color:#475569;">Sign in to see notifications</div>';
+      }
+    });
+
+    // ---- Notification bell ----
+    document.getElementById('bb-notif-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      notifOpen = !notifOpen;
+      document.getElementById('bb-notif-modal').classList.toggle('open', notifOpen);
+      accountOpen = false;
+      document.getElementById('bb-account-menu').classList.remove('open');
+      // Mark as read when opening
+      if (notifOpen && currentUser) {
+        var items = document.querySelectorAll('#bb-notif-list .notif-item');
+        var toMark = [];
+        items.forEach(function(el) {
+          if (el.classList.contains('unread')) toMark.push(el.dataset.id);
+        });
+        if (toMark.length) {
+          var batch = db.batch();
+          toMark.forEach(function(id) {
+            batch.update(
+              db.collection('users').doc(currentUser.uid).collection('notifications').doc(id),
+              { read: true }
+            );
+          });
+          batch.commit().catch(function(){});
+        }
+      }
+    });
+
+    // ---- Account pill ----
+    document.getElementById('bb-account-pill').addEventListener('click', function(e) {
+      e.stopPropagation();
+      accountOpen = !accountOpen;
+      document.getElementById('bb-account-menu').classList.toggle('open', accountOpen);
+      notifOpen = false;
+      document.getElementById('bb-notif-modal').classList.remove('open');
+    });
+
+    // ---- Close on outside click ----
+    document.addEventListener('click', function() {
+      notifOpen = false; accountOpen = false;
+      document.getElementById('bb-notif-modal').classList.remove('open');
+      document.getElementById('bb-account-menu').classList.remove('open');
+    });
+
+    document.getElementById('bb-notif-modal').addEventListener('click', function(e) { e.stopPropagation(); });
+    document.getElementById('bb-account-menu').addEventListener('click', function(e) { e.stopPropagation(); });
+
+    // ---- Sign out ----
+    document.getElementById('bb-logout-btn').addEventListener('click', function() {
+      auth.signOut();
+      document.getElementById('bb-account-menu').classList.remove('open');
+    });
+
+    // ---- Open/close auth modal ----
+    function openAuth() { document.getElementById('bb-auth-modal').classList.add('open'); }
+    function closeAuth() { document.getElementById('bb-auth-modal').classList.remove('open'); }
+
+    document.getElementById('bb-signin-btn').addEventListener('click', openAuth);
+    document.getElementById('bb-auth-close').addEventListener('click', closeAuth);
+    document.getElementById('bb-auth-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeAuth();
+    });
+
+    // ---- Auth tabs ----
+    document.querySelectorAll('[data-bbtab]').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('[data-bbtab]').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var isLogin = tab.dataset.bbtab === 'login';
+        document.getElementById('bb-login-form').style.display    = isLogin ? 'block' : 'none';
+        document.getElementById('bb-register-form').style.display = isLogin ? 'none'  : 'block';
+        document.getElementById('bb-auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
+        document.getElementById('bb-auth-sub').textContent   = isLogin
+          ? 'Sign in to join the community'
+          : 'Username is first come, first served';
+      });
+    });
+
+    // ---- Login ----
+    document.getElementById('bb-login-submit').addEventListener('click', function() {
+      var username = document.getElementById('bb-login-username').value.trim();
+      var password = document.getElementById('bb-login-password').value;
+      var errEl    = document.getElementById('bb-login-error');
+      var btn      = this;
+      errEl.classList.remove('visible');
+      if (!username || !password) {
+        errEl.textContent = 'Please fill in both fields.';
+        errEl.classList.add('visible');
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      auth.signInWithEmailAndPassword(fakeEmail(username), password)
+        .then(function() { closeAuth(); })
+        .catch(function() {
+          btn.disabled = false; btn.textContent = 'Sign in';
+          errEl.textContent = 'Incorrect username or password.';
+          errEl.classList.add('visible');
+        });
+    });
+
+    // ---- Register ----
+    var usernameTimer = null;
+    document.getElementById('bb-reg-username').addEventListener('input', function() {
+      var val  = this.value.trim();
+      var hint = document.getElementById('bb-reg-hint');
+      clearTimeout(usernameTimer);
+      if (!val) { hint.textContent = '3–24 characters, letters/numbers/underscores only'; hint.className = 'auth-field-hint'; return; }
+      if (!/^[a-zA-Z0-9_]{3,24}$/.test(val)) { hint.textContent = 'Invalid characters or length'; hint.className = 'auth-field-hint err'; return; }
+      hint.textContent = 'Checking…'; hint.className = 'auth-field-hint';
+      usernameTimer = setTimeout(function() {
+        db.collection('usernames').doc(val.toLowerCase()).get().then(function(doc) {
+          hint.textContent = doc.exists ? 'Username taken' : 'Username available!';
+          hint.className   = 'auth-field-hint ' + (doc.exists ? 'err' : 'ok');
+        });
+      }, 500);
+    });
+
+    document.getElementById('bb-reg-submit').addEventListener('click', function() {
+      var username = document.getElementById('bb-reg-username').value.trim();
+      var password = document.getElementById('bb-reg-password').value;
+      var errEl    = document.getElementById('bb-reg-error');
+      var btn      = this;
+      errEl.classList.remove('visible');
+      if (!username || !/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
+        errEl.textContent = 'Please enter a valid username.'; errEl.classList.add('visible'); return;
+      }
+      if (password.length < 6) {
+        errEl.textContent = 'Password must be at least 6 characters.'; errEl.classList.add('visible'); return;
+      }
+      btn.disabled = true; btn.textContent = 'Creating account…';
+
+      db.collection('usernames').doc(username.toLowerCase()).get()
+        .then(function(doc) {
+          if (doc.exists) throw new Error('Username already taken.');
+          return auth.createUserWithEmailAndPassword(fakeEmail(username), password);
+        })
+        .then(function(cred) {
+          var uid   = cred.user.uid;
+          var batch = db.batch();
+          batch.set(db.collection('usernames').doc(username.toLowerCase()), { uid: uid });
+          batch.set(db.collection('users').doc(uid), {
+            username:  username,
+            pfp:       null,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          return batch.commit();
+        })
+        .then(function() { closeAuth(); })
+        .catch(function(err) {
+          btn.disabled = false; btn.textContent = 'Create account';
+          var msg = err.message || 'Something went wrong.';
+          if (msg.includes('email-already-in-use')) msg = 'Username already taken.';
+          errEl.textContent = msg; errEl.classList.add('visible');
+        });
+    });
+
+})();
+</script>

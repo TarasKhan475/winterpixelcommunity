@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixel Forum</title>
+  <meta name="description" content="The Winterpixel community forum. Chat about games, share highlights, report bugs and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+
+  <style>
+    .forum-wrap {
+      max-width: 1500px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 0;
+      height: calc(100vh - 50px - 52px);
+    }
+
+    /* ---- Sidebar ---- */
+    .channel-sidebar {
+      display: flex;
+      flex-direction: column;
+      border-right: 1.5px solid var(--blue-light);
+      background: var(--blue-pale);
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .sidebar-search {
+      padding: 10px 10px 6px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--blue-light);
+    }
+
+    .sidebar-search-box {
+      display: flex; align-items: center; gap: 6px;
+      background: white; border: 1.5px solid var(--blue-light);
+      border-radius: var(--radius-sm); padding: 5px 8px;
+      transition: border-color var(--transition);
+    }
+
+    .sidebar-search-box:focus-within { border-color: var(--blue); }
+    .sidebar-search-box svg { width: 13px; height: 13px; color: var(--blue-muted); flex-shrink: 0; }
+
+    .sidebar-search-input {
+      flex: 1; border: none; background: transparent;
+      font-family: 'Baloo 2', cursive; font-size: 12px; font-weight: 500;
+      color: var(--blue-deep); outline: none; min-width: 0;
+    }
+
+    .sidebar-search-input::placeholder { color: var(--blue-muted); }
+
+    /* Mobile-only elements hidden on desktop */
+    .mobile-search-btn,
+    .mobile-search-overlay { display: none; }
+
+    .sidebar-search-results {
+      display: none; flex-direction: column; overflow-y: auto; flex: 1;
+    }
+
+    .sidebar-search-results.visible { display: flex; }
+
+    .search-result-msg {
+      padding: 8px 10px; border-bottom: 1px solid var(--blue-light);
+      cursor: pointer; transition: background var(--transition);
+    }
+
+    .search-result-msg:hover { background: white; }
+
+    .search-result-msg-meta {
+      display: flex; align-items: center; gap: 5px; margin-bottom: 2px; flex-wrap: wrap;
+    }
+
+    .search-result-ch {
+      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
+      color: var(--blue); background: var(--blue-light); padding: 1px 5px; border-radius: 4px;
+    }
+
+    .search-result-user { font-size: 11px; font-weight: 700; color: var(--blue-deep); }
+    .search-result-time { font-size: 10px; color: var(--gray-muted); margin-left: auto; }
+    .search-result-text { font-size: 12px; color: var(--gray-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .search-no-results { padding: 1.5rem; text-align: center; font-size: 12px; color: var(--gray-muted); }
+    .search-loading    { padding: 1.5rem; text-align: center; font-size: 12px; color: var(--blue-muted); }
+
+    .sidebar-channel-list {
+      flex: 1; overflow-y: auto; padding: 8px 6px;
+    }
+
+    .channel-sidebar-title {
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--gray-muted); padding: 0 6px; margin-bottom: 4px;
+    }
+
+    .channel-btn {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; padding: 7px 8px;
+      border: none; background: none; border-radius: var(--radius-sm);
+      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 600;
+      color: var(--gray-mid); cursor: pointer; text-align: left;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .channel-btn:hover { background: var(--blue-light); color: var(--blue-deep); }
+
+    .channel-btn.active {
+      background: var(--blue-light); color: var(--blue-deep); font-weight: 800;
+    }
+
+    .channel-hash { font-size: 14px; font-weight: 800; color: var(--blue-muted); flex-shrink: 0; line-height: 1; }
+    .channel-btn.active .channel-hash { color: var(--blue); }
+
+    /* ---- Main feed ---- */
+    .channel-feed {
+      display: flex; flex-direction: column;
+      height: 100%; overflow: hidden;
+    }
+
+    .channel-header {
+      display: flex; align-items: center;
+      border-bottom: 1.5px solid var(--blue-light);
+      padding: 8px 14px; flex-shrink: 0; background: white;
+    }
+
+    .channel-header h1 { font-size: 17px; font-weight: 800; color: var(--blue-deep); }
+    .channel-header p  { font-size: 12px; color: var(--gray-mid); font-weight: 500; }
+
+    /* ---- Messages ---- */
+    .messages-list {
+      flex: 1; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 0;
+      scrollbar-width: thin; scrollbar-color: var(--blue-light) transparent;
+    }
+
+    .messages-list::-webkit-scrollbar { width: 4px; }
+    .messages-list::-webkit-scrollbar-thumb { background: var(--blue-light); border-radius: 4px; }
+
+    .msg {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 5px 12px; transition: background var(--transition);
+      position: relative;
+    }
+
+    .msg:hover { background: var(--blue-pale); }
+    .msg:hover .msg-actions { opacity: 1; }
+
+    .msg.highlighted { animation: hl-fade 2.5s forwards; }
+
+    @keyframes hl-fade {
+      0%   { background: #fff1a0; }
+      100% { background: transparent; }
+    }
+
+    .msg-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--blue-light); flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: var(--blue-deep); margin-top: 2px;
+    }
+
+    .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .msg-body { flex: 1; min-width: 0; }
+
+    .msg-meta { display: flex; align-items: baseline; gap: 6px; margin-bottom: 1px; flex-wrap: wrap; }
+    .msg-username { font-size: 13px; font-weight: 800; color: var(--blue-deep); cursor: pointer; }
+    .msg-username:hover { text-decoration: underline; }
+    .msg-time { font-size: 11px; color: var(--gray-muted); font-weight: 500; }
+
+    .mod-badge {
+      font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
+      background: var(--blue); color: white; padding: 1px 5px; border-radius: 4px;
+    }
+
+    .msg-text { font-size: 14px; color: #334155; line-height: 1.5; word-break: break-word; }
+    .msg-text img { max-height: 120px; width: auto; border-radius: 8px; margin-top: 5px; display: block; }
+
+    .msg-reply-quote {
+      background: var(--blue-pale); border-left: 3px solid var(--blue-muted);
+      border-radius: 0 5px 5px 0; padding: 3px 8px; margin-bottom: 4px;
+      font-size: 12px; color: var(--gray-mid);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+    }
+
+    .msg-reply-quote:hover { background: var(--blue-light); }
+    .msg-reply-quote strong { color: var(--blue-deep); font-weight: 700; }
+
+    .msg-actions {
+      position: absolute; top: 4px; right: 8px;
+      display: flex; gap: 3px; align-items: center;
+      opacity: 0; transition: opacity var(--transition);
+      pointer-events: none;
+    }
+    .msg:hover .msg-actions,
+    .msg-actions.always-visible { opacity: 1; pointer-events: auto; }
+
+    .msg-action-btn {
+      background: white; border: 1px solid var(--blue-light);
+      border-radius: 5px; padding: 2px 7px;
+      font-family: 'Baloo 2', cursive; font-size: 11px; font-weight: 700;
+      color: var(--blue-mid); cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .msg-action-btn:hover { background: var(--blue-pale); color: var(--blue-deep); }
+    .msg-action-btn.del { color: #f87171; }
+    .msg-action-btn.del:hover { background: #fee2e2; color: #dc2626; }
+    .msg-action-btn.del[title]:hover::after {
+      content: attr(title); position: absolute; right: 0; top: -22px;
+      background: #1e293b; color: white; font-size: 10px; font-weight: 600;
+      padding: 2px 6px; border-radius: 4px; white-space: nowrap; pointer-events: none;
+    }
+    .msg.deleting { opacity: 0.4; transition: opacity 0.3s; pointer-events: none; }
+    .msg.deleted  { display: none; }
+
+    /* ---- Compose ---- */
+    .compose-wrap {
+      flex-shrink: 0; border-top: 1.5px solid var(--blue-light);
+      padding: 8px 12px 6px;
+    }
+
+    .reply-preview {
+      display: none; align-items: center; gap: 8px;
+      background: var(--blue-pale); border: 1px solid var(--blue-light);
+      border-radius: var(--radius-sm); padding: 4px 8px; margin-bottom: 6px;
+      font-size: 12px; color: var(--gray-mid);
+    }
+
+    .reply-preview.visible { display: flex; }
+    .reply-preview-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .reply-preview-text strong { color: var(--blue-deep); font-weight: 700; }
+    .reply-cancel { background: none; border: none; color: var(--gray-muted); font-size: 15px; cursor: pointer; flex-shrink: 0; line-height: 1; padding: 0 3px; }
+    .reply-cancel:hover { color: var(--blue-deep); }
+
+    .compose-box {
+      display: flex; align-items: flex-end; gap: 8px;
+      background: var(--blue-pale); border: 1.5px solid var(--blue-light);
+      border-radius: var(--radius-md); padding: 6px 10px;
+      transition: border-color var(--transition);
+    }
+
+    .compose-box:focus-within { border-color: var(--blue); }
+
+    .compose-input {
+      flex: 1; border: none; background: transparent;
+      font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 500;
+      color: var(--blue-deep); resize: none; outline: none;
+      min-height: 34px; max-height: 120px; line-height: 1.5; padding: 2px 0;
+    }
+
+    .compose-input::placeholder { color: var(--blue-muted); }
+
+    .char-count {
+      font-size: 10px; color: var(--gray-muted); font-weight: 500;
+      flex-shrink: 0; align-self: flex-end; padding-bottom: 5px;
+    }
+
+    .char-count.warn { color: #f59e0b; }
+    .char-count.over { color: #ef4444; font-weight: 800; }
+
+    .compose-send {
+      background: var(--blue); color: white; border: none;
+      border-radius: var(--radius-sm); width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: background var(--transition);
+    }
+
+    .compose-send:hover { background: var(--blue-mid); }
+    .compose-send:disabled { background: var(--blue-muted); cursor: not-allowed; }
+    .compose-send svg { width: 15px; height: 15px; }
+
+    .compose-hint { font-size: 10px; color: var(--gray-muted); margin-top: 3px; font-weight: 500; }
+
+    .rate-warn {
+      font-size: 11px; font-weight: 600; text-align: center; padding: 3px 0;
+      display: none; color: #f59e0b;
+    }
+
+    /* Login prompt */
+    .login-prompt {
+      background: var(--blue-pale); border: 1.5px solid var(--blue-light);
+      border-radius: var(--radius-md); padding: 0.2rem 0.85rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+
+    .login-prompt p { font-size: 12px; color: var(--blue-deep); font-weight: 600; }
+
+    .login-prompt-btn {
+      background: var(--blue); color: white; border: none;
+      border-radius: var(--radius-sm); padding: 3px 12px;
+      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: background var(--transition);
+    }
+
+    .login-prompt-btn:hover { background: var(--blue-mid); }
+
+    .msgs-loading { padding: 3rem; text-align: center; font-size: 14px; color: var(--blue-muted); }
+    .msgs-empty   { padding: 3rem; text-align: center; font-size: 14px; color: var(--gray-muted); }
+
+    /* ---- Auth modal ---- */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 800; display: none; align-items: center; justify-content: center; padding: 1rem;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: white; border-radius: var(--radius-lg); border: 1.5px solid var(--blue-light);
+      width: 100%; max-width: 400px; padding: 2rem; position: relative;
+    }
+
+    .modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 20px; color: var(--gray-muted); cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 6px; }
+    .modal-close:hover { background: var(--blue-pale); color: var(--blue-deep); }
+    .modal h2 { font-size: 20px; font-weight: 800; color: var(--blue-deep); margin-bottom: 4px; }
+    .modal-sub { font-size: 13px; color: var(--gray-mid); font-weight: 500; margin-bottom: 1.5rem; }
+    .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 2px solid var(--blue-light); }
+    .auth-tab { flex: 1; background: none; border: none; padding: 8px; font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 700; color: var(--gray-mid); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color var(--transition), border-color var(--transition); }
+    .auth-tab.active { color: var(--blue-deep); border-bottom-color: var(--blue); }
+    .auth-field { margin-bottom: 1rem; }
+    .auth-field label { display: block; font-size: 13px; font-weight: 700; color: var(--blue-deep); margin-bottom: 5px; }
+    .auth-field input { width: 100%; border: 1.5px solid var(--blue-light); border-radius: var(--radius-sm); padding: 9px 12px; font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 500; color: var(--blue-deep); background: var(--blue-pale); outline: none; transition: border-color var(--transition); }
+    .auth-field input:focus { border-color: var(--blue); background: white; }
+    .auth-field-hint { font-size: 11px; color: var(--gray-muted); margin-top: 4px; font-weight: 500; display: block; }
+    .auth-field-hint.ok  { color: #059669; }
+    .auth-field-hint.err { color: #dc2626; }
+    .auth-submit { width: 100%; background: var(--blue); color: white; border: none; border-radius: var(--radius-sm); padding: 11px; font-family: 'Baloo 2', cursive; font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 0.5rem; transition: background var(--transition); }
+    .auth-submit:hover { background: var(--blue-mid); }
+    .auth-submit:disabled { background: var(--blue-muted); cursor: not-allowed; }
+    .auth-error { font-size: 13px; color: #dc2626; font-weight: 600; margin-top: 0.75rem; text-align: center; display: none; }
+    .auth-error.visible { display: block; }
+
+    /* ================================================================
+       MOBILE
+    ================================================================ */
+    @media (max-width: 640px) {
+      .forum-wrap {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        height: calc(100vh - 50px - 52px);
+      }
+
+      /* Sidebar becomes a horizontal row */
+      .channel-sidebar {
+        flex-direction: row;
+        height: auto;
+        border-right: none;
+        border-bottom: 1.5px solid var(--blue-light);
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        position: relative;
+      }
+
+      .channel-sidebar::-webkit-scrollbar { display: none; }
+
+      /* Hide search on mobile — no room */
+      .sidebar-search { display: none; }
+      .channel-sidebar-title { display: none; }
+      .sidebar-search-results { display: none !important; }
+
+      /* Mobile search button — circle at start of channel row */
+      .mobile-search-btn {
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        border: 1.5px solid var(--blue-light);
+        background: white;
+        cursor: pointer;
+        transition: background var(--transition), border-color var(--transition);
+        align-self: center;
+        margin-left: 2px;
+      }
+      .mobile-search-btn:hover { background: var(--blue-pale); border-color: var(--blue); }
+      .mobile-search-btn svg { width: 14px; height: 14px; color: var(--blue-muted); }
+
+      /* Mobile search overlay — covers entire forum area below header */
+      .mobile-search-overlay {
+        display: none;
+        position: fixed;
+        left: 0; right: 0;
+        top: 0; bottom: 0;
+        background: white;
+        z-index: 200;
+        flex-direction: column;
+      }
+      .mobile-search-overlay.open { display: flex; }
+
+      .mobile-search-box {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--blue-light);
+        background: white;
+      }
+      .mobile-search-input {
+        flex: 1; border: none; background: transparent; outline: none;
+        font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 500;
+        color: var(--blue-deep); min-width: 0;
+      }
+      .mobile-search-input::placeholder { color: var(--blue-muted); }
+      .mobile-search-close {
+        background: none; border: none; font-size: 16px; line-height: 1;
+        color: var(--gray-muted); cursor: pointer; padding: 0 2px; flex-shrink: 0;
+      }
+
+      .mobile-search-results {
+        flex: 1; overflow-y: auto;
+      }
+      .mobile-search-results .search-result-msg {
+        padding: 8px 10px; border-bottom: 1px solid var(--blue-light);
+        cursor: pointer;
+      }
+      .mobile-search-results .search-result-msg:hover { background: white; }
+      .mobile-search-results .search-result-msg-meta {
+        display: flex; align-items: center; gap: 5px; margin-bottom: 2px; flex-wrap: wrap;
+      }
+      .mobile-search-results .search-result-ch {
+        font-size: 10px; font-weight: 800; text-transform: uppercase;
+        color: var(--blue); background: var(--blue-light); padding: 1px 5px; border-radius: 4px;
+      }
+      .mobile-search-results .search-result-user { font-size: 11px; font-weight: 700; color: var(--blue-deep); }
+      .mobile-search-results .search-result-time { font-size: 10px; color: var(--gray-muted); margin-left: auto; }
+      .mobile-search-results .search-result-text { font-size: 12px; color: var(--gray-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .mobile-search-results .search-no-results,
+      .mobile-search-results .search-loading { padding: 1.2rem; text-align: center; font-size: 12px; color: var(--gray-muted); }
+
+      .sidebar-channel-list {
+        display: flex; flex-direction: row;
+        flex: none; overflow: visible;
+        padding: 6px 8px; gap: 5px;
+      }
+
+      .channel-btn {
+        white-space: nowrap; flex-shrink: 0;
+        width: 100px; padding: 7px 8px;
+        padding: 5px 12px; font-size: 12px;
+        background: white; border: 1.5px solid var(--blue-light);
+        border-radius: var(--radius-full);
+      }
+
+      .channel-btn.active {
+        background: var(--blue); color: white; border-color: var(--blue);
+      }
+
+      .channel-btn.active .channel-hash { color: white; }
+      .msg-text img { max-width: 100%; max-height: 160px; }
+      .msg-actions { opacity: 1; position: static; padding-top: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community Logo" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html" class="active">Forum</a>
+      <a href="tools.html">Tools</a>
+      <a href="index.html#sites">Sites</a>
+    </nav>
+
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="news.html">News</a>
+    <a href="forum.html">Forum</a>
+    <a href="tools.html">Tools</a>
+    <a href="index.html#sites">Sites</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<!-- ===================== FORUM ===================== -->
+<div class="forum-wrap">
+
+  <!-- Sidebar (desktop: vertical column | mobile: horizontal pill strip) -->
+  <aside class="channel-sidebar">
+
+    <!-- Search bar — desktop only -->
+    <div class="sidebar-search">
+      <div class="sidebar-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" class="sidebar-search-input" id="forum-search-input" placeholder="Search all channels…" autocomplete="off" />
+      </div>
+    </div>
+
+    <!-- Search results panel (replaces channel list while searching) -->
+    <div class="sidebar-search-results" id="sidebar-search-results"></div>
+
+    <!-- Mobile search button (circle pill, mobile only) -->
+    <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Search messages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+    </button>
+
+    <!-- Mobile search overlay (expands over the sidebar row) -->
+    <div class="mobile-search-overlay" id="mobile-search-overlay">
+      <div class="mobile-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;flex-shrink:0;color:var(--blue-muted);">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="mobile-search-input" class="mobile-search-input" placeholder="Search all channels…" autocomplete="off" />
+        <button class="mobile-search-close" id="mobile-search-close" aria-label="Close search">✕</button>
+      </div>
+      <div class="mobile-search-results" id="mobile-search-results"></div>
+    </div>
+
+    <!-- Channel list -->
+    <div class="sidebar-channel-list" id="sidebar-channel-list">
+      <div class="channel-sidebar-title">Channels</div>
+      <button class="channel-btn active" data-channel="general" data-desc="General chat for anything Winterpixel">
+        <span class="channel-hash">#</span> General
+      </button>
+      <button class="channel-btn" data-channel="rocket-bot-royale" data-desc="Everything about Rocket Bot Royale">
+        <span class="channel-hash">#</span> Rocket Bot Royale
+      </button>
+      <button class="channel-btn" data-channel="goober-dash" data-desc="Everything about Goober Dash">
+        <span class="channel-hash">#</span> Goober Dash
+      </button>
+      <button class="channel-btn" data-channel="bugs" data-desc="Report bugs and technical issues">
+        <span class="channel-hash">#</span> Bugs
+      </button>
+      <button class="channel-btn" data-channel="highlights" data-desc="Share your best moments and clips">
+        <span class="channel-hash">#</span> Highlights
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- Message feed -->
+  <section class="channel-feed">
+
+    <div class="channel-header">
+      <div>
+        <h1 id="channel-title"># General</h1>
+        <p id="channel-desc">General chat for anything Winterpixel</p>
+      </div>
+    </div>
+
+    <div class="messages-list" id="messages-list">
+      <div class="msgs-loading">Loading messages…</div>
+    </div>
+
+    <!-- Compose — shown when logged in -->
+    <div class="compose-wrap" id="compose-wrap" style="display:none;">
+      <div class="reply-preview" id="reply-preview">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;color:var(--blue-muted)"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+        <span class="reply-preview-text" id="reply-preview-text"></span>
+        <button class="reply-cancel" id="reply-cancel">✕</button>
+      </div>
+      <div class="compose-box">
+        <textarea class="compose-input" id="compose-input" placeholder="Message #general…" rows="1" maxlength="200"></textarea>
+        <span class="char-count" id="char-count">200</span>
+        <button class="compose-send" id="compose-send" title="Send" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+      <div class="rate-warn" id="rate-warn">Slow down — wait a moment before sending again.</div>
+    </div>
+
+    <!-- Login prompt — shown when logged out -->
+    <div class="login-prompt" id="login-prompt">
+      <p>Sign in to join the conversation</p>
+      <button class="login-prompt-btn" id="open-auth-btn">Sign in / Register</button>
+    </div>
+
+  </section>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<!-- ===================== BOTTOM BAR ===================== -->
+<div class="bottom-bar" id="bottom-bar">
+  <div class="bottom-bar-left">
+    <button class="notif-btn" id="notif-btn" title="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      Notifications
+      <span class="notif-count" id="notif-count" style="display:none;">0</span>
+    </button>
+  </div>
+  <div id="account-area">
+    <button class="login-prompt-btn" id="bottom-signin-btn" style="font-size:12px;padding:5px 14px;">Sign in</button>
+    <div class="account-pill" id="account-pill" style="display:none;">
+      <div class="account-avatar" id="account-avatar-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#66d9f5" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <span class="account-username" id="account-username">Username</span>
+    </div>
+  </div>
+</div>
+
+<!-- Notification modal -->
+<div class="notif-modal" id="notif-modal">
+  <div class="notif-modal-header">Notifications</div>
+  <div id="notif-list">
+    <div style="padding:1.5rem;text-align:center;font-size:13px;color:#475569;">No notifications yet</div>
+  </div>
+</div>
+
+<!-- Account menu -->
+<div class="account-menu" id="account-menu">
+  <a href="profile.html" id="profile-link">👤 My Profile</a>
+  <button class="logout" id="logout-btn">Sign out</button>
+</div>
+
+<!-- ===================== AUTH MODAL ===================== -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <button class="modal-close" id="auth-close">✕</button>
+    <h2 id="auth-title">Welcome back</h2>
+    <p class="modal-sub" id="auth-sub">Sign in to join the community</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Sign in</button>
+      <button class="auth-tab" data-tab="register">Register</button>
+    </div>
+    <div id="login-form">
+      <div class="auth-field">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" placeholder="Your username" autocomplete="username" />
+      </div>
+      <div class="auth-field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Your password" autocomplete="current-password" />
+      </div>
+      <button class="auth-submit" id="login-submit">Sign in</button>
+      <p class="auth-error" id="login-error"></p>
+    </div>
+    <div id="register-form" style="display:none;">
+      <div class="auth-field">
+        <label for="reg-username">Username</label>
+        <input type="text" id="reg-username" placeholder="Choose a username" autocomplete="off" maxlength="24" />
+        <span class="auth-field-hint" id="reg-username-hint">3–24 characters, letters/numbers/underscores only</span>
+      </div>
+      <div class="auth-field">
+        <label for="reg-password">Password</label>
+        <input type="password" id="reg-password" placeholder="Choose a password (min 6 characters)" autocomplete="new-password" />
+      </div>
+      <button class="auth-submit" id="reg-submit">Create account</button>
+      <p class="auth-error" id="reg-error"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== FIREBASE ===================== -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ================================================================
+// FIREBASE CONFIG
+// ================================================================
+const firebaseConfig = {
+  apiKey:            "AIzaSyDyrbOkMUrDcXmeE3WlwNrWbkOVNg-UGEg",
+  authDomain:        "winterpixelcommunity.firebaseapp.com",
+  projectId:         "winterpixelcommunity",
+  storageBucket:     "winterpixelcommunity.firebasestorage.app",
+  messagingSenderId: "590927242514",
+  appId:             "1:590927242514:web:d99b37ff6ad67f1b83ffcb"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ================================================================
+// WORD FILTER
+// ================================================================
+var BANNED_WORDS = ['nigger','nigga','faggot','retard','kys','kill yourself','cunt','chink','spic','tranny'];
+function containsBannedWord(t) { var l=t.toLowerCase(); return BANNED_WORDS.some(function(w){return l.includes(w);}); }
+
+// ================================================================
+// SPAM THROTTLE — max 3 per 5s
+// ================================================================
+var recentSends = [];
+function isThrottled() { var n=Date.now(); recentSends=recentSends.filter(function(t){return n-t<5000;}); return recentSends.length>=3; }
+function recordSend() { recentSends.push(Date.now()); }
+
+// ================================================================
+// CHANNELS CONFIG
+// ================================================================
+var CHANNELS = {
+  'general':           { label: 'General',           desc: 'General chat for anything Winterpixel' },
+  'rocket-bot-royale': { label: 'Rocket Bot Royale',  desc: 'Everything about Rocket Bot Royale' },
+  'goober-dash':       { label: 'Goober Dash',        desc: 'Everything about Goober Dash' },
+  'bugs':              { label: 'Bugs',               desc: 'Report bugs and technical issues' },
+  'highlights':        { label: 'Highlights',         desc: 'Share your best moments and clips' }
+};
+
+// ================================================================
+// LOCAL STORAGE CACHE
+// Keys:
+//   forum_msgs_{channel}   → { ts, msgs: [{id,uid,username,pfp,isMod,text,createdAt,replyTo}] }
+//   forum_search_{channel} → { ts, msgs: [...] }
+//   forum_profile_{uid}    → { ts, data: {...} }
+// ================================================================
+var CACHE_TTL_MSGS    = 30000;   // 30s  — channel messages
+var CACHE_TTL_SEARCH  = 120000;  // 2min — search corpus
+var CACHE_TTL_PROFILE = 300000;  // 5min — user profile
+
+function lsGet(key) {
+  try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; }
+  catch(e) { return null; }
+}
+function lsSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+// Serialise a Firestore Timestamp or plain date to ms number for storage
+function tsToMs(ts) {
+  if (!ts) return 0;
+  if (typeof ts.toMillis === 'function') return ts.toMillis();
+  if (typeof ts.toDate   === 'function') return ts.toDate().getTime();
+  if (typeof ts === 'number') return ts;
+  return 0;
+}
+// Reconstruct something timeAgo() can use from stored ms
+function msToFakTs(ms) { return { _ms: ms, toDate: function(){ return new Date(ms); } }; }
+
+function serializeMsg(doc) {
+  var d = doc.data ? doc.data() : doc;
+  var id = doc.id || d._id;
+  return {
+    _id:       id,
+    uid:       d.uid       || '',
+    username:  d.username  || 'Unknown',
+    pfp:       d.pfp       || null,
+    isMod:     d.isMod     || false,
+    text:      d.text      || '',
+    createdAt: tsToMs(d.createdAt),
+    replyTo:   d.replyTo   || null
+  };
+}
+
+// ================================================================
+// STATE
+// ================================================================
+var currentUser    = null;
+var currentProfile = null;
+var currentChannel = 'general';
+var unsubMessages  = null;   // live listener unsub fn
+var replyTo        = null;
+var jumpToId       = null;
+
+// Per-channel: oldest cursor doc for "load older" pagination
+var channelOldestCursor = {};
+// Track which channels currently have a live tail listener
+var channelLiveSince    = {};  // channelId → oldest createdAt ms the listener covers
+// In-memory message map per channel (id→data) to avoid re-rendering duplicates
+var channelMsgMap = {};
+
+// ================================================================
+// HELPERS
+// ================================================================
+function timeAgo(ts) {
+  if (!ts) return '';
+  var d = (ts && ts.toDate) ? ts.toDate() : (ts && ts._ms ? new Date(ts._ms) : new Date(ts));
+  var diff = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (diff < 60)    return 'just now';
+  if (diff < 3600)  return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return d.toLocaleDateString();
+}
+function initials(u) { return (u||'?').charAt(0).toUpperCase(); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function renderText(text) {
+  var esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return esc.replace(/https?:\/\/\S+\.(png|jpg|jpeg|gif|webp)(\?\S*)?/gi, function(url){
+    // Re-escape the URL for safe attribute injection (already HTML-escaped above but double-check quotes)
+    var safeUrl = url.replace(/"/g,'%22').replace(/'/g,'%27');
+    return '</p><img src="'+safeUrl+'" alt="" loading="lazy" onerror="this.style.display=\'none\'" /><p>';
+  });
+}
+function avatarHtml(d, size) {
+  size = size || 32;
+  var s = 'width:'+size+'px;height:'+size+'px;';
+  if (d && d.pfp) {
+    var safePfp = String(d.pfp).replace(/"/g,'%22').replace(/'/g,'%27');
+    return '<div class="msg-avatar" style="'+s+'"><img src="'+safePfp+'" alt="" onerror="this.style.display=\'none\'"/></div>';
+  }
+  return '<div class="msg-avatar" style="'+s+'">'+initials(d && d.username)+'</div>';
+}
+
+// ================================================================
+// NOTIFICATIONS — switched to one-time .get() + manual refresh
+// Saves ~30 reads/session vs onSnapshot
+// ================================================================
+var unsubNotifications = null;
+var unreadCount = 0;
+
+function listenNotifications(uid) {
+  // Use onSnapshot only for the unread count badge (limit:1 is cheap)
+  // Full list loaded on-demand when panel opens
+  if (unsubNotifications) unsubNotifications();
+  unsubNotifications = db
+    .collection('users').doc(uid).collection('notifications')
+    .where('read','==',false)
+    .onSnapshot(function(snap) {
+      unreadCount = snap.size;
+      var badge = document.getElementById('notif-count');
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }, function(){});
+}
+
+var notifListLoaded = false;
+function loadNotifList(uid) {
+  if (!uid) return;
+  var list = document.getElementById('notif-list');
+  list.innerHTML = '<div style="padding:1rem;text-align:center;font-size:12px;color:#475569;">Loading\u2026</div>';
+  db.collection('users').doc(uid).collection('notifications')
+    .orderBy('createdAt','desc').limit(30)
+    .get().then(function(snap) {
+      var items = [];
+      snap.forEach(function(doc) { items.push(Object.assign({id:doc.id}, doc.data())); });
+      renderNotifList(items);
+      notifListLoaded = true;
+    }).catch(function(){ list.innerHTML='<div style="padding:1rem;text-align:center;font-size:12px;">Failed to load.</div>'; });
+}
+
+function renderNotifList(items) {
+  var list = document.getElementById('notif-list');
+  if (!items.length) { list.innerHTML='<div style="padding:1.5rem;text-align:center;font-size:13px;color:#475569;">No notifications yet</div>'; return; }
+  list.innerHTML = items.map(function(n) {
+    var text = n.type==='reply'
+      ? '<strong>'+escHtml(n.fromUser||'Someone')+'</strong> replied: '+escHtml(n.preview||'')
+      : escHtml(n.preview||'New activity');
+    return '<div class="notif-item'+(n.read?'':' unread')+'" data-id="'+n.id+'" data-channel="'+(n.channel||'')+'" data-msgid="'+(n.messageId||'')+'">'+
+      '<div class="notif-item-avatar">'+(n.type==='reply'?'↩':'🔔')+'</div>'+
+      '<div class="notif-item-text">'+
+        '<div class="notif-item-name">'+text+'</div>'+
+        '<div class="notif-item-time">'+timeAgo(n.createdAt)+'</div>'+
+      '</div></div>';
+  }).join('');
+}
+
+function pushNotification(toUid, type, data) {
+  if (!toUid) return;
+  db.collection('users').doc(toUid).collection('notifications').add({
+    type:type, read:false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    channel:   data.channel   || null,
+    messageId: data.messageId || null,
+    fromUser:  data.fromUser  || null,
+    preview:   data.preview   || null
+  }).catch(function(){});
+}
+
+// ================================================================
+// MESSAGE RENDERING — build DOM element from plain data object
+// ================================================================
+function buildMsgEl(msgData) {
+  var id       = msgData._id;
+  var isMod    = currentProfile && currentProfile.mod === true;
+  var isOwn    = currentUser && currentUser.uid === msgData.uid;
+  var canDel   = isOwn || isMod;
+
+  var replyHtml = '';
+  if (msgData.replyTo) {
+    replyHtml = '<div class="msg-reply-quote" data-jump="'+escAttr(msgData.replyTo.id||'')+'">'+
+      '<strong>@'+escHtml(msgData.replyTo.username||'Unknown')+'</strong> '+
+      escHtml((msgData.replyTo.text||'').slice(0,60))+'</div>';
+  }
+
+  var actionsHtml = '<div class="msg-actions">';
+  if (currentUser) {
+    actionsHtml += '<button class="msg-action-btn reply-btn"'+
+      ' data-id="'+escAttr(id)+'"'+
+      ' data-uid="'+escAttr(msgData.uid)+'"'+
+      ' data-username="'+escAttr(msgData.username)+'"'+
+      ' data-text="'+escAttr((msgData.text||'').slice(0,60))+'"'+
+      '>\u21a9 Reply</button>';
+  }
+  if (canDel) actionsHtml += '<button class="msg-action-btn del del-btn" data-id="'+escAttr(id)+'" title="Shift+click to skip confirm">\u2715</button>';
+  actionsHtml += '</div>';
+
+  var el = document.createElement('div');
+  el.className = 'msg';
+  el.dataset.id = id;
+  el.dataset.ts = msgData.createdAt || 0;
+  el.innerHTML =
+    avatarHtml(msgData, 32) +
+    '<div class="msg-body">'+
+      '<div class="msg-meta">'+
+        '<span class="msg-username'+(msgData.isMod?' mod-name':'')+'" data-username="'+escAttr(msgData.username||'')+'">'+escHtml(msgData.username||'Unknown')+'</span>'+
+        '<span class="msg-time">'+timeAgo(msgData.createdAt ? msToFakTs(msgData.createdAt) : null)+'</span>'+
+      '</div>'+
+      replyHtml+
+      '<div class="msg-text"><p>'+renderText(msgData.text||'')+'</p></div>'+
+    '</div>'+
+    actionsHtml;
+  return el;
+}
+
+// ================================================================
+// CHANNEL SWITCHING
+// ================================================================
+function switchChannel(channelId) {
+  if (!CHANNELS[channelId]) channelId = 'general';
+  currentChannel = channelId;
+  cancelReply();
+
+  document.querySelectorAll('.channel-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.channel === channelId);
+  });
+  var ch = CHANNELS[channelId];
+  document.getElementById('channel-title').textContent = '# '+ch.label;
+  document.getElementById('channel-desc').textContent  = ch.desc;
+  var inp = document.getElementById('compose-input');
+  if (inp) inp.placeholder = 'Message #'+ch.label.toLowerCase()+'\u2026';
+
+  loadMessages(channelId);
+}
+
+document.querySelectorAll('.channel-btn').forEach(function(btn) {
+  btn.addEventListener('click', function(){ switchChannel(btn.dataset.channel); });
+});
+
+// ================================================================
+// MESSAGE LOADING — OPTIMISED
+//
+// Strategy:
+//   1. Show cached messages from localStorage instantly (0 reads)
+//   2. Attach a TAIL listener from the newest cached message onward
+//      → only new messages trigger reads, not the full history
+//   3. "Load older" button does a paginated .get() backwards
+//      → one read batch per click, results stored in cache
+//
+// This means:
+//   • Tab-switch / refresh = 0 reads (served from localStorage)
+//   • New message arrives = 1 read per listener (not 50)
+//   • Older history = explicit .get() only when user requests it
+// ================================================================
+var PAGE_SIZE = 30;   // messages per "load older" page
+
+function loadMessages(channelId) {
+  // Tear down previous listener
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+
+  var list = document.getElementById('messages-list');
+
+  // Init in-memory map for this channel
+  if (!channelMsgMap[channelId]) channelMsgMap[channelId] = {};
+
+  // 1. Show cache immediately
+  var cacheKey  = 'forum_msgs_' + channelId;
+  var cached    = lsGet(cacheKey);
+  var newestCachedMs = 0;
+
+  if (cached && cached.msgs && cached.msgs.length) {
+    channelMsgMap[channelId] = {};
+    cached.msgs.forEach(function(m) { channelMsgMap[channelId][m._id] = m; });
+    renderAllMessages(channelId, true);
+    newestCachedMs = cached.msgs.reduce(function(max, m) { return Math.max(max, m.createdAt||0); }, 0);
+  } else {
+    list.innerHTML = '<div class="msgs-loading">Loading\u2026</div>';
+  }
+
+  // 2. Attach tail listener — only from newestCachedMs onward
+  //    If we have cached data, startAfter the newest message so we only
+  //    get truly new messages. If no cache, get last PAGE_SIZE.
+  attachTailListener(channelId, newestCachedMs);
+}
+
+function attachTailListener(channelId, afterMs) {
+  var ref = db.collection('channels').doc(channelId).collection('messages')
+              .orderBy('createdAt', 'asc');
+
+  if (afterMs > 0) {
+    // Start after last known message — only new arrivals will trigger reads
+    ref = ref.startAfter(new Date(afterMs));
+  } else {
+    // First load — get last PAGE_SIZE messages
+    ref = ref.limitToLast(PAGE_SIZE);
+  }
+
+  var isFirst = true;
+  unsubMessages = ref.onSnapshot(function(snap) {
+    if (isFirst && snap.empty) {
+      if (!channelMsgMap[channelId] || !Object.keys(channelMsgMap[channelId]).length) {
+        document.getElementById('messages-list').innerHTML =
+          '<div class="msgs-empty">No messages yet. Be the first!</div>';
+      }
+      isFirst = false;
+      return;
+    }
+
+    var ch = channelId;
+    var wasFirst = isFirst;
+    isFirst = false;
+
+    snap.docChanges().forEach(function(change) {
+      if (change.type === 'added' || change.type === 'modified') {
+        var s = serializeMsg(change.doc);
+        // If server timestamp is still pending (null/0), use local time so ordering works
+        if (!s.createdAt) s.createdAt = Date.now();
+        channelMsgMap[ch][s._id] = s;
+      }
+      if (change.type === 'removed') {
+        delete channelMsgMap[ch][change.doc.id];
+        var el = document.querySelector('.messages-list [data-id="'+change.doc.id+'"]');
+        if (el) el.remove();
+      }
+    });
+
+    // Persist updated map to localStorage
+    saveMsgCache(ch);
+
+    // On first fire with no prior cache: do a single full render (correct order, scroll to bottom)
+    // On subsequent fires: append/update individual messages
+    if (wasFirst && !snap.metadata.hasPendingWrites) {
+      renderAllMessages(ch, true);
+    } else {
+      snap.docChanges().forEach(function(change) {
+        if (change.type === 'removed') return;
+        var s = channelMsgMap[ch][change.doc.id];
+        if (!s) return;
+        appendOrUpdateMsg(s);
+      });
+    }
+
+    // Jump to target if needed
+    if (jumpToId) {
+      var target = document.querySelector('[data-id="'+jumpToId+'"]');
+      if (target) {
+        target.scrollIntoView({ behavior:'smooth', block:'center' });
+        target.classList.add('highlighted');
+        setTimeout(function(){ target.classList.remove('highlighted'); }, 3000);
+        jumpToId = null;
+      }
+    }
+  }, function(err) {
+    console.error('Listener error:', err);
+    var list = document.getElementById('messages-list');
+    if (!Object.keys(channelMsgMap[channelId]||{}).length)
+      list.innerHTML = '<div class="msgs-empty">Could not load messages.</div>';
+  });
+}
+
+function saveMsgCache(channelId) {
+  var msgs = Object.values(channelMsgMap[channelId]||{});
+  // Keep only last 100 in cache to avoid localStorage bloat
+  msgs.sort(function(a,b){return (a.createdAt||0)-(b.createdAt||0);});
+  msgs = msgs.slice(-100);
+  lsSet('forum_msgs_'+channelId, { ts: Date.now(), msgs: msgs });
+}
+
+// Append new message to DOM or update existing one — no full re-render
+function appendOrUpdateMsg(msgData) {
+  var list = document.getElementById('messages-list');
+  var existing = list.querySelector('[data-id="'+msgData._id+'"]');
+  var el = buildMsgEl(msgData);
+
+  // Remove "no messages" / loading placeholder if present
+  var placeholder = list.querySelector('.msgs-loading, .msgs-empty');
+  if (placeholder) placeholder.remove();
+
+  if (existing) {
+    list.replaceChild(el, existing);
+  } else {
+    // Insert in chronological order
+    var ts = msgData.createdAt || 0;
+    var inserted = false;
+    var kids = list.children;
+    for (var i = kids.length - 1; i >= 0; i--) {
+      var kidTs = parseInt(kids[i].dataset.ts||0, 10);
+      if (kidTs <= ts) {
+        list.insertBefore(el, kids[i].nextSibling);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) list.insertBefore(el, list.firstChild);
+
+    // Auto-scroll only if user is near the bottom
+    var atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 120;
+    if (atBottom) list.scrollTop = list.scrollHeight;
+  }
+}
+
+// Full render from channelMsgMap (used on initial load from cache)
+function renderAllMessages(channelId, scrollToBottom) {
+  var list = document.getElementById('messages-list');
+  var msgs = Object.values(channelMsgMap[channelId]||{});
+  msgs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+
+  if (!msgs.length) {
+    list.innerHTML = '<div class="msgs-loading">Loading\u2026</div>';
+    return;
+  }
+
+  // Only show load-older button if we have a full page (meaning there's likely more)
+  var hasMore = msgs.length >= PAGE_SIZE;
+  var olderBtn = hasMore
+    ? '<div id="load-older-wrap" style="text-align:center;padding:8px;">'+
+      '<button id="load-older-btn" style="font-family:inherit;font-size:12px;font-weight:700;'+
+      'background:var(--blue-pale);border:1.5px solid var(--blue-light);border-radius:var(--radius-sm);'+
+      'padding:4px 14px;cursor:pointer;color:var(--blue-deep);">Load older messages</button></div>'
+    : '';
+
+  list.innerHTML = olderBtn;
+  msgs.forEach(function(m) { list.appendChild(buildMsgEl(m)); });
+
+  if (scrollToBottom !== false) list.scrollTop = list.scrollHeight;
+
+  var lob = document.getElementById('load-older-btn');
+  if (lob) lob.addEventListener('click', function() { loadOlderMessages(channelId); });
+}
+
+// ================================================================
+// LOAD OLDER MESSAGES — paginated backwards .get()
+// Each click = 1 Firestore query (PAGE_SIZE reads)
+// ================================================================
+function loadOlderMessages(channelId) {
+  var btn = document.getElementById('load-older-btn');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = 'Loading\u2026';
+
+  // Find oldest message currently in our map
+  var msgs = Object.values(channelMsgMap[channelId]||{});
+  msgs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+  var oldest = msgs[0];
+
+  var query = db.collection('channels').doc(channelId).collection('messages')
+    .orderBy('createdAt','desc').limit(PAGE_SIZE);
+
+  if (oldest) {
+    query = query.startAfter(new Date(oldest.createdAt));
+  }
+
+  query.get().then(function(snap) {
+    if (snap.empty) {
+      var wrap = document.getElementById('load-older-wrap');
+      if (wrap) wrap.innerHTML = '<p style="text-align:center;font-size:12px;color:var(--gray-muted);padding:8px;">Beginning of channel</p>';
+      return;
+    }
+
+    var list  = document.getElementById('messages-list');
+    var frag  = document.createDocumentFragment();
+    var addedAny = false;
+
+    snap.forEach(function(doc) {
+      var s = serializeMsg(doc);
+      if (!channelMsgMap[channelId][s._id]) {
+        channelMsgMap[channelId][s._id] = s;
+        frag.insertBefore(buildMsgEl(s), frag.firstChild);
+        addedAny = true;
+      }
+    });
+
+    if (addedAny) {
+      // Insert before the oldest current message, after the load-older button
+      var loadWrap  = document.getElementById('load-older-wrap');
+      var oldScroll = list.scrollHeight;
+      if (loadWrap) loadWrap.after(frag);
+      else list.insertBefore(frag, list.firstChild);
+      // Preserve scroll position
+      list.scrollTop += (list.scrollHeight - oldScroll);
+      saveMsgCache(channelId);
+    }
+
+    if (snap.size < PAGE_SIZE) {
+      var wrap2 = document.getElementById('load-older-wrap');
+      if (wrap2) wrap2.innerHTML = '<p style="text-align:center;font-size:12px;color:var(--gray-muted);padding:8px;">Beginning of channel</p>';
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = 'Load older messages'; }
+    }
+  }).catch(function(err) {
+    console.error('Load older failed:', err);
+    if (btn) { btn.disabled = false; btn.textContent = 'Load older messages'; }
+  });
+}
+
+// ================================================================
+// JUMP-TO-MESSAGE — if the target isn't in DOM, load older until found
+// ================================================================
+function tryJumpToId(id, channelId, attemptsLeft) {
+  attemptsLeft = attemptsLeft === undefined ? 4 : attemptsLeft;
+  var target = document.querySelector('[data-id="'+id+'"]');
+  if (target) {
+    target.scrollIntoView({ behavior:'smooth', block:'center' });
+    target.classList.add('highlighted');
+    setTimeout(function(){ target.classList.remove('highlighted'); }, 3000);
+    jumpToId = null;
+    return;
+  }
+  if (attemptsLeft <= 0) { jumpToId = null; return; }
+  // Not in DOM yet — load older batch then retry
+  var msgs = Object.values(channelMsgMap[channelId]||{});
+  msgs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+  var oldest = msgs[0];
+  if (!oldest) return;
+
+  db.collection('channels').doc(channelId).collection('messages')
+    .orderBy('createdAt','desc').startAfter(new Date(oldest.createdAt)).limit(PAGE_SIZE)
+    .get().then(function(snap) {
+      snap.forEach(function(doc) {
+        var s = serializeMsg(doc);
+        channelMsgMap[channelId][s._id] = s;
+      });
+      renderAllMessages(channelId, false);
+      setTimeout(function(){ tryJumpToId(id, channelId, attemptsLeft-1); }, 150);
+    }).catch(function(){ jumpToId = null; });
+}
+
+// ================================================================
+// MESSAGE LIST EVENT DELEGATION
+// ================================================================
+document.getElementById('messages-list').addEventListener('click', function(e) {
+  var usernameEl = e.target.closest('.msg-username');
+  if (usernameEl && usernameEl.dataset.username) {
+    window.location.href = 'profile.html?user=' + encodeURIComponent(usernameEl.dataset.username);
+    return;
+  }
+
+  var quote = e.target.closest('.msg-reply-quote');
+  if (quote && quote.dataset.jump) {
+    var target = document.querySelector('[data-id="'+quote.dataset.jump+'"]');
+    if (target) {
+      target.scrollIntoView({ behavior:'smooth', block:'center' });
+      target.classList.add('highlighted');
+      setTimeout(function(){ target.classList.remove('highlighted'); }, 2500);
+    } else {
+      jumpToId = quote.dataset.jump;
+      tryJumpToId(quote.dataset.jump, currentChannel, 4);
+    }
+    return;
+  }
+
+  var replyBtn = e.target.closest('.reply-btn');
+  if (replyBtn && currentUser) {
+    setReply({ id:replyBtn.dataset.id, uid:replyBtn.dataset.uid, username:replyBtn.dataset.username, text:replyBtn.dataset.text });
+    document.getElementById('compose-input').focus();
+    return;
+  }
+
+  var delBtn = e.target.closest('.del-btn');
+  if (delBtn && currentUser) {
+    var skipConfirm = e.shiftKey;
+    if (!skipConfirm && !confirm('Delete this message?')) return;
+    var msgId  = delBtn.dataset.id;
+    var msgEl  = document.querySelector('[data-id="'+msgId+'"]');
+    // Optimistic: grey out immediately so mod knows action registered
+    if (msgEl) msgEl.classList.add('deleting');
+    db.collection('channels').doc(currentChannel).collection('messages').doc(msgId)
+      .delete()
+      .then(function() {
+        // Confirmed deleted — remove from DOM and cache
+        var el2 = document.querySelector('[data-id="'+msgId+'"]');
+        if (el2) el2.classList.add('deleted');
+        // Decrement messageCount for the message owner if we know their uid
+        var msgObj = channelMsgMap[currentChannel] && channelMsgMap[currentChannel][msgId];
+        if (msgObj && msgObj.uid) {
+          db.collection('users').doc(msgObj.uid).update({
+            messageCount: firebase.firestore.FieldValue.increment(-1)
+          }).catch(function(){});
+        }
+        if (channelMsgMap[currentChannel]) delete channelMsgMap[currentChannel][msgId];
+        saveMsgCache(currentChannel);
+      })
+      .catch(function(err) {
+        console.error('Delete failed:', err);
+        // Undo optimistic state
+        var el3 = document.querySelector('[data-id="'+msgId+'"]');
+        if (el3) el3.classList.remove('deleting');
+        showWarn('Delete failed — check permissions.');
+      });
+  }
+});
+
+// ================================================================
+// REPLY STATE
+// ================================================================
+function setReply(data) {
+  replyTo = data;
+  var preview = document.getElementById('reply-preview');
+  var text    = document.getElementById('reply-preview-text');
+  preview.classList.add('visible');
+  text.innerHTML = 'Replying to <strong>@'+escHtml(data.username)+'</strong>: '+escHtml(data.text);
+}
+function cancelReply() {
+  replyTo = null;
+  var p = document.getElementById('reply-preview');
+  if (p) p.classList.remove('visible');
+}
+document.getElementById('reply-cancel').addEventListener('click', cancelReply);
+
+// ================================================================
+// COMPOSE
+// ================================================================
+var composeInput = document.getElementById('compose-input');
+var composeSend  = document.getElementById('compose-send');
+var charCount    = document.getElementById('char-count');
+var rateWarn     = document.getElementById('rate-warn');
+
+composeInput.addEventListener('input', function() {
+  var len = composeInput.value.length;
+  var rem = 200 - len;
+  charCount.textContent = rem;
+  charCount.className = 'char-count' + (rem<=0?' over':rem<=30?' warn':'');
+  composeSend.disabled = len===0 || len>200;
+  composeInput.style.height = 'auto';
+  composeInput.style.height = Math.min(composeInput.scrollHeight, 120)+'px';
+});
+
+composeInput.addEventListener('keydown', function(e) {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); if (!composeSend.disabled) sendMessage(); }
+});
+composeSend.addEventListener('click', sendMessage);
+
+function showWarn(msg) {
+  rateWarn.textContent = msg;
+  rateWarn.style.display = 'block';
+  setTimeout(function(){ rateWarn.style.display='none'; }, 3000);
+}
+
+function sendMessage() {
+  if (!currentUser || !currentProfile) return;
+  var text = composeInput.value.trim();
+  if (!text || text.length>200) return;
+  if (currentProfile.banned)  { showWarn('Your account has been suspended.'); return; }
+  if (isThrottled())           { showWarn('Slow down \u2014 wait a moment before sending again.'); return; }
+  if (containsBannedWord(text)){ showWarn('Message contains disallowed content.'); return; }
+
+  composeSend.disabled = true;
+  doActualSend(text);
+}
+
+function doActualSend(text) {
+  recordSend();
+  var msgData = {
+    uid:       currentUser.uid,
+    username:  currentProfile.username,
+    pfp:       currentProfile.pfp || null,
+    isMod:     currentProfile.mod === true,
+    text:      text,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if (replyTo) msgData.replyTo = { id:replyTo.id, uid:replyTo.uid||null, username:replyTo.username, text:replyTo.text };
+
+  db.collection('channels').doc(currentChannel).collection('messages').add(msgData)
+    .then(function(ref) {
+      // Increment messageCount on user profile (no extra read, just a write)
+      db.collection('users').doc(currentUser.uid).update({
+        messageCount: firebase.firestore.FieldValue.increment(1)
+      }).catch(function(){});
+      if (replyTo && replyTo.uid && replyTo.uid !== currentUser.uid) {
+        pushNotification(replyTo.uid, 'reply', { channel:currentChannel, messageId:ref.id, fromUser:currentProfile.username, preview:text.slice(0,60) });
+      }
+      composeInput.value = '';
+      composeInput.style.height = 'auto';
+      charCount.textContent = '200';
+      charCount.className = 'char-count';
+      composeSend.disabled = true;
+      cancelReply();
+    })
+    .catch(function(err){ console.error('Send failed:',err); composeSend.disabled=false; });
+}
+
+// ================================================================
+// SEARCH — cached to localStorage, TTL 2 minutes
+// Fetches up to PAGE_SIZE*3 msgs per channel, once per TTL window
+// ================================================================
+var searchTimer = null;
+var searchInput   = document.getElementById('forum-search-input');
+var searchResults = document.getElementById('sidebar-search-results');
+var channelList   = document.getElementById('sidebar-channel-list');
+
+searchInput.addEventListener('input', function() {
+  clearTimeout(searchTimer);
+  var q = searchInput.value.trim().toLowerCase();
+  if (!q) {
+    searchResults.classList.remove('visible');
+    searchResults.innerHTML = '';
+    channelList.style.display = '';
+    return;
+  }
+  channelList.style.display = 'none';
+  searchResults.classList.add('visible');
+  searchResults.innerHTML = '<div class="search-loading">Searching\u2026</div>';
+  searchTimer = setTimeout(function(){ runSearch(q); }, 400);
+});
+
+function runSearch(q) {
+  var channels = Object.keys(CHANNELS);
+  var allMsgs  = [];
+  var loaded   = 0;
+  var now      = Date.now();
+
+  channels.forEach(function(ch) {
+    var cacheKey = 'forum_search_' + ch;
+    var cached   = lsGet(cacheKey);
+
+    if (cached && now - cached.ts < CACHE_TTL_SEARCH) {
+      allMsgs = allMsgs.concat(cached.msgs);
+      if (++loaded === channels.length) renderSearch(allMsgs, q);
+      return;
+    }
+
+    db.collection('channels').doc(ch).collection('messages')
+      .orderBy('createdAt','desc').limit(PAGE_SIZE * 3)
+      .get().then(function(snap) {
+        var msgs = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          msgs.push({ _id:doc.id, channel:ch, username:d.username||'Unknown', text:d.text||'', createdAt:tsToMs(d.createdAt) });
+        });
+        lsSet(cacheKey, { ts:now, msgs:msgs });
+        allMsgs = allMsgs.concat(msgs);
+        if (++loaded === channels.length) renderSearch(allMsgs, q);
+      })
+      .catch(function(){ if (++loaded === channels.length) renderSearch(allMsgs, q); });
+  });
+}
+
+function renderSearch(msgs, q) {
+  var safe = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  var matched = msgs.filter(function(m){
+    return m.text.toLowerCase().includes(q) || m.username.toLowerCase().includes(q);
+  }).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);}).slice(0,30);
+
+  if (!matched.length) {
+    searchResults.innerHTML = '<div class="search-no-results">No results for "'+escHtml(q)+'"</div>';
+    return;
+  }
+  searchResults.innerHTML = matched.map(function(m) {
+    var hi = escHtml(m.text).replace(new RegExp('('+safe+')','gi'),'<mark style="background:#fff1a0;border-radius:2px;">$1</mark>');
+    return '<div class="search-result-msg" data-channel="'+m.channel+'" data-msgid="'+m._id+'">'+
+      '<div class="search-result-msg-meta">'+
+        '<span class="search-result-ch">'+CHANNELS[m.channel].label+'</span>'+
+        '<span class="search-result-user">'+escHtml(m.username)+'</span>'+
+        '<span class="search-result-time">'+timeAgo({_ms:m.createdAt})+'</span>'+
+      '</div>'+
+      '<div class="search-result-text">'+hi+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+searchResults.addEventListener('click', function(e) {
+  var item = e.target.closest('.search-result-msg');
+  if (!item) return;
+  jumpToId = item.dataset.msgid;
+  searchInput.value = '';
+  searchResults.classList.remove('visible');
+  channelList.style.display = '';
+  switchChannel(item.dataset.channel);
+  // After channel loads, attempt jump (including loading older if needed)
+  setTimeout(function(){ if (jumpToId) tryJumpToId(jumpToId, item.dataset.channel, 4); }, 800);
+});
+
+// ================================================================
+// MOBILE SEARCH
+// ================================================================
+(function() {
+  var mobileBtn     = document.getElementById('mobile-search-btn');
+  var mobileOverlay = document.getElementById('mobile-search-overlay');
+  var mobileInput   = document.getElementById('mobile-search-input');
+  var mobileClose   = document.getElementById('mobile-search-close');
+  var mobileResults = document.getElementById('mobile-search-results');
+  var mobileTimer   = null;
+
+  function openMobileSearch() {
+    mobileOverlay.classList.add('open');
+    mobileInput.value = '';
+    mobileResults.innerHTML = '';
+    setTimeout(function(){ mobileInput.focus(); }, 50);
+  }
+
+  function closeMobileSearch() {
+    mobileOverlay.classList.remove('open');
+    mobileInput.value = '';
+    mobileResults.innerHTML = '';
+    clearTimeout(mobileTimer);
+  }
+
+  mobileBtn.addEventListener('click', openMobileSearch);
+  mobileClose.addEventListener('click', closeMobileSearch);
+
+  mobileInput.addEventListener('input', function() {
+    clearTimeout(mobileTimer);
+    var q = mobileInput.value.trim().toLowerCase();
+    if (!q) { mobileResults.innerHTML = ''; return; }
+    mobileResults.innerHTML = '<div class="search-loading">Searching\u2026</div>';
+    mobileTimer = setTimeout(function(){ runMobileSearch(q); }, 400);
+  });
+
+  function runMobileSearch(q) {
+    var channels = Object.keys(CHANNELS);
+    var allMsgs  = [];
+    var loaded   = 0;
+    var now      = Date.now();
+
+    channels.forEach(function(ch) {
+      var cacheKey = 'forum_search_' + ch;
+      var cached   = lsGet(cacheKey);
+      if (cached && now - cached.ts < CACHE_TTL_SEARCH) {
+        allMsgs = allMsgs.concat(cached.msgs);
+        if (++loaded === channels.length) renderMobileSearch(allMsgs, q);
+        return;
+      }
+      db.collection('channels').doc(ch).collection('messages')
+        .orderBy('createdAt','desc').limit(PAGE_SIZE * 3)
+        .get().then(function(snap) {
+          var msgs = [];
+          snap.forEach(function(doc) {
+            var d = doc.data();
+            msgs.push({ _id:doc.id, channel:ch, username:d.username||'Unknown', text:d.text||'', createdAt:tsToMs(d.createdAt) });
+          });
+          lsSet(cacheKey, { ts:now, msgs:msgs });
+          allMsgs = allMsgs.concat(msgs);
+          if (++loaded === channels.length) renderMobileSearch(allMsgs, q);
+        })
+        .catch(function(){ if (++loaded === channels.length) renderMobileSearch(allMsgs, q); });
+    });
+  }
+
+  function renderMobileSearch(msgs, q) {
+    var safe = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    var matched = msgs.filter(function(m){
+      return m.text.toLowerCase().includes(q) || m.username.toLowerCase().includes(q);
+    }).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);}).slice(0,30);
+
+    if (!matched.length) {
+      mobileResults.innerHTML = '<div class="search-no-results">No results for "'+escHtml(q)+'"</div>';
+      return;
+    }
+    mobileResults.innerHTML = matched.map(function(m) {
+      var hi = escHtml(m.text).replace(new RegExp('('+safe+')','gi'),'<mark style="background:#fff1a0;border-radius:2px;">$1</mark>');
+      return '<div class="search-result-msg" data-channel="'+m.channel+'" data-msgid="'+m._id+'">'+
+        '<div class="search-result-msg-meta">'+
+          '<span class="search-result-ch">'+CHANNELS[m.channel].label+'</span>'+
+          '<span class="search-result-user">'+escHtml(m.username)+'</span>'+
+          '<span class="search-result-time">'+timeAgo({_ms:m.createdAt})+'</span>'+
+        '</div>'+
+        '<div class="search-result-text">'+hi+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  mobileResults.addEventListener('click', function(e) {
+    var item = e.target.closest('.search-result-msg');
+    if (!item) return;
+    jumpToId = item.dataset.msgid;
+    closeMobileSearch();
+    switchChannel(item.dataset.channel);
+    setTimeout(function(){ if (jumpToId) tryJumpToId(jumpToId, item.dataset.channel, 4); }, 800);
+  });
+})();
+
+// ================================================================
+// AUTH STATE — profile cached to localStorage for 5 min
+// ================================================================
+auth.onAuthStateChanged(function(user) {
+  currentUser = user;
+  if (user) {
+    var profileKey    = 'forum_profile_' + user.uid;
+    var cachedProfile = lsGet(profileKey);
+    if (cachedProfile && Date.now() - cachedProfile.ts < CACHE_TTL_PROFILE) {
+      currentProfile = cachedProfile.data;
+      onLoggedIn();
+      if (!authResolved) { authResolved = true; switchChannel(initChannel); }
+    } else {
+      db.collection('users').doc(user.uid).get().then(function(doc) {
+        currentProfile = doc.exists ? doc.data() : { username:'Unknown' };
+        lsSet(profileKey, { ts:Date.now(), data:currentProfile });
+        onLoggedIn();
+        if (!authResolved) { authResolved = true; switchChannel(initChannel); }
+      });
+    }
+  } else {
+    currentProfile = null;
+    onLoggedOut();
+    if (!authResolved) { authResolved = true; switchChannel(initChannel); }
+  }
+});
+
+function onLoggedIn() {
+  document.getElementById('compose-wrap').style.display  = 'block';
+  document.getElementById('login-prompt').style.display  = 'none';
+  document.getElementById('bottom-signin-btn').style.display = 'none';
+  document.getElementById('account-pill').style.display  = 'flex';
+  document.getElementById('account-username').textContent = currentProfile.username || 'User';
+  if (currentProfile.pfp) {
+    document.getElementById('account-avatar-wrap').innerHTML =
+      '<img src="'+currentProfile.pfp+'" alt="" onerror="this.style.display=\'none\'"/>';
+  }
+  document.getElementById('profile-link').href = 'profile.html?user=' + encodeURIComponent(currentProfile.username);
+  listenNotifications(currentUser.uid);
+  closeAuthModal();
+  // Re-render messages already in DOM so delete/reply buttons appear without a channel switch
+  if (authResolved && channelMsgMap[currentChannel] && Object.keys(channelMsgMap[currentChannel]).length) {
+    var list = document.getElementById('messages-list');
+    var atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 200;
+    var sp = list.scrollTop;
+    renderAllMessages(currentChannel, false);
+    if (atBottom) list.scrollTop = list.scrollHeight;
+    else list.scrollTop = sp;
+  }
+}
+
+function onLoggedOut() {
+  document.getElementById('compose-wrap').style.display  = 'none';
+  document.getElementById('login-prompt').style.display  = 'flex';
+  document.getElementById('bottom-signin-btn').style.display = 'block';
+  document.getElementById('account-pill').style.display  = 'none';
+  if (unsubNotifications) { unsubNotifications(); unsubNotifications = null; }
+  // Re-render so reply/delete buttons are stripped for logged-out state
+  if (authResolved && channelMsgMap[currentChannel] && Object.keys(channelMsgMap[currentChannel]).length) {
+    var sp = document.getElementById('messages-list').scrollTop;
+    renderAllMessages(currentChannel, false);
+    document.getElementById('messages-list').scrollTop = sp;
+  }
+}
+
+// ================================================================
+// AUTH — REGISTER
+// ================================================================
+function fakeEmail(username) { return username.toLowerCase()+'@winterpixel.community.local'; }
+var usernameCheckTimer = null;
+
+document.getElementById('reg-username').addEventListener('input', function() {
+  var val  = this.value.trim();
+  var hint = document.getElementById('reg-username-hint');
+  clearTimeout(usernameCheckTimer);
+  if (!val) { hint.textContent='3\u201324 characters, letters/numbers/underscores only'; hint.className='auth-field-hint'; return; }
+  if (!/^[a-zA-Z0-9_]{3,24}$/.test(val)) { hint.textContent='Only letters, numbers and underscores, 3\u201324 characters'; hint.className='auth-field-hint err'; return; }
+  hint.textContent='Checking availability\u2026'; hint.className='auth-field-hint';
+  usernameCheckTimer = setTimeout(function() {
+    db.collection('usernames').doc(val.toLowerCase()).get().then(function(doc) {
+      hint.textContent = doc.exists ? 'Username already taken' : 'Username available!';
+      hint.className = 'auth-field-hint '+(doc.exists?'err':'ok');
+    });
+  }, 500);
+});
+
+document.getElementById('reg-submit').addEventListener('click', function() {
+  var username = document.getElementById('reg-username').value.trim();
+  var password = document.getElementById('reg-password').value;
+  var btn = this;
+  document.getElementById('reg-error').classList.remove('visible');
+  if (!username || !/^[a-zA-Z0-9_]{3,24}$/.test(username)) { showAuthError('reg','Please enter a valid username.'); return; }
+  if (password.length < 6) { showAuthError('reg','Password must be at least 6 characters.'); return; }
+  btn.disabled=true; btn.textContent='Creating account\u2026';
+  db.collection('usernames').doc(username.toLowerCase()).get().then(function(doc) {
+    if (doc.exists) throw new Error('Username already taken. Please choose another.');
+    return auth.createUserWithEmailAndPassword(fakeEmail(username), password);
+  }).then(function(cred) {
+    var uid   = cred.user.uid;
+    var batch = db.batch();
+    batch.set(db.collection('usernames').doc(username.toLowerCase()), { uid:uid });
+    batch.set(db.collection('users').doc(uid), {
+      username:username, pfp:null, mod:false, banned:false,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    return batch.commit();
+  }).catch(function(err) {
+    btn.disabled=false; btn.textContent='Create account';
+    var msg = err.message||'Something went wrong.';
+    if (msg.includes('email-already-in-use')) msg='Username already taken. Please choose another.';
+    showAuthError('reg', msg);
+  });
+});
+
+// ================================================================
+// AUTH — LOGIN
+// ================================================================
+document.getElementById('login-submit').addEventListener('click', function() {
+  var username = document.getElementById('login-username').value.trim();
+  var password = document.getElementById('login-password').value;
+  var btn = this;
+  if (!username||!password) { showAuthError('login','Please enter your username and password.'); return; }
+  btn.disabled=true; btn.textContent='Signing in\u2026';
+  auth.signInWithEmailAndPassword(fakeEmail(username), password)
+    .catch(function(){ btn.disabled=false; btn.textContent='Sign in'; showAuthError('login','Incorrect username or password.'); });
+});
+
+// ================================================================
+// AUTH — LOGOUT
+// ================================================================
+document.getElementById('logout-btn').addEventListener('click', function() {
+  // Clear profile cache on explicit logout
+  if (currentUser) {
+    try { localStorage.removeItem('forum_profile_'+currentUser.uid); } catch(e){}
+  }
+  auth.signOut(); closeAccountMenu();
+});
+
+// ================================================================
+// AUTH MODAL UI
+// ================================================================
+function openAuthModal()  { document.getElementById('auth-modal').classList.add('open'); }
+function closeAuthModal() { document.getElementById('auth-modal').classList.remove('open'); }
+function showAuthError(form, msg) { var el=document.getElementById(form+'-error'); el.textContent=msg; el.classList.add('visible'); }
+
+document.getElementById('auth-close').addEventListener('click', closeAuthModal);
+document.getElementById('auth-modal').addEventListener('click', function(e){ if(e.target===this) closeAuthModal(); });
+document.querySelectorAll('.auth-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.auth-tab').forEach(function(t){ t.classList.remove('active'); });
+    tab.classList.add('active');
+    var isLogin = tab.dataset.tab==='login';
+    document.getElementById('login-form').style.display    = isLogin?'block':'none';
+    document.getElementById('register-form').style.display = isLogin?'none':'block';
+    document.getElementById('auth-title').textContent = isLogin?'Welcome back':'Create account';
+    document.getElementById('auth-sub').textContent   = isLogin?'Sign in to join the community':'Username is first come, first served';
+  });
+});
+document.getElementById('open-auth-btn').addEventListener('click', openAuthModal);
+document.getElementById('bottom-signin-btn').addEventListener('click', openAuthModal);
+
+// ================================================================
+// BOTTOM BAR — NOTIFICATIONS & ACCOUNT MENUS
+// ================================================================
+var notifOpen = false, accountOpen = false;
+function closeAccountMenu() { accountOpen=false; document.getElementById('account-menu').classList.remove('open'); }
+
+document.getElementById('notif-btn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  notifOpen = !notifOpen;
+  document.getElementById('notif-modal').classList.toggle('open', notifOpen);
+  accountOpen=false; document.getElementById('account-menu').classList.remove('open');
+  // Load full notif list once per session open
+  if (notifOpen && currentUser && !notifListLoaded) loadNotifList(currentUser.uid);
+  // Mark all read after 2s
+  if (notifOpen && currentUser && unreadCount > 0) {
+    setTimeout(function() {
+      db.collection('users').doc(currentUser.uid).collection('notifications')
+        .where('read','==',false).get().then(function(snap) {
+          var b = db.batch();
+          snap.forEach(function(d){ b.update(d.ref,{read:true}); });
+          return b.commit();
+        }).catch(function(){});
+    }, 2000);
+  }
+});
+
+document.getElementById('account-pill').addEventListener('click', function(e) {
+  e.stopPropagation();
+  accountOpen=!accountOpen;
+  document.getElementById('account-menu').classList.toggle('open', accountOpen);
+  notifOpen=false; document.getElementById('notif-modal').classList.remove('open');
+});
+
+document.addEventListener('click', function() {
+  notifOpen=false; accountOpen=false;
+  document.getElementById('notif-modal').classList.remove('open');
+  document.getElementById('account-menu').classList.remove('open');
+});
+document.getElementById('notif-modal').addEventListener('click', function(e){ e.stopPropagation(); });
+document.getElementById('account-menu').addEventListener('click', function(e){ e.stopPropagation(); });
+
+// ================================================================
+// HAMBURGER
+// ================================================================
+(function() {
+  var hbtn  = document.getElementById('hamburger');
+  var hmenu = document.getElementById('mobile-menu');
+  hbtn.addEventListener('click', function() {
+    var open = hmenu.classList.toggle('open');
+    hbtn.setAttribute('aria-expanded', open);
+    hmenu.setAttribute('aria-hidden', !open);
+  });
+  hmenu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      hmenu.classList.remove('open');
+      hbtn.setAttribute('aria-expanded','false');
+      hmenu.setAttribute('aria-hidden','true');
+    });
+  });
+})();
+
+// ================================================================
+// INIT — switchChannel is deferred until onAuthStateChanged fires
+// so buttons/compose are always correct on first render.
+// ================================================================
+var authResolved = false;
+var params       = new URLSearchParams(window.location.search);
+var initChannel  = params.get('ch') || 'general';
+if (params.get('msg')) jumpToId = params.get('msg');
+// switchChannel(initChannel) is called inside onAuthStateChanged above
+</script>
+
+</body>
+</html>

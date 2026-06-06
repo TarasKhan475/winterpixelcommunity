@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tools – Winterpixel Community</title>
+  <meta name="description" content="Tools and apps for Winterpixel games — Rocket Bot Royale, Goober Dash and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    .tools-layout { max-width: 1200px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+
+    .tools-search-wrap {
+      display: flex; gap: 10px; margin-bottom: 0.5rem; align-items: center;
+    }
+    .tools-search-box {
+      flex: 1; display: flex; align-items: center; gap: 8px;
+      border: 2px solid var(--blue-light); border-radius: var(--radius-sm);
+      padding: 8px 12px; background: #F8FAFF; transition: border-color var(--transition);
+    }
+    .tools-search-box:focus-within { border-color: var(--blue); }
+    .tools-search-box input {
+      flex: 1; border: none; background: transparent;
+      font-family: 'Baloo 2', cursive; font-size: 14px; color: var(--blue-deep); outline: none;
+    }
+    .tools-search-box input::placeholder { color: var(--blue-muted); }
+
+    .tools-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .tool-pill {
+      padding: 5px 16px; border-radius: 9999px;
+      border: 1.5px solid var(--blue-light); background: white;
+      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 700;
+      color: var(--blue); cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+    }
+    .tool-pill:hover { background: var(--blue-pale); }
+    .tool-pill.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+    .tools-full-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .tool-card {
+      border-radius: var(--radius-md); overflow: hidden;
+      border: 1.5px solid var(--blue-light); background: white;
+      text-decoration: none; color: inherit;
+      display: flex; flex-direction: column;
+      transition: border-color 0.15s, transform 0.15s; cursor: pointer;
+    }
+    .tool-card:hover { border-color: var(--blue); transform: translateY(-3px); }
+    .tool-card-thumb {
+      aspect-ratio: 16 / 9; overflow: hidden; position: relative;
+      background: var(--blue-pale); flex-shrink: 0;
+    }
+    .tool-card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tool-card-thumb-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center; font-size: 38px;
+    }
+    .tool-card-thumb .tool-badge {
+      position: absolute; top: 8px; right: 8px;
+      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 3px 8px; border-radius: 99px;
+    }
+    .tool-badge.soon { background: #FEF3C7; color: #92400E; }
+    .tool-badge.new  { background: #dcfce7; color: #16a34a; }
+    .tool-card-body { padding: 12px 14px 14px; flex: 1; }
+    .tool-card-game {
+      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--blue); margin-bottom: 3px;
+    }
+    .tool-card-name { font-size: 14px; font-weight: 800; color: var(--blue-deep); margin-bottom: 4px; }
+    .tool-card-desc { font-size: 12px; color: var(--gray-mid); line-height: 1.4; }
+    .tools-no-results {
+      display: none; padding: 3rem; text-align: center;
+      font-size: 14px; color: var(--gray-muted); grid-column: 1 / -1;
+    }
+
+    @media (max-width: 600px) {
+      .tools-full-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community Logo" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html" class="active">Tools</a>
+      <a href="index.html#sites">Sites</a>
+    </nav>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="news.html">News</a>
+    <a href="forum.html">Forum</a>
+    <a href="tools.html">Tools</a>
+    <a href="index.html#sites">Sites</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<!-- ===================== PAGE HERO ===================== -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <h1>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" style="vertical-align:-4px;margin-right:6px;">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+      </svg>
+      Tools &amp; Apps
+    </h1>
+    <p>Community-built tools for Rocket Bot Royale, Goober Dash, and more.</p>
+  </div>
+</div>
+
+<!-- ===================== MAIN ===================== -->
+<main class="tools-layout">
+
+  <!-- Search + filters -->
+  <div class="tools-search-wrap">
+    <div class="tools-search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="tools-search" placeholder="Search tools…" autocomplete="off" oninput="filterTools()" />
+    </div>
+  </div>
+
+  <div class="tools-filters">
+    <button class="tool-pill active" data-filter="all" onclick="setPill(this)">All</button>
+    <button class="tool-pill" data-filter="rbr" onclick="setPill(this)">Rocket Bot Royale</button>
+    <button class="tool-pill" data-filter="gd" onclick="setPill(this)">Goober Dash</button>
+    <button class="tool-pill" data-filter="other" onclick="setPill(this)">Other</button>
+  </div>
+
+  <div class="tools-full-grid" id="tools-grid">
+
+    <a href="stats.html" class="tool-card" data-game="rbr"
+       data-name="Player Stats Tracker" data-desc="look up any player stats history kdr winrate">
+      <div class="tool-card-thumb">
+        <img src="ui/thumbnails/rbruserstats.png" alt="Player Stats Tracker"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-card-thumb-placeholder" style="display:none;">📊</div>
+        <span class="tool-badge new">Updated</span>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-game">Rocket Bot Royale</div>
+        <div class="tool-card-name">Player Stats Tracker</div>
+        <div class="tool-card-desc">Look up any player by username, User ID, or friend code. Tracks stats over time with history graphs.</div>
+      </div>
+    </a>
+
+    <a href="friends.html" class="tool-card" data-game="rbr"
+       data-name="Friend Manager" data-desc="manage friends accept decline remove activity">
+      <div class="tool-card-thumb">
+        <img src="ui/thumbnails/rbrmanagefriends.png" alt="Friend Manager"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-card-thumb-placeholder" style="display:none;">🤝</div>
+        <span class="tool-badge new">New</span>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-game">Rocket Bot Royale</div>
+        <div class="tool-card-name">Friend Manager</div>
+        <div class="tool-card-desc">View, sort, and manage your friends list. Accept or decline requests, remove inactive players in bulk.</div>
+      </div>
+    </a>
+
+    <a href="https://orbitrbr.netlify.app/" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
+       data-name="Best RBR Analysis" data-desc="analysis stats leaderboard">
+      <div class="tool-card-thumb">
+        <img src="ui/thumbnails/HormaRBRanalysis.png" alt="Best RBR Analysis"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-card-thumb-placeholder" style="display:none;">📈</div>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-game">Rocket Bot Royale</div>
+        <div class="tool-card-name">Best RBR Analysis</div>
+        <div class="tool-card-desc">Probably the best stats site and leaderboards tracking, also has custom lobby controller!</div>
+      </div>
+    </a>
+
+    <a href="https://rbr.sebastian-105.com/stats" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
+       data-name="RBR Stats and Leaderboards by Sebastian" data-desc="RRB Stats and Leaderboards by Sebastian">
+      <div class="tool-card-thumb">
+        <img src="ui/thumbnails/sebrbruserstats.png" alt="Rocket Bot Royale User Stats"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-card-thumb-placeholder" style="display:none;">📈</div>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-game">Rocket Bot Royale</div>
+        <div class="tool-card-name">RBR Stats & Leaderboards</div>
+        <div class="tool-card-desc">Has individual stats and leaderboards for every season and leaderboards by stats</div>
+      </div>
+    </a>
+
+    <a href="https://rbrtiers.onrender.com/" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
+       data-name="RBR Tiers" data-desc="tier list rankings players leaderboard">
+      <div class="tool-card-thumb">
+        <img src="ui/thumbnails/RBRTiers.png" alt="RBR Tiers"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-card-thumb-placeholder" style="display:none;">🏆</div>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-game">Rocket Bot Royale</div>
+        <div class="tool-card-name">RBR Tiers</div>
+        <div class="tool-card-desc">Community player tier list and rankings for Rocket Bot Royale.</div>
+      </div>
+    </a>
+
+    <a href="https://winterpixelcheats.netlify.app/crateopening" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
+       data-name="RBR Crate Opener" data-desc="open crates automatic bulk">
+      <div class="tool-card-thumb">
+        <img src="ui/thumbnails/rbrcrateopener.png" alt="RBR Crate Opener"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-card-thumb-placeholder" style="display:none;">📦</div>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-game">Rocket Bot Royale</div>
+        <div class="tool-card-name">RBR Crate Opener</div>
+        <div class="tool-card-desc">Opens all your crates at once so you never have to click one by one.</div>
+      </div>
+    </a>
+
+    <a href="https://wph.ambersys.app/acrv2/" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
+       data-name="RBR ACR" data-desc="automatic coin redeemer daily coins">
+      <div class="tool-card-thumb">
+        <img src="ui/thumbnails/rbracr.png" alt="RBR ACR"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-card-thumb-placeholder" style="display:none;">🪙</div>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-game">Rocket Bot Royale</div>
+        <div class="tool-card-name">RBR ACR</div>
+        <div class="tool-card-desc">Automatic Coin Redeemer — claims your daily coins without manual effort.</div>
+      </div>
+    </a>
+
+    <a href="https://twhlynch.me/goober-dash-level-modding/?tab=tools" class="tool-card" data-game="gd" target="_blank" rel="noopener"
+       data-name="GD Modding" data-desc="goober dash mods modding tools resources">
+      <div class="tool-card-thumb">
+        <img src="ui/thumbnails/gdmodding.png" alt="GD Modding"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-card-thumb-placeholder" style="display:none;">🔧</div>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-game">Goober Dash</div>
+        <div class="tool-card-name">GD Modding</div>
+        <div class="tool-card-desc">Tools and resources for creating and applying Goober Dash mods.</div>
+      </div>
+    </a>
+
+    <a href="https://winterpixelthumbnails.netlify.app/" class="tool-card" data-game="other" target="_blank" rel="noopener"
+       data-name="Winterpixel Thumbnails" data-desc="thumbnails images free graphics">
+      <div class="tool-card-thumb">
+        <img src="ui/thumbnails/pixelthumbnails.png" alt="Winterpixel Thumbnails"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-card-thumb-placeholder" style="display:none;">🖼️</div>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-game">All Games</div>
+        <div class="tool-card-name">Winterpixel Thumbnails</div>
+        <div class="tool-card-desc">Free high-quality thumbnails for all Winterpixel games.</div>
+      </div>
+    </a>
+
+    <div class="tools-no-results" id="tools-no-results">No tools found.</div>
+  </div>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<script src="js/bottom-bar-loader.js"></script>
+<script>
+(function() {
+  var btn = document.getElementById('hamburger');
+  var menu = document.getElementById('mobile-menu');
+  btn.addEventListener('click', function() {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded','false');
+      menu.setAttribute('aria-hidden','true');
+    });
+  });
+})();
+
+var _activeFilter = 'all';
+
+function setPill(btn) {
+  document.querySelectorAll('.tool-pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  _activeFilter = btn.dataset.filter;
+  filterTools();
+}
+
+function filterTools() {
+  var q = (document.getElementById('tools-search').value || '').toLowerCase();
+  var cards = document.querySelectorAll('.tool-card');
+  var visible = 0;
+  cards.forEach(function(card) {
+    var gameMatch = _activeFilter === 'all' || card.dataset.game === _activeFilter;
+    var name = (card.dataset.name || '').toLowerCase();
+    var desc = (card.dataset.desc || '').toLowerCase();
+    var textMatch = !q || name.includes(q) || desc.includes(q);
+    var show = gameMatch && textMatch;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('tools-no-results').style.display = visible === 0 ? 'block' : 'none';
+}
+</script>
+
+</body>
+</html>

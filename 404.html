@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Page Not Found</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    .page-404 {
+      min-height: calc(100vh - 50px - 52px);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 2rem;
+    }
+
+    .page-404-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('/ui/tile.png');
+      background-repeat: repeat;
+      background-size: auto;
+
+      animation: tile-scroll 20s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes tile-scroll {
+      from { background-position: 0 0; }
+      to   { background-position: 120px 120px; }
+    }
+
+    /* White gradient at the bottom before footer */
+    .page-404-fade {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 100%);
+      pointer-events: none;
+    }
+
+    /* Content sits above the bg layers */
+    .page-404-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .page-404-img {
+      width: 180px;
+      height: auto;
+      opacity: 0.9;
+    }
+
+    .page-404-code {
+      font-size: 72px;
+      font-weight: 800;
+      color: var(--blue-deep);
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .page-404-code span {
+      color: var(--blue);
+    }
+
+    .page-404-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--blue-deep);
+    }
+
+    .page-404-sub {
+      font-size: 15px;
+      color: var(--gray-mid);
+      font-weight: 500;
+      max-width: 340px;
+      line-height: 1.6;
+    }
+
+    .page-404-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 0.5rem;
+      background: var(--blue);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 24px;
+      font-family: 'Baloo 2', cursive;
+      font-size: 14px;
+      font-weight: 700;
+      transition: background var(--transition), transform var(--transition);
+    }
+
+    .page-404-btn:hover {
+      background: var(--blue-mid);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community Logo" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html">Tools</a>
+    </nav>
+
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="news.html">News</a>
+    <a href="forum.html">Forum</a>
+    <a href="tools.html">Tools</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<!-- ===================== 404 ===================== -->
+<div class="page-404">
+  <div class="page-404-bg"></div>
+
+  <div class="page-404-content">
+    <img
+      src="/ui/Worker_Tank.png"
+      alt="404"
+      class="page-404-img"
+      onerror="this.style.display='none'"
+    />
+
+    <div class="page-404-code">404</div>
+    <div class="page-404-title">Page Not Found</div>
+    <p class="page-404-sub">Oops! The page you are looking for does not exist.</p>
+    <a href="index.html" class="page-404-btn">
+      ← Back to Home
+    </a>
+  </div>
+
+  <div class="page-404-fade"></div>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<script src="js/bottom-bar-loader.js"></script>
+
+<script>
+(function() {
+  var btn  = document.getElementById('hamburger');
+  var menu = document.getElementById('mobile-menu');
+  btn.addEventListener('click', function() {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      menu.setAttribute('aria-hidden', 'true');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
