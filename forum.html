@@ -140,7 +140,7 @@
 
     .msg {
       display: flex; align-items: flex-start; gap: 8px;
-      padding: 5px 12px; transition: background var(--transition);
+      padding: 5px 2px; transition: background var(--transition);
       position: relative;
     }
 
@@ -273,6 +273,89 @@
     .compose-send svg { width: 15px; height: 15px; }
 
     .compose-hint { font-size: 10px; color: var(--gray-muted); margin-top: 3px; font-weight: 500; }
+    /* ---- Emoji picker ---- */
+    .emoji-btn {
+      background: none; border: none; cursor: pointer; padding: 3px 5px;
+      font-size: 17px; line-height: 1; border-radius: 5px; flex-shrink: 0;
+      transition: background var(--transition); align-self: flex-end; margin-bottom: 5px;
+      color: var(--gray-muted);
+    }
+    .emoji-btn:hover { background: var(--blue-light); }
+
+    .emoji-picker {
+      position: absolute; bottom: calc(100% + 6px); right: 0;
+      background: white; border: 1.5px solid var(--blue-light);
+      border-radius: var(--radius-md); box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+      width: 300px; max-height: 320px; display: none; flex-direction: column;
+      z-index: 300; overflow: hidden;
+    }
+    .emoji-picker.open { display: flex; }
+    .emoji-picker-search {
+      padding: 8px 10px; border-bottom: 1px solid var(--blue-light); flex-shrink: 0;
+    }
+    .emoji-picker-search input {
+      width: 100%; box-sizing: border-box; border: 1.5px solid var(--blue-light);
+      border-radius: var(--radius-sm); padding: 5px 9px;
+      font-family: 'Baloo 2', cursive; font-size: 12px; color: var(--blue-deep);
+      background: var(--blue-pale); outline: none;
+    }
+    .emoji-picker-search input:focus { border-color: var(--blue); }
+    .emoji-picker-cats { display: flex; gap: 2px; padding: 5px 8px 2px; flex-shrink: 0; flex-wrap: wrap; }
+    .emoji-picker-cat {
+      background: none; border: none; font-size: 15px; cursor: pointer; padding: 3px 5px;
+      border-radius: 5px; transition: background .1s;
+    }
+    .emoji-picker-cat:hover, .emoji-picker-cat.active { background: var(--blue-light); }
+    .emoji-picker-grid {
+      display: flex; flex-wrap: wrap; gap: 1px; overflow-y: auto; padding: 6px 8px;
+      scrollbar-width: thin; scrollbar-color: var(--blue-light) transparent;
+    }
+    .emoji-picker-grid::-webkit-scrollbar { width: 4px; }
+    .emoji-picker-grid::-webkit-scrollbar-thumb { background: var(--blue-light); border-radius: 4px; }
+    .emoji-cell {
+      width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; border-radius: 6px; cursor: pointer; transition: background .1s;
+      flex-shrink: 0; position: relative;
+    }
+    .emoji-cell:hover { background: var(--blue-pale); }
+    .emoji-cell[title]:hover::after {
+      content: attr(title); position: absolute; bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: white; font-size: 10px; font-weight: 600;
+      padding: 2px 6px; border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 1;
+    }
+
+    /* Emoji autocomplete dropdown */
+    .emoji-autocomplete {
+      position: absolute; bottom: calc(100% + 4px); left: 0;
+      background: white; border: 1.5px solid var(--blue-light);
+      border-radius: var(--radius-sm); box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      display: none; flex-direction: column; z-index: 300; min-width: 180px; overflow: hidden;
+    }
+    .emoji-autocomplete.open { display: flex; }
+    .emoji-ac-item {
+      display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+      cursor: pointer; transition: background .1s; font-size: 13px; font-weight: 600;
+      color: var(--blue-deep); border-bottom: 1px solid var(--blue-light);
+    }
+    .emoji-ac-item:last-child { border-bottom: none; }
+    .emoji-ac-item:hover, .emoji-ac-item.selected { background: var(--blue-pale); }
+    .emoji-ac-item span:first-child { font-size: 18px; }
+
+    /* ---- GIF support — same style as images ---- */
+    .msg-text img, .msg-text .msg-gif {
+      max-height: 160px; width: auto; border-radius: 8px; margin-top: 5px; display: block;
+    }
+
+    /* ---- Grouped messages (consecutive same user) ---- */
+    .msg.grouped {
+      padding-top: 1px;
+    }
+    .msg.grouped .msg-avatar { visibility: hidden; }
+    .msg.grouped .msg-meta   { display: none; }
+
+    /* compose-wrap needs position:relative for popups */
+    .compose-wrap { position: relative; }
+
 
     .rate-warn {
       font-size: 11px; font-weight: 600; text-align: center; padding: 3px 0;
@@ -578,14 +661,27 @@
         <span class="reply-preview-text" id="reply-preview-text"></span>
         <button class="reply-cancel" id="reply-cancel">✕</button>
       </div>
+      <!-- Emoji autocomplete dropdown -->
+      <div class="emoji-autocomplete" id="emoji-autocomplete"></div>
+
       <div class="compose-box">
         <textarea class="compose-input" id="compose-input" placeholder="Message #general…" rows="1" maxlength="200"></textarea>
         <span class="char-count" id="char-count">200</span>
+        <button class="emoji-btn" id="emoji-btn" title="Emoji" type="button">😊</button>
         <button class="compose-send" id="compose-send" title="Send" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
         </button>
+      </div>
+
+      <!-- Emoji picker popup -->
+      <div class="emoji-picker" id="emoji-picker">
+        <div class="emoji-picker-search">
+          <input type="text" id="emoji-search-input" placeholder="Search emojis…" autocomplete="off" />
+        </div>
+        <div class="emoji-picker-cats" id="emoji-picker-cats"></div>
+        <div class="emoji-picker-grid" id="emoji-picker-grid"></div>
       </div>
       <div class="rate-warn" id="rate-warn">Slow down — wait a moment before sending again.</div>
     </div>
@@ -900,7 +996,7 @@ function pushNotification(toUid, type, data) {
 // ================================================================
 // MESSAGE RENDERING — build DOM element from plain data object
 // ================================================================
-function buildMsgEl(msgData) {
+function buildMsgEl(msgData, grouped) {
   var id       = msgData._id;
   var isMod    = currentProfile && currentProfile.mod === true;
   var isOwn    = currentUser && currentUser.uid === msgData.uid;
@@ -926,7 +1022,7 @@ function buildMsgEl(msgData) {
   actionsHtml += '</div>';
 
   var el = document.createElement('div');
-  el.className = 'msg';
+  el.className = 'msg' + (grouped ? ' grouped' : '');
   el.dataset.id = id;
   el.dataset.ts = msgData.createdAt || 0;
   el.innerHTML =
@@ -1118,6 +1214,8 @@ function appendOrUpdateMsg(msgData) {
       if (kidTs <= ts) {
         list.insertBefore(el, kids[i].nextSibling);
         inserted = true;
+        // Check if this message should be grouped with its predecessor
+        recheckGrouping(el);
         break;
       }
     }
@@ -1126,6 +1224,29 @@ function appendOrUpdateMsg(msgData) {
     // Auto-scroll only if user is near the bottom
     var atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 120;
     if (atBottom) list.scrollTop = list.scrollHeight;
+  }
+}
+
+// Recheck whether a freshly inserted message should be grouped with its predecessor
+function recheckGrouping(el) {
+  var prev = el.previousElementSibling;
+  while (prev && (prev.id === 'load-older-wrap' || !prev.dataset.id)) prev = prev.previousElementSibling;
+  if (!prev || !prev.dataset.id) return;
+  var prevData = channelMsgMap[currentChannel] && channelMsgMap[currentChannel][prev.dataset.id];
+  var elData   = channelMsgMap[currentChannel] && channelMsgMap[currentChannel][el.dataset.id];
+  if (!prevData || !elData) return;
+  var timeDiff = (elData.createdAt || 0) - (prevData.createdAt || 0);
+  var shouldGroup = prevData.uid === elData.uid && !elData.replyTo && timeDiff < 5 * 60 * 1000;
+  el.classList.toggle('grouped', shouldGroup);
+  // Also recheck the element after this one if it exists
+  var next = el.nextElementSibling;
+  if (next && next.dataset.id) {
+    var nextData = channelMsgMap[currentChannel] && channelMsgMap[currentChannel][next.dataset.id];
+    if (nextData) {
+      var timeDiff2 = (nextData.createdAt || 0) - (elData.createdAt || 0);
+      var shouldGroup2 = elData.uid === nextData.uid && !nextData.replyTo && timeDiff2 < 5 * 60 * 1000;
+      next.classList.toggle('grouped', shouldGroup2);
+    }
   }
 }
 
@@ -1150,7 +1271,11 @@ function renderAllMessages(channelId, scrollToBottom) {
     : '';
 
   list.innerHTML = olderBtn;
-  msgs.forEach(function(m) { list.appendChild(buildMsgEl(m)); });
+  msgs.forEach(function(m, i) {
+    var prev = i > 0 ? msgs[i-1] : null;
+    var grouped = prev && prev.uid === m.uid && !m.replyTo && (m.createdAt - prev.createdAt < 5 * 60 * 1000);
+    list.appendChild(buildMsgEl(m, grouped));
+  });
 
   if (scrollToBottom !== false) list.scrollTop = list.scrollHeight;
 
@@ -1830,6 +1955,251 @@ var params       = new URLSearchParams(window.location.search);
 var initChannel  = params.get('ch') || 'general';
 if (params.get('msg')) jumpToId = params.get('msg');
 // switchChannel(initChannel) is called inside onAuthStateChanged above
+
+// ================================================================
+// EMOJI SYSTEM
+// ================================================================
+var EMOJI_DATA = [
+  {cat:'😀 Smileys', emojis:[
+    ['😀','grinning'],['😁','beaming'],['😂','joy'],['🤣','rofl'],['😃','smiley'],
+    ['😄','smile'],['😅','sweat_smile'],['😆','laughing'],['😉','wink'],['😊','blush'],
+    ['😋','yum'],['😎','sunglasses'],['😍','heart_eyes'],['🥰','smiling_face_with_hearts'],
+    ['😘','kissing_heart'],['😗','kissing'],['😙','kissing_smiling_eyes'],['😚','kissing_closed_eyes'],
+    ['🙂','slightly_smiling'],['🤗','hugging'],['🤩','star_struck'],['🥳','partying'],
+    ['😏','smirk'],['😒','unamused'],['😞','disappointed'],['😔','pensive'],['😟','worried'],
+    ['😕','confused'],['🙁','slightly_frowning'],['☹️','frowning'],['😣','persevere'],
+    ['😖','confounded'],['😫','tired'],['😩','weary'],['🥺','pleading'],['😢','cry'],
+    ['😭','sob'],['😤','triumph'],['😠','angry'],['😡','rage'],['🤬','cursing'],
+    ['😈','smiling_imp'],['👿','imp'],['💀','skull'],['☠️','skull_crossbones'],
+    ['😺','smiley_cat'],['😸','smile_cat'],['😹','joy_cat'],['😻','heart_eyes_cat'],
+    ['😼','smirk_cat'],['😽','kissing_cat'],['🙀','scream_cat'],['😿','crying_cat'],['😾','pouting_cat'],
+    ['🙈','see_no_evil'],['🙉','hear_no_evil'],['🙊','speak_no_evil'],
+    ['💫','dizzy'],['💥','boom'],['💢','anger'],['❗','exclamation'],['❓','question'],
+    ['💤','zzz'],['💨','dash'],['🌀','cyclone'],['🔥','fire'],['✨','sparkles'],
+  ]},
+  {cat:'👍 Gestures', emojis:[
+    ['👋','wave'],['🤚','raised_back_of_hand'],['✋','hand'],['🖖','vulcan_salute'],
+    ['👌','ok_hand'],['🤌','pinched_fingers'],['🤏','pinching_hand'],['✌️','v'],
+    ['🤞','crossed_fingers'],['🤟','love_you_gesture'],['🤘','metal'],['🤙','call_me_hand'],
+    ['👈','point_left'],['👉','point_right'],['👆','point_up_2'],['🖕','middle_finger'],
+    ['👇','point_down'],['☝️','point_up'],['👍','thumbsup'],['👎','thumbsdown'],
+    ['✊','fist'],['👊','punch'],['🤛','left_facing_fist'],['🤜','right_facing_fist'],
+    ['👏','clap'],['🙌','raised_hands'],['👐','open_hands'],['🤲','palms_up_together'],
+    ['🤝','handshake'],['🙏','pray'],['💪','muscle'],['🦵','leg'],['🦶','foot'],
+    ['👀','eyes'],['👁️','eye'],['👅','tongue'],['👄','lips'],
+  ]},
+  {cat:'❤️ Hearts', emojis:[
+    ['❤️','heart'],['🧡','orange_heart'],['💛','yellow_heart'],['💚','green_heart'],
+    ['💙','blue_heart'],['💜','purple_heart'],['🖤','black_heart'],['🤍','white_heart'],
+    ['🤎','brown_heart'],['💔','broken_heart'],['❣️','heart_exclamation'],['💕','two_hearts'],
+    ['💞','revolving_hearts'],['💓','heartbeat'],['💗','heartpulse'],['💖','sparkling_heart'],
+    ['💘','cupid'],['💝','gift_heart'],['💟','heart_decoration'],['♥️','hearts'],
+    ['🫀','anatomical_heart'],['❤️‍🔥','heart_on_fire'],['❤️‍🩹','mending_heart'],
+  ]},
+  {cat:'🎮 Gaming', emojis:[
+    ['🎮','video_game'],['🕹️','joystick'],['🎯','dart'],['🎲','game_die'],
+    ['🏆','trophy'],['🥇','first_place'],['🥈','second_place'],['🥉','third_place'],
+    ['🎖️','medal'],['🏅','sports_medal'],['⭐','star'],['🌟','star2'],['💫','dizzy'],
+    ['🔫','gun'],['💣','bomb'],['⚔️','crossed_swords'],['🛡️','shield'],
+    ['🚀','rocket'],['💥','boom'],['⚡','zap'],['🌀','cyclone'],['🔥','fire'],
+    ['👑','crown'],['💎','gem'],['🎁','gift'],['🎉','tada'],['🎊','confetti_ball'],
+    ['✅','white_check_mark'],['❌','x'],['⚠️','warning'],['🔴','red_circle'],['🟢','green_circle'],
+    ['🤖','robot'],['👾','space_invader'],['🎃','jack_o_lantern'],['🦄','unicorn'],
+  ]},
+  {cat:'🐱 Animals', emojis:[
+    ['🐶','dog'],['🐱','cat'],['🐭','mouse'],['🐹','hamster'],['🐰','rabbit'],
+    ['🦊','fox'],['🐻','bear'],['🐼','panda'],['🐨','koala'],['🐯','tiger'],
+    ['🦁','lion'],['🐮','cow'],['🐷','pig'],['🐸','frog'],['🐵','monkey'],
+    ['🐔','chicken'],['🐧','penguin'],['🐦','bird'],['🦆','duck'],['🦅','eagle'],
+    ['🦉','owl'],['🦇','bat'],['🐺','wolf'],['🐗','boar'],['🐴','horse'],
+    ['🦄','unicorn'],['🐝','bee'],['🐛','bug'],['🦋','butterfly'],['🐌','snail'],
+    ['🐠','tropical_fish'],['🐟','fish'],['🐡','blowfish'],['🦈','shark'],['🐙','octopus'],
+  ]},
+  {cat:'🌈 Nature', emojis:[
+    ['⛅','partly_sunny'],['🌤️','sun_small_cloud'],['🌈','rainbow'],['☁️','cloud'],
+    ['⛈️','thunder_cloud_rain'],['🌩️','lightning'],['🌧️','rain_cloud'],['❄️','snowflake'],
+    ['🌊','ocean'],['🔥','fire'],['💧','droplet'],['🌱','seedling'],['🌿','herb'],
+    ['🍀','four_leaf_clover'],['🌸','cherry_blossom'],['🌺','hibiscus'],['🌻','sunflower'],
+    ['🌙','crescent_moon'],['⭐','star'],['🌟','star2'],['☀️','sunny'],['🌍','earth_africa'],
+  ]},
+  {cat:'🍕 Food', emojis:[
+    ['🍕','pizza'],['🍔','hamburger'],['🌮','taco'],['🌯','burrito'],['🍟','fries'],
+    ['🍗','poultry_leg'],['🍖','meat_on_bone'],['🥩','cut_of_meat'],['🥚','egg'],
+    ['🍳','fried_egg'],['🧇','waffle'],['🥞','pancakes'],['🧈','butter'],
+    ['🍰','cake'],['🎂','birthday'],['🧁','cupcake'],['🍩','doughnut'],['🍪','cookie'],
+    ['🍫','chocolate_bar'],['🍬','candy'],['🍭','lollipop'],['🍦','soft_ice_cream'],
+    ['🍟','fries'],['🥤','cup_with_straw'],['☕','coffee'],['🧃','beverage_box'],
+    ['🍺','beer'],['🍻','beers'],['🥂','champagne'],['🍷','wine_glass'],
+  ]},
+];
+
+// Build flat lookup: name → emoji char
+var EMOJI_BY_NAME = {};
+EMOJI_DATA.forEach(function(cat){
+  cat.emojis.forEach(function(e){ EMOJI_BY_NAME[e[1]] = e[0]; });
+});
+
+var _emojiPickerOpen = false;
+var _currentCat = 0;
+
+function buildEmojiPicker() {
+  var catBar = document.getElementById('emoji-picker-cats');
+  var grid   = document.getElementById('emoji-picker-grid');
+
+  // Category buttons
+  catBar.innerHTML = EMOJI_DATA.map(function(c, i){
+    return '<button class="emoji-picker-cat'+(i===0?' active':'')+'" data-cat="'+i+'" title="'+c.cat+'">'+c.cat.split(' ')[0]+'</button>';
+  }).join('');
+
+  catBar.addEventListener('click', function(e){
+    var btn = e.target.closest('.emoji-picker-cat');
+    if (!btn) return;
+    var idx = parseInt(btn.dataset.cat);
+    _currentCat = idx;
+    document.querySelectorAll('.emoji-picker-cat').forEach(function(b){ b.classList.toggle('active', b.dataset.cat == idx); });
+    renderEmojiGrid(EMOJI_DATA[idx].emojis);
+  });
+
+  renderEmojiGrid(EMOJI_DATA[0].emojis);
+
+  // Search
+  document.getElementById('emoji-search-input').addEventListener('input', function(){
+    var q = this.value.trim().toLowerCase();
+    if (!q) { renderEmojiGrid(EMOJI_DATA[_currentCat].emojis); return; }
+    var results = [];
+    EMOJI_DATA.forEach(function(c){ c.emojis.forEach(function(e){ if(e[1].includes(q)) results.push(e); }); });
+    renderEmojiGrid(results);
+  });
+
+  // Click on emoji → insert into compose
+  grid.addEventListener('click', function(e){
+    var cell = e.target.closest('.emoji-cell');
+    if (!cell) return;
+    insertEmoji(cell.dataset.emoji);
+  });
+}
+
+function renderEmojiGrid(emojis) {
+  var grid = document.getElementById('emoji-picker-grid');
+  if (!emojis.length) { grid.innerHTML = '<div style="padding:1rem;text-align:center;font-size:12px;color:var(--gray-muted);">No results</div>'; return; }
+  grid.innerHTML = emojis.map(function(e){
+    return '<div class="emoji-cell" data-emoji="'+e[0]+'" title=":'+e[1]+':">'+e[0]+'</div>';
+  }).join('');
+}
+
+function insertEmoji(em) {
+  var inp = document.getElementById('compose-input');
+  var start = inp.selectionStart;
+  var end   = inp.selectionEnd;
+  var val   = inp.value;
+  inp.value = val.slice(0, start) + em + val.slice(end);
+  inp.selectionStart = inp.selectionEnd = start + em.length;
+  inp.focus();
+  inp.dispatchEvent(new Event('input'));
+}
+
+// Toggle picker button
+document.getElementById('emoji-btn').addEventListener('click', function(e){
+  e.stopPropagation();
+  _emojiPickerOpen = !_emojiPickerOpen;
+  document.getElementById('emoji-picker').classList.toggle('open', _emojiPickerOpen);
+  if (_emojiPickerOpen) {
+    document.getElementById('emoji-search-input').focus();
+  }
+});
+
+// Close picker on outside click
+document.addEventListener('click', function(e){
+  if (!e.target.closest('#emoji-picker') && !e.target.closest('#emoji-btn')) {
+    _emojiPickerOpen = false;
+    document.getElementById('emoji-picker').classList.remove('open');
+  }
+});
+
+// ── :emoji: autocomplete while typing ──
+var _acEmojis = [];
+var _acIndex  = 0;
+
+document.getElementById('compose-input').addEventListener('input', function(){
+  checkEmojiAutocomplete(this);
+});
+
+document.getElementById('compose-input').addEventListener('keydown', function(e){
+  var ac = document.getElementById('emoji-autocomplete');
+  if (!ac.classList.contains('open')) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); _acIndex = Math.min(_acIndex+1, _acEmojis.length-1); highlightAcItem(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); _acIndex = Math.max(_acIndex-1, 0); highlightAcItem(); }
+  else if (e.key === 'Enter' || e.key === 'Tab') {
+    if (_acEmojis.length) { e.preventDefault(); selectAcEmoji(_acEmojis[_acIndex]); }
+  }
+  else if (e.key === 'Escape') { closeEmojiAc(); }
+});
+
+function checkEmojiAutocomplete(inp) {
+  var val = inp.value;
+  var pos = inp.selectionStart;
+  // Find the last : before cursor that doesn't have a closing :
+  var colonPos = -1;
+  for (var i = pos - 1; i >= 0; i--) {
+    if (val[i] === ':') { colonPos = i; break; }
+    if (val[i] === ' ') break;
+  }
+  var ac = document.getElementById('emoji-autocomplete');
+  if (colonPos === -1) { closeEmojiAc(); return; }
+  var query = val.slice(colonPos + 1, pos).toLowerCase();
+  if (query.length < 2) { closeEmojiAc(); return; }
+  // Search emoji names
+  var results = [];
+  EMOJI_DATA.forEach(function(c){
+    c.emojis.forEach(function(e){ if(e[1].startsWith(query) && results.length < 8) results.push(e); });
+  });
+  if (!results.length) { closeEmojiAc(); return; }
+  _acEmojis = results;
+  _acIndex  = 0;
+  ac.innerHTML = results.map(function(e, i){
+    return '<div class="emoji-ac-item'+(i===0?' selected':'')+'" data-name="'+e[1]+'" data-emoji="'+e[0]+'">'+
+      '<span>'+e[0]+'</span><span>:'+e[1]+':</span></div>';
+  }).join('');
+  ac.classList.add('open');
+  ac.querySelectorAll('.emoji-ac-item').forEach(function(item, i){
+    item.addEventListener('mousedown', function(e){ e.preventDefault(); selectAcEmoji(_acEmojis[i]); });
+  });
+}
+
+function highlightAcItem() {
+  var items = document.querySelectorAll('.emoji-ac-item');
+  items.forEach(function(it, i){ it.classList.toggle('selected', i === _acIndex); });
+}
+
+function selectAcEmoji(entry) {
+  var inp = document.getElementById('compose-input');
+  var val = inp.value;
+  var pos = inp.selectionStart;
+  // Replace from last : to cursor with the emoji
+  var colonPos = -1;
+  for (var i = pos - 1; i >= 0; i--) {
+    if (val[i] === ':') { colonPos = i; break; }
+    if (val[i] === ' ') break;
+  }
+  if (colonPos === -1) { closeEmojiAc(); return; }
+  inp.value = val.slice(0, colonPos) + entry[0] + val.slice(pos);
+  inp.selectionStart = inp.selectionEnd = colonPos + entry[0].length;
+  inp.focus();
+  inp.dispatchEvent(new Event('input'));
+  closeEmojiAc();
+}
+
+function closeEmojiAc() {
+  document.getElementById('emoji-autocomplete').classList.remove('open');
+  _acEmojis = []; _acIndex = 0;
+}
+
+// Init picker on first open to avoid building 300 nodes on page load
+var _pickerBuilt = false;
+document.getElementById('emoji-btn').addEventListener('click', function(){
+  if (!_pickerBuilt) { buildEmojiPicker(); _pickerBuilt = true; }
+}, true);
+
 </script>
 
 </body>
