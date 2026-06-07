@@ -15,19 +15,56 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
   <style>
-    .stats-layout { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+    /* ── Tile Background ── */
+    .stats-page-wrap {
+      position: relative;
+      min-height: calc(100vh - 55px - 52px);
+    }
+    .stats-tile-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('ui/tile.png');
+      background-repeat: repeat;
+      background-size: auto;
+      animation: tile-scroll 20s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .stats-tile-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(255,255,255,0.15) 0%,
+        rgba(255,255,255,0.70) 35%,
+        rgba(255,255,255,0.95) 70%,
+        #ffffff 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes tile-scroll {
+      from { background-position: 0 0; }
+      to   { background-position: 120px 120px; }
+    }
 
-    /* ── Hero ── */
+    .stats-layout {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+      position: relative;
+      z-index: 1;
+    }
+
     .tracker-hero {
       background: linear-gradient(135deg, var(--blue-deep) 0%, #0a2a3f 100%);
       border-radius: var(--radius-md); padding: 2rem 2rem 1.5rem;
-      margin-bottom: 1.5rem; color: white; position: relative; overflow: hidden;
+      margin-bottom: 1.5rem; color: white; position: relative;
     }
     .tracker-hero::before {
       content: ''; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%);
       width: 120px; height: 120px;
       background: url('ui/icons/insight.png') center/contain no-repeat;
       opacity: 0.12; pointer-events: none;
+      border-radius: var(--radius-md);
     }
     .tracker-hero-label {
       font-size: 10px; font-weight: 800; text-transform: uppercase;
@@ -88,64 +125,6 @@
 
     .tracker-status { font-size: 12px; font-weight: 600; margin-top: 10px; color: rgba(255,255,255,0.7); min-height: 16px; }
     .tracker-status.err { color: #ff6b6b; }
-
-    /* ── Friend Code Converter ── */
-    .converter-card {
-      background: white; border: 1.5px solid var(--blue-light);
-      border-radius: var(--radius-md); overflow: hidden; margin-bottom: 1.5rem;
-    }
-    .converter-header {
-      background: var(--blue-pale); border-bottom: 1.5px solid var(--blue-light);
-      padding: 12px 18px; display: flex; align-items: center; gap: 10px;
-    }
-    .converter-header-icon {
-      width: 30px; height: 30px; border-radius: var(--radius-sm);
-      background: var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .converter-title { font-size: 14px; font-weight: 800; color: var(--blue-deep); }
-    .converter-sub   { font-size: 11px; color: var(--gray-muted); font-weight: 500; }
-    .converter-body  { padding: 16px 18px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-    .converter-field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px; }
-    .converter-label { font-size: 11px; font-weight: 800; color: var(--blue-deep); text-transform: uppercase; letter-spacing: 0.5px; }
-    .converter-input {
-      border: 1.5px solid var(--gray-border); border-radius: var(--radius-sm);
-      padding: 8px 12px; font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 700;
-      color: var(--blue-deep); background: #F8FAFF; outline: none;
-      transition: border-color var(--transition); letter-spacing: 1px;
-    }
-    .converter-input:focus { border-color: var(--blue); }
-    .converter-input::placeholder { letter-spacing: 0; font-weight: 500; color: var(--blue-muted); }
-    .converter-btn {
-      padding: 9px 20px; background: var(--blue); color: white; border: none;
-      border-radius: var(--radius-sm); font-family: 'Baloo 2', cursive;
-      font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap;
-      transition: background 0.15s; align-self: flex-end;
-    }
-    .converter-btn:hover    { background: var(--blue-dark); }
-    .converter-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .converter-result {
-      margin: 0 18px 14px; padding: 10px 14px;
-      border-radius: var(--radius-sm); font-size: 13px; font-weight: 600;
-      display: none; align-items: center; gap: 10px;
-    }
-    .converter-result.visible { display: flex; }
-    .converter-result.success { background: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; }
-    .converter-result.error   { background: var(--red-light); color: var(--red); border: 1px solid #FECACA; }
-    .converter-result-id { font-family: monospace; font-size: 12px; word-break: break-all; flex: 1; }
-    .converter-copy-btn {
-      background: none; border: none; cursor: pointer; color: #065F46;
-      padding: 4px; border-radius: 4px; display: flex; align-items: center;
-      transition: background 0.12s; flex-shrink: 0;
-    }
-    .converter-copy-btn:hover { background: rgba(0,0,0,0.08); }
-    .converter-lookup-btn {
-      padding: 5px 14px; background: #065F46; color: white; border: none;
-      border-radius: var(--radius-sm); font-family: 'Baloo 2', cursive;
-      font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
-      transition: opacity 0.15s; flex-shrink: 0;
-    }
-    .converter-lookup-btn:hover { opacity: 0.85; }
 
     /* ── Stats panel ── */
     .stats-panel {
@@ -227,7 +206,6 @@
       .tracker-hero { padding: 1.4rem 1.2rem 1.2rem; }
       .stats-panel-actions { width: 100%; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .converter-body { flex-direction: column; }
     }
   </style>
 </head>
@@ -270,133 +248,78 @@
   </nav>
 </header>
 
-<!-- ===================== PAGE HERO ===================== -->
-<div class="page-hero">
-  <div class="page-hero-inner">
-    <h1>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" style="vertical-align:-4px;margin-right:6px;">
-        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-        <line x1="6" y1="20" x2="6" y2="14"/>
-      </svg>
-      Player Stats Tracker
-    </h1>
-    <p>Look up any Rocket Bot Royale player by username, User ID, or friend code.</p>
-  </div>
-</div>
-
 <!-- ===================== MAIN ===================== -->
-<main class="stats-layout">
+<div class="stats-page-wrap">
+  <div class="stats-tile-bg"></div>
+  <div class="stats-tile-fade"></div>
 
-  <!-- Stats tracker hero -->
-  <div class="tracker-hero">
-    <div class="tracker-hero-label">Rocket Bot Royale</div>
-    <h2>Player Stats Tracker</h2>
-    <p>Search by Username or paste a User ID. Stats are tracked over time — look up a player again tomorrow to see their history graph!</p>
-    <div class="tracker-search-row">
-      <div class="tracker-input-wrap">
-        <input type="text" id="tracker-input" class="tracker-input"
-               placeholder="Paste User ID or enter Username…" autocomplete="off" spellcheck="false" />
-        <div class="tracker-dropdown" id="tracker-dropdown"></div>
+  <main class="stats-layout">
+
+    <!-- Stats tracker hero -->
+    <div class="tracker-hero">
+      <div class="tracker-hero-label">Rocket Bot Royale</div>
+      <h2>Player Stats Tracker</h2>
+      <p>Search by Username, paste a User ID, or enter a Friend Code. Stats are tracked over time — look up a player again tomorrow to see their history graph!</p>
+      <div class="tracker-search-row">
+        <div class="tracker-input-wrap">
+          <input type="text" id="tracker-input" class="tracker-input"
+                 placeholder="Username, User ID, or Friend Code…" autocomplete="off" spellcheck="false" />
+          <div class="tracker-dropdown" id="tracker-dropdown"></div>
+        </div>
+        <button class="tracker-btn" id="tracker-search-btn" onclick="trackerSearch()">Look Up</button>
       </div>
-      <button class="tracker-btn" id="tracker-search-btn" onclick="trackerSearch()">Look Up</button>
+      <div class="tracker-status" id="tracker-status"></div>
+    <div id="fallback-banner" style="display:none;margin-top:10px;background:rgba(220,38,38,0.18);border:1.5px solid rgba(220,38,38,0.45);border-radius:var(--radius-sm);padding:9px 14px;font-size:12px;font-weight:700;color:#ff6b6b;align-items:center;gap:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>⚠ Fallback mode — cannot connect to game server. Showing last known data from database.</div>
     </div>
-    <div class="tracker-status" id="tracker-status"></div>
-    <div id="fallback-banner" style="display:none;margin-top:10px;background:rgba(220,38,38,0.15);border:1.5px solid rgba(220,38,38,0.4);border-radius:var(--radius-sm);padding:9px 14px;font-size:12px;font-weight:700;color:#ff6b6b;display:none;align-items:center;gap:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Fallback mode — cannot connect to game server. Showing last known data from database.</div>
-  </div>
 
-  <!-- Stats result panel -->
-  <div class="stats-panel" id="stats-panel">
-    <div class="stats-panel-header">
-      <div>
-        <div class="stats-panel-name" id="stats-name">—</div>
-        <div class="stats-panel-meta" id="stats-meta">—</div>
-        <div class="friend-code-wrap" id="friend-code-wrap" style="display:none;">
-          <span class="friend-code-label">Friend Code</span>
-          <span class="friend-code-value" id="friend-code-value"></span>
-          <button class="friend-code-copy" id="friend-code-copy" title="Copy friend code">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-            </svg>
-          </button>
+    <!-- Stats result panel -->
+    <div class="stats-panel" id="stats-panel">
+      <div class="stats-panel-header">
+        <div>
+          <div class="stats-panel-name" id="stats-name">—</div>
+          <div class="stats-panel-meta" id="stats-meta">—</div>
+          <div class="friend-code-wrap" id="friend-code-wrap" style="display:none;">
+            <span class="friend-code-label">Friend Code</span>
+            <span class="friend-code-value" id="friend-code-value"></span>
+            <button class="friend-code-copy" id="friend-code-copy" title="Copy friend code">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="stats-panel-actions">
+          <button class="stats-action-btn active" id="tab-stats"   onclick="switchTab('stats')">Stats</button>
+          <button class="stats-action-btn"        id="tab-history" onclick="switchTab('history')">History</button>
+          <button class="stats-action-btn"        id="tab-raw"     onclick="switchTab('raw')">Raw</button>
         </div>
       </div>
-      <div class="stats-panel-actions">
-        <button class="stats-action-btn active" id="tab-stats"   onclick="switchTab('stats')">Stats</button>
-        <button class="stats-action-btn"        id="tab-history" onclick="switchTab('history')">History</button>
-        <button class="stats-action-btn"        id="tab-raw"     onclick="switchTab('raw')">Raw</button>
+
+      <div id="view-stats">
+        <div class="stats-grid" id="stats-grid"></div>
       </div>
-    </div>
 
-    <div id="view-stats">
-      <div class="stats-grid" id="stats-grid"></div>
-    </div>
-
-    <div class="chart-section" id="view-history">
-      <div class="chart-stat-pills" id="chart-pills"></div>
-      <div class="chart-wrap">
-        <canvas id="stats-chart"></canvas>
-        <div class="chart-no-data" id="chart-no-data" style="display:none;">
-          <div class="chart-no-data-icon">📈</div>
-          <div>No history yet. Look up this player again tomorrow!</div>
+      <div class="chart-section" id="view-history">
+        <div class="chart-stat-pills" id="chart-pills"></div>
+        <div class="chart-wrap">
+          <canvas id="stats-chart"></canvas>
+          <div class="chart-no-data" id="chart-no-data" style="display:none;">
+            <div class="chart-no-data-icon">📈</div>
+            <div>No history yet. Look up this player again tomorrow!</div>
+          </div>
         </div>
       </div>
+
+      <div id="view-raw" style="display:none;">
+        <div style="padding:10px 16px;border-bottom:1px solid var(--blue-light);display:flex;justify-content:flex-end;">
+          <button class="stats-action-btn" id="raw-download-btn">⬇ Download JSON</button>
+        </div>
+        <pre id="stats-raw" style="padding:16px;font-size:11px;overflow:auto;max-height:400px;background:#f8fafc;margin:0;"></pre>
+      </div>
     </div>
 
-    <div id="view-raw" style="display:none;">
-      <div style="padding:10px 16px;border-bottom:1px solid var(--blue-light);display:flex;justify-content:flex-end;">
-        <button class="stats-action-btn" id="raw-download-btn">⬇ Download JSON</button>
-      </div>
-      <pre id="stats-raw" style="padding:16px;font-size:11px;overflow:auto;max-height:400px;background:#f8fafc;margin:0;"></pre>
-    </div>
-  </div>
-
-  <!-- ── Friend Code Converter ── -->
-  <div class="section-head">
-    <div class="section-title">
-      <div class="section-icon" style="background:#00c6ff;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-      </div>
-      Friend Code → User ID
-    </div>
-  </div>
-
-  <div class="converter-card">
-    <div class="converter-header">
-      <div class="converter-header-icon">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-          <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-          <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-        </svg>
-      </div>
-      <div>
-        <div class="converter-title">Friend Code Converter</div>
-        <div class="converter-sub">Convert a friend code into a User ID — then look up their stats directly.</div>
-      </div>
-    </div>
-    <div class="converter-body">
-      <div class="converter-field">
-        <label class="converter-label" for="conv-input">Friend Code</label>
-        <input class="converter-input" type="text" id="conv-input"
-               placeholder="e.g. ABC123" autocomplete="off" spellcheck="false"
-               maxlength="12" />
-      </div>
-      <button class="converter-btn" id="conv-btn" onclick="convertFriendCode()">Convert</button>
-    </div>
-    <div class="converter-result" id="conv-result">
-      <span class="converter-result-id" id="conv-result-id"></span>
-      <button class="converter-copy-btn" id="conv-copy-btn" title="Copy User ID">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
-      </button>
-      <button class="converter-lookup-btn" id="conv-lookup-btn">Look Up Stats →</button>
-    </div>
-  </div>
-
-</main>
+  </main>
+</div>
 
 <!-- ===================== FOOTER ===================== -->
 <footer class="hub-footer">
@@ -412,7 +335,7 @@
 <script src="/js/nakama.js"></script>
 <script src="js/bottom-bar-loader.js"></script>
 <script>
-/* ── Firebase + API config (identical to original tools.html) ── */
+/* ── Firebase + API config ── */
 var FIREBASE_CONFIG = {
   apiKey:            "AIzaSyDyrbOkMUrDcXmeE3WlwNrWbkOVNg-UGEg",
   authDomain:        "winterpixelcommunity.firebaseapp.com",
@@ -423,13 +346,12 @@ var FIREBASE_CONFIG = {
 };
 
 var AUTH_BASIC = 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=';
+function showFallbackBanner(){var b=document.getElementById('fallback-banner');if(b)b.style.display='flex';}
+function hideFallbackBanner(){var b=document.getElementById('fallback-banner');if(b)b.style.display='none';}
 
-function showFallbackBanner(){
-  var b=document.getElementById('fallback-banner');
-  if(b){b.style.display='flex';}
-}
-
-var UUID_RE = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+var UUID_RE        = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+// Friend codes are exactly 8 lowercase hex characters e.g. 182e359f
+var FRIEND_CODE_RE = /^[a-f0-9]{8}$/i;
 
 if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
 var db   = firebase.firestore();
@@ -463,8 +385,35 @@ async function fetchProfile(userId) {
   return inner[0];
 }
 
+/* ── Friend code → User ID lookup ── */
+async function lookupFriendCode(friendCode) {
+  try {
+    var token = await getToken();
+    var data = await nakamaFetch('/v2/rpc/winterpixel_query_user_id_for_friend_code', {
+      method: 'POST', token: token,
+      body: JSON.stringify({ friend_code: friendCode.toLowerCase() })
+    });
+    var payload = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
+    return (payload && (payload.user_id || payload.id)) || null;
+  } catch(e) {
+    return null;
+  }
+}
+
+/* ── Input resolver: UUID → friend code → Firebase username ── */
 async function resolveInput(input) {
+  // 1. Direct UUID
   if (UUID_RE.test(input)) return { userId: input, source: 'uuid' };
+
+  // 2. Looks like a friend code → try the API first
+  if (FRIEND_CODE_RE.test(input)) {
+    setStatus('Checking friend code…');
+    var fcUserId = await lookupFriendCode(input);
+    if (fcUserId) return { userId: fcUserId, source: 'friend_code' };
+  }
+
+  // 3. Fall back to Firebase username index
+  setStatus('Searching by username…');
   var lowerInput = input.toLowerCase();
   try {
     var snap = await db.collection('playerIndex')
@@ -472,65 +421,9 @@ async function resolveInput(input) {
                        .limit(1).get();
     if (!snap.empty) return { userId: snap.docs[0].id, source: 'index' };
   } catch(e) {}
+
   return { userId: null, source: 'not_found' };
 }
-
-/* ── Friend Code Converter ── */
-async function convertFriendCode() {
-  var raw  = document.getElementById('conv-input').value.trim().toUpperCase();
-  var btn  = document.getElementById('conv-btn');
-  var res  = document.getElementById('conv-result');
-  var resId= document.getElementById('conv-result-id');
-
-  if (!raw) return;
-
-  btn.disabled    = true;
-  btn.textContent = 'Looking up…';
-  res.className   = 'converter-result';
-
-  try {
-    var token = await getToken();
-    var data = await nakamaFetch('/v2/rpc/winterpixel_query_user_id_for_friend_code', {
-      method: 'POST', token: token,
-      body: JSON.stringify({ friend_code: raw })
-    });
-    var payload = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
-    var userId  = payload.user_id || payload.id;
-    if (!userId) throw new Error('No user ID returned — check the friend code.');
-
-    resId.textContent = userId;
-    res.className = 'converter-result visible success';
-
-    // Copy button
-    document.getElementById('conv-copy-btn').onclick = function() {
-      navigator.clipboard.writeText(userId).then(function() {
-        var b = document.getElementById('conv-copy-btn');
-        b.style.color = '#16a34a';
-        setTimeout(function() { b.style.color = ''; }, 1500);
-      });
-    };
-
-    // Look Up Stats button
-    document.getElementById('conv-lookup-btn').onclick = function() {
-      document.getElementById('tracker-input').value = userId;
-      document.getElementById('stats-layout') && window.scrollTo({ top: 0, behavior: 'smooth' });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      trackerSearch();
-    };
-
-  } catch(e) {
-    resId.textContent = e.message || 'Could not find a user with that friend code.';
-    res.className = 'converter-result visible error';
-  } finally {
-    btn.disabled    = false;
-    btn.textContent = 'Convert';
-  }
-}
-
-// Allow Enter key in converter
-document.getElementById('conv-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') convertFriendCode();
-});
 
 /* ── Stat labels + formatters ── */
 var STAT_LABELS = {
@@ -608,17 +501,15 @@ async function trackerSearch() {
   try {
     var resolved = await resolveInput(input);
     if (!resolved.userId) {
-      setStatus('No stats in database for "' + input + '". Try their User ID instead.', true);
+      setStatus('No player found for "' + input + '". Try their User ID or check the spelling.', true);
       btn.disabled = false;
       return;
     }
     var profile;
     try {
       profile = await fetchProfile(resolved.userId);
-      // Hide fallback banner if previously shown
-      var fb = document.getElementById('fallback-banner'); if(fb) fb.style.display='none';
+      hideFallbackBanner();
     } catch(proxyErr) {
-      // Proxy/server unreachable — fall back to last Firebase snapshot
       showFallbackBanner();
       var snaps = await loadSnapshots(resolved.userId).catch(function(){ return []; });
       if (!snaps.length) {
@@ -816,6 +707,7 @@ function switchTab(tab) {
   input.addEventListener('input', function() {
     clearTimeout(timer);
     var val = input.value.trim();
+    // Don't show autocomplete for UUIDs
     if (!val || UUID_RE.test(val) || val.length < 2) { closeDropdown(); return; }
     timer = setTimeout(function() {
       var lower = val.toLowerCase();
@@ -825,7 +717,7 @@ function switchTab(tab) {
         .limit(6).get()
         .then(function(snap) {
           if (snap.empty) {
-            dropdown.innerHTML = '<div class="tracker-dropdown-empty">No players found — try their User ID</div>';
+            dropdown.innerHTML = '<div class="tracker-dropdown-empty">No players found — try their User ID or Friend Code</div>';
             dropdown.classList.add('open'); return;
           }
           dropdown.innerHTML = '';
@@ -858,6 +750,18 @@ function switchTab(tab) {
   input.addEventListener('focus', function() {
     if (input.value.trim().length >= 2 && dropdown.children.length) dropdown.classList.add('open');
   });
+})();
+
+/* ── Auto-fill from friendtoid.html ── */
+(function() {
+  try {
+    var prefill = sessionStorage.getItem('ftoid_prefill');
+    if (prefill) {
+      sessionStorage.removeItem('ftoid_prefill');
+      document.getElementById('tracker-input').value = prefill;
+      trackerSearch();
+    }
+  } catch(e) {}
 })();
 
 /* ── Hamburger ── */
