@@ -17,7 +17,7 @@ async function nakamaFetch(path, opts) {
   };
   if (opts.body) payload.body = opts.body;
 
-  var res = await fetch('/netlify/functions/nakama-proxy.js', {
+  var res = await fetch('/.netlify/functions/nakama-proxy', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify(payload),
