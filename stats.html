@@ -53,13 +53,7 @@
       position: relative;
       z-index: 1;
     }
-    .name-badge-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
 
-    /* ── Tracker Hero ── */
     .tracker-hero {
       background: linear-gradient(135deg, var(--blue-deep) 0%, #0a2a3f 100%);
       border-radius: var(--radius-md); padding: 2rem 2rem 1.5rem;
@@ -141,22 +135,10 @@
     .stats-panel.visible { display: block; }
     .stats-panel-header {
       background: var(--blue-pale); border-bottom: 1.5px solid var(--blue-light);
-      padding: 4px 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+      padding: 14px 18px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
     }
-    .stats-tank-img {
-      width: 80px; height: 80px; object-fit: contain; flex-shrink: 0;
-      image-rendering: pixelated;
-      transform: scale(1.3);
-    }
-    /* Center info block */
-    .stats-panel-info { flex: 1; min-width: 0; }
-    .stats-panel-name { font-size: 17px; font-weight: 800; color: var(--blue-deep); }
-    .stats-panel-meta { font-size: 11px; color: var(--gray-muted); margin-top: 2px; line-height: 1.6; }
-    /* Badge image — right of name block */
-    .stats-badge-img {
-      width: 46px; height: 46px; object-fit: contain; flex-shrink: 0;
-      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.2));
-    }
+    .stats-panel-name { font-size: 16px; font-weight: 800; color: var(--blue-deep); }
+    .stats-panel-meta { font-size: 11px; color: var(--gray-muted); margin-top: 1px; }
     .friend-code-wrap  { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
     .friend-code-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-muted); }
     .friend-code-value {
@@ -172,18 +154,6 @@
     .friend-code-copy:hover  { color: var(--blue); background: var(--blue-light); }
     .friend-code-copy.copied { color: #16a34a; }
     .stats-panel-actions { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
-    /* Delta summary strip above stat grid */
-    .stats-delta-bar { display: none; flex-wrap: wrap; background: var(--blue-light); border-bottom: 1.5px solid var(--blue-light); }
-    .stats-delta-bar.has-data { display: flex; }
-    .delta-pill {
-      padding: 7px 14px; background: white; font-size: 11px; font-weight: 700;
-      display: flex; align-items: center; gap: 5px;
-      border-right: 1px solid var(--blue-light); border-bottom: 1px solid var(--blue-light);
-    }
-    .delta-pill-label { color: var(--gray-muted); font-weight: 600; }
-    .delta-pill-val.up   { color: #16a34a; }
-    .delta-pill-val.down { color: #dc2626; }
-    .delta-bar-since { padding: 7px 12px; font-size: 10px; color: var(--gray-muted); font-weight: 600; background: white; border-bottom: 1px solid var(--blue-light); margin-left: auto; white-space: nowrap; }
     .stats-action-btn {
       padding: 5px 12px; border-radius: 99px;
       border: 1.5px solid var(--blue-light); background: white;
@@ -198,7 +168,7 @@
       display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 1px; background: var(--blue-light);
     }
-    .stat-cell        { background: white; padding: 0px 8px; }
+    .stat-cell        { background: white; padding: 12px 14px; }
     .stat-cell-label  { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-muted); margin-bottom: 3px; }
     .stat-cell-value  { font-size: 18px; font-weight: 800; color: var(--blue-deep); line-height: 1; }
     .stat-cell-delta  { font-size: 11px; font-weight: 700; margin-top: 3px; }
@@ -253,7 +223,7 @@
       <a href="news.html">News</a>
       <a href="forum.html">Forum</a>
       <a href="tools.html" class="active">Tools</a>
-      <a href="community.html">Community</a>
+      <a href="index.html#sites">Sites</a>
     </nav>
     <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
@@ -270,7 +240,7 @@
     <a href="news.html">News</a>
     <a href="forum.html">Forum</a>
     <a href="tools.html">Tools</a>
-    <a href="community.html">Community</a>
+    <a href="index.html#sites">Sites</a>
     <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
       Join Discord
@@ -299,28 +269,14 @@
         <button class="tracker-btn" id="tracker-search-btn" onclick="trackerSearch()">Look Up</button>
       </div>
       <div class="tracker-status" id="tracker-status"></div>
+    <div id="fallback-banner" style="display:none;margin-top:10px;background:rgba(220,38,38,0.18);border:1.5px solid rgba(220,38,38,0.45);border-radius:var(--radius-sm);padding:9px 14px;font-size:12px;font-weight:700;color:#ff6b6b;align-items:center;gap:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>⚠ Fallback mode — cannot connect to game server. Showing last known data from database.</div>
     </div>
 
     <!-- Stats result panel -->
     <div class="stats-panel" id="stats-panel">
       <div class="stats-panel-header">
-
-        <!-- Tank skin image (left) -->
-        <img id="stats-tank-img" class="stats-tank-img"
-             src="ui/icons/pfp/default_tank.png" alt="Tank"
-             onerror="this.src='ui/icons/pfp/default_tank.png'" />
-
-        <!-- Name / meta / friend code (centre) -->
-        <div class="stats-panel-info">
-          <div class="name-badge-wrapper">
-            <div class="stats-panel-name" id="stats-name">—</div>
-    
-            <img id="stats-badge-img" class="stats-badge-img"
-                 src="" alt="Badge" title=""
-                 style="display:none;"
-                 onerror="this.style.display='none'" />
-          </div>
-
+        <div>
+          <div class="stats-panel-name" id="stats-name">—</div>
           <div class="stats-panel-meta" id="stats-meta">—</div>
           <div class="friend-code-wrap" id="friend-code-wrap" style="display:none;">
             <span class="friend-code-label">Friend Code</span>
@@ -332,14 +288,6 @@
             </button>
           </div>
         </div>
-
-        <!-- Badge image (right of name) -->
-        <img id="stats-badge-img" class="stats-badge-img"
-             src="" alt="Badge" title=""
-             style="display:none;"
-             onerror="this.style.display='none'" />
-
-        <!-- Tab actions -->
         <div class="stats-panel-actions">
           <button class="stats-action-btn active" id="tab-stats"   onclick="switchTab('stats')">Stats</button>
           <button class="stats-action-btn"        id="tab-history" onclick="switchTab('history')">History</button>
@@ -348,8 +296,6 @@
       </div>
 
       <div id="view-stats">
-        <!-- Delta comparison strip (populated by JS when snapshot history exists) -->
-        <div class="stats-delta-bar" id="stats-delta-bar"></div>
         <div class="stats-grid" id="stats-grid"></div>
       </div>
 
@@ -365,10 +311,10 @@
       </div>
 
       <div id="view-raw" style="display:none;">
-        <div style="padding:0px 6px;border-bottom:1px solid var(--blue-light);display:flex;justify-content:flex-end;">
+        <div style="padding:10px 16px;border-bottom:1px solid var(--blue-light);display:flex;justify-content:flex-end;">
           <button class="stats-action-btn" id="raw-download-btn">⬇ Download JSON</button>
         </div>
-        <pre id="stats-raw" style="padding:4px;font-size:11px;overflow:auto;max-height:400px;background:#f8fafc;margin:0;"></pre>
+        <pre id="stats-raw" style="padding:16px;font-size:11px;overflow:auto;max-height:400px;background:#f8fafc;margin:0;"></pre>
       </div>
     </div>
 
@@ -386,6 +332,7 @@
   </div>
 </footer>
 
+<script src="/js/nakama.js"></script>
 <script src="js/bottom-bar-loader.js"></script>
 <script>
 /* ── Firebase + API config ── */
@@ -398,14 +345,9 @@ var FIREBASE_CONFIG = {
   appId:             "1:590927242514:web:d99b37ff6ad67f1b83ffcb"
 };
 
-var BASE_URL     = 'https://dev-nakama.winterpixel.io/v2';
-var BASE_HEADERS = {
-  accept:        'application/json',
-  authorization: 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=',
-  origin:        'https://rocketbotroyale2.winterpixel.io',
-  referer:       'https://rocketbotroyale2.winterpixel.io/',
-  'content-type':'application/json'
-};
+var AUTH_BASIC = 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=';
+function showFallbackBanner(){var b=document.getElementById('fallback-banner');if(b)b.style.display='flex';}
+function hideFallbackBanner(){var b=document.getElementById('fallback-banner');if(b)b.style.display='none';}
 
 var UUID_RE        = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 // Friend codes are exactly 8 lowercase hex characters e.g. 182e359f
@@ -422,12 +364,11 @@ var _tokenExpiresAt = 0;
 
 async function getToken() {
   if (_cachedToken && Date.now() < _tokenExpiresAt) return _cachedToken;
-  var resp = await fetch(BASE_URL + '/account/authenticate/email?create=false', {
-    method: 'POST', headers: BASE_HEADERS,
-    body: JSON.stringify({ email: 'test6969khan@test.com', password: 'password', vars: { client_version: '9999999999' } })
+  var data = await nakamaFetch('/v2/account/authenticate/email?create=false', {
+    method: 'POST', auth: AUTH_BASIC,
+    body: { email: 'test6969khan@test.com', password: 'password', vars: { client_version: '9999999999' } }
   });
-  if (!resp.ok) throw new Error('Game auth failed (' + resp.status + ')');
-  var data = await resp.json();
+  if (!data.token) throw new Error('Game auth failed');
   _cachedToken    = data.token;
   _tokenExpiresAt = Date.now() + 55 * 60 * 1000;
   return _cachedToken;
@@ -435,14 +376,11 @@ async function getToken() {
 
 async function fetchProfile(userId) {
   var token = await getToken();
-  var resp = await fetch(BASE_URL + '/rpc/rpc_get_users_with_profile', {
-    method: 'POST',
-    headers: { accept:'application/json', origin:'https://rocketbotroyale2.winterpixel.io', referer:'https://rocketbotroyale2.winterpixel.io/', authorization:'Bearer ' + token, 'content-type':'application/json' },
-    body: JSON.stringify(JSON.stringify({ ids: [String(userId)] }))
+  var data  = await nakamaFetch('/v2/rpc/rpc_get_users_with_profile', {
+    method: 'POST', token: token,
+    body: JSON.stringify({ ids: [String(userId)] })
   });
-  if (!resp.ok) throw new Error('Profile fetch failed (' + resp.status + ')');
-  var data  = await resp.json();
-  var inner = JSON.parse(data.payload);
+  var inner = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
   if (!inner || !inner[0]) throw new Error('Player not found');
   return inner[0];
 }
@@ -451,13 +389,10 @@ async function fetchProfile(userId) {
 async function lookupFriendCode(friendCode) {
   try {
     var token = await getToken();
-    var resp  = await fetch(BASE_URL + '/rpc/winterpixel_query_user_id_for_friend_code', {
-      method: 'POST',
-      headers: { accept:'application/json', origin:'https://rocketbotroyale2.winterpixel.io', referer:'https://rocketbotroyale2.winterpixel.io/', authorization:'Bearer ' + token, 'content-type':'application/json' },
-      body: JSON.stringify(JSON.stringify({ friend_code: friendCode.toLowerCase() }))
+    var data = await nakamaFetch('/v2/rpc/winterpixel_query_user_id_for_friend_code', {
+      method: 'POST', token: token,
+      body: JSON.stringify({ friend_code: friendCode.toLowerCase() })
     });
-    if (!resp.ok) return null;
-    var data    = await resp.json();
     var payload = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
     return (payload && (payload.user_id || payload.id)) || null;
   } catch(e) {
@@ -492,62 +427,19 @@ async function resolveInput(input) {
 
 /* ── Stat labels + formatters ── */
 var STAT_LABELS = {
-  player_kills:'Player Kills', deaths:'Deaths', games_won:'Wins', games_played:'Games Played',
-  most_player_kills:'Best Kill Game', gems_found:'Gems Found', best_rank:'Best Rank',
-  _kdr:'K/D Ratio', _winrate:'Win Rate', _level:'Level', _awards_seen:'Skins Unlocked',
-  total_kills:'Total Kills (inc. Bots)', assists:'Assists', bot_kills:'Bot Kills',
-  longest_killstreak:'Best Killstreak', double_kills:'Double Kills',
-  triple_kills:'Triple Kills', quad_kills:'Quad Kills', '5_kills':'Penta Kills',
-  first_bloods:'First Bloods', top_5:'Top 5 Finishes', dunk_tanks:'Dunk Kills',
-  coins_found:'Coins Found', crates_collected:'Crates Opened',
-  meters_driven:'Distance Driven', missiles_fired:'Missiles Fired',
-  ranked_royale_played:'Ranked Games', ranked_royale_won:'Ranked Wins',
-  squads_played:'Squads Games', squads_won:'Squads Wins',
-  teams_played:'Teams Games', teams_won:'Teams Wins',
-  deathmatch_played:'Deathmatch Games', deathmatch_won:'Deathmatch Wins',
-  minemayhem_played:'Mine Mayhem Games', minemayhem_won:'Mine Mayhem Wins',
-  laser_tag_played:'Laser Tag Games', laser_tag_won:'Laser Tag Wins',
-  license_to_kill_played:'Licence to Kill Games', license_to_kill_won:'Licence to Kill Wins',
-  low_gravity_played:'Low Gravity Games', low_gravity_won:'Low Gravity Wins',
-  speed_shot_played:'Speed Shot Games', speed_shot_won:'Speed Shot Wins',
-  kills_using_flak:'Flak Kills', kills_using_mine:'Mine Kills',
-  kills_using_nuke:'Nuke Kills', 'kills_using_triple-shot':'Triple Shot Kills',
-  kills_using_grenade:'Grenade Kills', kills_using_homing:'Homing Kills',
-  kills_using_drill:'Drill Kills', kills_using_laser:'Laser Kills',
-  kills_using_poison:'Poison Kills', kills_using_shield:'Shield Kills',
-  flaks_used:'Flaks Used', mines_used:'Mines Used', nukes_used:'Nukes Used',
-  grenades_used:'Grenades Used', homings_used:'Homings Used',
-  drills_used:'Drills Used', lasers_used:'Lasers Used',
-  poisons_used:'Poisons Used', shields_used:'Shields Used',
-  'triple-shots_used':'Triple Shots Used', whirlwinds_used:'Whirlwinds Used',
-  smokes_used:'Smokes Used', snipers:'Snipers Fired',
-  blocks_using_proj:'Blocks (Projectile)', blocks_using_shield:'Blocks (Shield)',
-  beachball_shots:'Beachball Shots', two_birdss:'Two Birds (One Shot)', yardsales:'Yard Sales',
+  player_kills:'Total Kills', deaths:'Deaths', games_won:'Wins',
+  games_played:'Games Played', most_player_kills:'Best Kill Game',
+  gems_found:'Gems Found', best_rank:'Best Rank',
+  _kdr:'KDR', _winrate:'Win Rate', _level:'Level', _awards_seen:'Skins Unlocked',
 };
 function statLabel(key) {
   return STAT_LABELS[key] || key.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
 }
 function formatStatValue(key, val) {
-  if (key === '_winrate')      return Math.round(val) + '%';
-  if (key === '_kdr')          return (Math.round(val * 100) / 100).toFixed(2);
-  if (key === 'meters_driven') return Math.round(val / 1000).toLocaleString() + ' km';
+  if (key === '_winrate') return Math.round(val) + '%';
+  if (key === '_kdr')     return (Math.round(val * 100) / 100).toFixed(2);
   if (typeof val === 'number') return val.toLocaleString();
   return String(val);
-}
-function timeAgo(ts) {
-  /* ts is a Unix seconds timestamp */
-  var diff = Date.now() - ts * 1000;
-  var s = Math.floor(diff / 1000);
-  var m = Math.floor(s / 60);
-  var h = Math.floor(m / 60);
-  var d = Math.floor(h / 24);
-  if (d > 365) return Math.floor(d / 365) + 'y ago';
-  if (d > 30)  return Math.floor(d / 30)  + 'mo ago';
-  if (d > 1)   return d + 'd ago';
-  if (d === 1) return 'Yesterday';
-  if (h > 0)   return h + 'h ago';
-  if (m > 0)   return m + 'm ago';
-  return 'Just now';
 }
 function todayKey() { return new Date().toISOString().slice(0,10); }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -613,7 +505,34 @@ async function trackerSearch() {
       btn.disabled = false;
       return;
     }
-    var profile = await fetchProfile(resolved.userId);
+    var profile;
+    try {
+      profile = await fetchProfile(resolved.userId);
+      hideFallbackBanner();
+    } catch(proxyErr) {
+      showFallbackBanner();
+      var snaps = await loadSnapshots(resolved.userId).catch(function(){ return []; });
+      if (!snaps.length) {
+        setStatus('Cannot reach game server and no cached data found for this player.', true);
+        btn.disabled = false;
+        return;
+      }
+      var latestSnap = snaps[snaps.length - 1];
+      var s = latestSnap.stats || {};
+      profile = {
+        display_name: input,
+        create_time:  null,
+        online:       false,
+        metadata: {
+          stats:       s,
+          progress:    { level: s._level || '?' },
+          awards_seen: s._awards_seen || 0,
+          friend_code: null,
+        }
+      };
+      setStatus('Cached data from ' + latestSnap.date + ' (game server unreachable)', false);
+      _snapshots = snaps;
+    }
     _lastProfile = profile;
     _lastUserId  = resolved.userId;
 
@@ -631,8 +550,6 @@ async function trackerSearch() {
     saveSnapshot(resolved.userId, statsFlat, profile.display_name);
     loadSnapshots(resolved.userId).then(function(snaps) {
       _snapshots = snaps;
-      /* Re-render with full snapshot history so deltas show immediately */
-      renderProfile(profile, statsFlat, snaps);
       renderChartPills(statsFlat, snaps);
     }).catch(function(e){ console.warn('History load failed:', e); });
 
@@ -648,40 +565,11 @@ function renderProfile(profile, statsFlat, snapshots) {
   var name = profile.display_name || 'Unknown';
   document.getElementById('stats-name').textContent = name;
 
-  /* ── Tank skin image ── */
-  var skin    = (profile.metadata && profile.metadata.skin) || 'default_tank';
-  var tankImg = document.getElementById('stats-tank-img');
-  tankImg.src   = 'ui/icons/pfp/' + skin + '.png';
-  tankImg.title = skin.replace(/_/g,' ');
-  tankImg.onerror = function() { this.src = 'ui/icons/pfp/default_tank.png'; this.onerror = null; };
+  var created = profile.create_time ? new Date(profile.create_time * 1000).toLocaleDateString('en-US',{year:'numeric',month:'short'}) : '';
+  var level   = profile.metadata && profile.metadata.progress ? profile.metadata.progress.level : '?';
+  document.getElementById('stats-meta').textContent =
+    'Level ' + level + (created ? ' · Joined ' + created : '') + (profile.online ? ' · 🟢 Online' : ' · ⚫ Offline');
 
-  /* ── Badge image ── */
-  var badge    = profile.metadata && profile.metadata.badge;
-  var badgeImg = document.getElementById('stats-badge-img');
-  if (badge) {
-    badgeImg.src     = 'ui/icons/badges/' + badge + '.png';
-    badgeImg.title   = badge.replace(/_/g,' ');
-    badgeImg.style.display = '';
-    badgeImg.onerror = function() { this.style.display = 'none'; };
-  } else {
-    badgeImg.style.display = 'none';
-  }
-
-  /* ── Meta line: Level · Last Active · Joined · Online status ── */
-  var level      = profile.metadata && profile.metadata.progress ? profile.metadata.progress.level : '?';
-  var xp         = profile.metadata && profile.metadata.progress ? profile.metadata.progress.xp : null;
-  var lastActive = profile.metadata && profile.metadata.results_rewarded_video_last_collect;
-  var created    = profile.create_time
-    ? new Date(profile.create_time * 1000).toLocaleDateString('en-US',{year:'numeric',month:'short'})
-    : null;
-  var metaParts  = ['Lv.' + level];
-  if (xp !== null) metaParts.push(xp.toLocaleString() + ' XP');
-  if (lastActive) metaParts.push('Last active ' + timeAgo(lastActive));
-  if (created)    metaParts.push('Joined ' + created);
-  metaParts.push(profile.online ? '🟢 Online' : '⚫ Offline');
-  document.getElementById('stats-meta').textContent = metaParts.join(' · ');
-
-  /* ── Friend code ── */
   var friendCode = profile.metadata && profile.metadata.friend_code;
   var fcWrap = document.getElementById('friend-code-wrap');
   if (friendCode) {
@@ -698,83 +586,28 @@ function renderProfile(profile, statsFlat, snapshots) {
     fcWrap.style.display = 'none';
   }
 
-  /* ── Delta comparison strip ── */
-  var prevSnap  = snapshots.length >= 2 ? snapshots[snapshots.length - 2] : null;
-  var prevStats = prevSnap ? prevSnap.stats : null;
-  var deltaBar  = document.getElementById('stats-delta-bar');
-  deltaBar.innerHTML = '';
-  var KEY_DELTAS = ['player_kills','deaths','games_won','games_played','_kdr'];
-  var anyDelta = false;
-  if (prevStats) {
-    KEY_DELTAS.forEach(function(key) {
-      var val  = statsFlat[key];
-      var prev = prevStats[key];
-      if (val === undefined || prev === undefined) return;
-      var delta = val - prev;
-      if (delta === 0) return;
-      anyDelta = true;
-      var sign = delta > 0 ? '+' : '';
-      var cls  = delta > 0 ? 'up' : 'down';
-      deltaBar.innerHTML +=
-        '<div class="delta-pill">' +
-        '<span class="delta-pill-label">' + escHtml(statLabel(key)) + '</span>' +
-        '<span class="delta-pill-val ' + cls + '">' + sign + formatStatValue(key, delta) + '</span>' +
-        '</div>';
-    });
-    if (anyDelta) {
-      deltaBar.innerHTML += '<div class="delta-bar-since">vs ' + escHtml(prevSnap.date) + '</div>';
-    }
-  }
-  deltaBar.className = 'stats-delta-bar' + (anyDelta ? ' has-data' : '');
-
-  /* ── Stat grid ── */
+  var prevStats = snapshots.length >= 2 ? snapshots[snapshots.length - 2].stats : null;
   var grid = document.getElementById('stats-grid');
   grid.innerHTML = '';
-  var orderedKeys = [
-    '_level','_kdr','_winrate',
-    'player_kills','deaths','games_won','games_played',
-    'total_kills','assists','bot_kills',
-    'most_player_kills','longest_killstreak',
-    'double_kills','triple_kills','quad_kills','5_kills',
-    'first_bloods','top_5','dunk_tanks',
-    'gems_found','coins_found','crates_collected','best_rank','_awards_seen',
-    'meters_driven','missiles_fired',
-    'ranked_royale_played','ranked_royale_won',
-    'squads_played','squads_won','teams_played','teams_won',
-    'deathmatch_played','deathmatch_won',
-    'minemayhem_played','minemayhem_won',
-    'laser_tag_played','laser_tag_won',
-    'license_to_kill_played','license_to_kill_won',
-    'low_gravity_played','low_gravity_won',
-    'speed_shot_played','speed_shot_won',
-    'kills_using_flak','kills_using_mine','kills_using_nuke',
-    'kills_using_triple-shot','kills_using_grenade','kills_using_homing',
-    'kills_using_drill','kills_using_laser','kills_using_poison','kills_using_shield',
-    'flaks_used','mines_used','nukes_used','grenades_used','homings_used',
-    'drills_used','lasers_used','poisons_used','shields_used',
-    'triple-shots_used','whirlwinds_used','smokes_used','snipers',
-    'blocks_using_proj','blocks_using_shield',
-    'beachball_shots','two_birdss','yardsales',
-  ];
+  var orderedKeys = ['_level','_kdr','_winrate','player_kills','deaths','games_won','games_played','most_player_kills','gems_found','best_rank','_awards_seen'];
   Object.keys(statsFlat).forEach(function(k){ if (orderedKeys.indexOf(k) === -1) orderedKeys.push(k); });
 
   orderedKeys.forEach(function(key) {
     if (!(key in statsFlat)) return;
     var val   = statsFlat[key];
-    var prev  = prevStats !== null && prevStats !== undefined ? prevStats[key] : undefined;
-    var delta = (prev !== undefined && typeof val === 'number') ? val - prev : null;
+    var prev  = prevStats ? prevStats[key] : null;
+    var delta = (prev !== null && prev !== undefined && typeof val === 'number') ? val - prev : null;
     var deltaHtml = '';
     if (delta !== null && delta !== 0) {
       var sign = delta > 0 ? '+' : '';
       var cls  = delta > 0 ? 'up' : 'down';
-      deltaHtml = '<div class="stat-cell-delta ' + cls + '">' + sign + formatStatValue(key, delta) + '</div>';
+      deltaHtml = '<div class="stat-cell-delta ' + cls + '">' + sign + formatStatValue(key, delta) + ' since last</div>';
     } else if (delta === 0) {
-      deltaHtml = '<div class="stat-cell-delta same">—</div>';
+      deltaHtml = '<div class="stat-cell-delta same">No change</div>';
     }
     grid.innerHTML += '<div class="stat-cell"><div class="stat-cell-label">' + escHtml(statLabel(key)) + '</div><div class="stat-cell-value">' + escHtml(formatStatValue(key, val)) + '</div>' + deltaHtml + '</div>';
   });
 
-  /* ── Raw tab ── */
   var rawJson = JSON.stringify(profile, null, 2);
   document.getElementById('stats-raw').textContent = rawJson;
   document.getElementById('raw-download-btn').onclick = function() {
