@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guides – Winterpixel Community</title>
+  <meta name="description" content="Community-written guides for Rocket Bot Royale, Goober Dash and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    /* ── Tile hero ── */
+    .page-hero { position:relative; overflow:hidden; background:var(--blue-deep); padding:2.4rem 1.5rem 2rem; }
+    .page-hero-tile { position:absolute; inset:0; background-image:url('ui/tile.png'); background-repeat:repeat; background-size:auto; animation:tile-scroll 20s linear infinite; opacity:.18; pointer-events:none; }
+    .page-hero-fade { position:absolute; inset:0; background:linear-gradient(to bottom,rgba(0,20,40,.5) 0%,rgba(0,20,40,.15) 100%); pointer-events:none; }
+    @keyframes tile-scroll { from{background-position:0 0} to{background-position:120px 120px} }
+    .page-hero-inner { position:relative; z-index:1; max-width:900px; margin:0 auto; text-align:center; }
+    .page-hero-inner h1 { font-size:clamp(22px,4vw,32px); font-weight:800; color:#fff; margin:0 0 8px; letter-spacing:-.5px; }
+    .page-hero-inner p  { font-size:14px; color:rgba(255,255,255,.72); margin:0; }
+
+    /* ── Layout ── */
+    .guides-layout { max-width:1100px; margin:0 auto; padding:2rem 1.25rem 3rem; }
+
+    /* ── Search + filters ── */
+    .guides-search-wrap { display:flex; gap:10px; margin-bottom:1.25rem; align-items:center; }
+    .guides-search-box { flex:1; display:flex; align-items:center; gap:8px; border:2px solid var(--blue-light); border-radius:var(--radius-sm); padding:8px 12px; background:#F8FAFF; transition:border-color var(--transition); }
+    .guides-search-box:focus-within { border-color:var(--blue); }
+    .guides-search-box input { flex:1; border:none; background:transparent; font-family:'Baloo 2',cursive; font-size:14px; color:var(--blue-deep); outline:none; }
+    .guides-search-box input::placeholder { color:var(--blue-muted); }
+
+    .guides-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .g-pill { padding:5px 16px; border-radius:9999px; border:1.5px solid var(--blue-light); background:white; font-family:'Baloo 2',cursive; font-size:13px; font-weight:700; color:var(--blue); cursor:pointer; transition:background .12s,color .12s,border-color .12s; }
+    .g-pill:hover { background:var(--blue-pale); }
+    .g-pill.active { background:var(--blue); color:white; border-color:var(--blue); }
+
+    /* ── Grid ── */
+    .guides-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+
+    .guide-card { border-radius:var(--radius-md); overflow:hidden; border:1.5px solid var(--blue-light); background:white; text-decoration:none; color:inherit; display:flex; flex-direction:column; transition:border-color .15s,transform .15s; }
+    .guide-card:hover { border-color:var(--blue); transform:translateY(-3px); }
+
+    .guide-card-banner { aspect-ratio:16/9; overflow:hidden; position:relative; background:var(--blue-pale); flex-shrink:0; }
+    .guide-card-banner img { width:100%; height:100%; object-fit:cover; display:block; }
+    .guide-card-banner-ph { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:40px; }
+    .guide-card-banner .g-badge { position:absolute; top:8px; right:8px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; padding:3px 8px; border-radius:99px; }
+    .g-badge.rbr     { background:#DBEAFE; color:#1D4ED8; }
+    .g-badge.gd      { background:#EDE9FE; color:#6D28D9; }
+    .g-badge.general { background:#D1FAE5; color:#065F46; }
+
+    .guide-card-body { padding:12px 14px 14px; flex:1; display:flex; flex-direction:column; gap:4px; }
+    .guide-card-game { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--blue); }
+    .guide-card-title { font-size:14px; font-weight:800; color:var(--blue-deep); line-height:1.3; }
+    .guide-card-desc { font-size:12px; color:var(--gray-mid); line-height:1.4; flex:1; }
+    .guide-card-meta { font-size:11px; color:var(--gray-muted); margin-top:6px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px; }
+    .guide-card-author { display:flex; align-items:center; gap:4px; }
+
+    .guides-empty { display:none; padding:3rem; text-align:center; color:var(--gray-muted); font-size:14px; grid-column:1/-1; }
+
+    /* ── Submit banner ── */
+    .submit-banner { margin-bottom:2rem; background:var(--blue-deep); border-radius:var(--radius-md); padding:18px 22px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    .submit-banner-text h3 { font-size:16px; font-weight:800; color:white; margin:0 0 4px; }
+    .submit-banner-text p  { font-size:13px; color:rgba(255,255,255,.7); margin:0; }
+    .submit-banner-btn { padding:9px 20px; background:var(--blue); color:var(--blue-deep); border:none; border-radius:var(--radius-sm); font-family:'Baloo 2',cursive; font-size:13px; font-weight:800; cursor:pointer; white-space:nowrap; text-decoration:none; transition:background .15s; flex-shrink:0; }
+    .submit-banner-btn:hover { background:#33d4ff; }
+
+    @media(max-width:600px) { .guides-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html">Tools</a>
+      <a href="guides.html" class="active">Guides</a>
+    </nav>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a><a href="news.html">News</a><a href="forum.html">Forum</a>
+    <a href="tools.html">Tools</a><a href="guides.html">Guides</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="page-hero-tile"></div>
+  <div class="page-hero-fade"></div>
+  <div class="page-hero-inner">
+    <h1>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="vertical-align:-4px;margin-right:6px;">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      </svg>
+      Guides
+    </h1>
+    <p>Community-written guides for Rocket Bot Royale, Goober Dash, and more.</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="guides-layout">
+
+  <!-- Submit banner -->
+  <div class="submit-banner">
+    <div class="submit-banner-text">
+      <h3>Want to write a guide?</h3>
+      <p>Use the guide creator tool and submit it — approved guides get published here.</p>
+    </div>
+    <a href="guide-creator.html" class="submit-banner-btn">Open Guide Creator →</a>
+  </div>
+
+  <!-- Search -->
+  <div class="guides-search-wrap">
+    <div class="guides-search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="guides-search" placeholder="Search guides…" autocomplete="off" oninput="filterGuides()" />
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="guides-filters">
+    <button class="g-pill active" data-filter="all"     onclick="setPill(this)">All</button>
+    <button class="g-pill"        data-filter="rbr"     onclick="setPill(this)">Rocket Bot Royale</button>
+    <button class="g-pill"        data-filter="gd"      onclick="setPill(this)">Goober Dash</button>
+    <button class="g-pill"        data-filter="general" onclick="setPill(this)">General</button>
+  </div>
+
+  <!-- Grid -->
+  <!--
+  ═══════════════════════════════════════════════════════════════════════════
+  TO ADD A GUIDE: copy one <a class="guide-card"> block below and fill in:
+    data-game   → "rbr" | "gd" | "general"   (used for filter pills)
+    data-search → keywords for the search box (lowercase)
+    href        → path to the guide HTML e.g. guides/my-guide.html
+    Banner img  → ui/guides/my-guide.png  (16:9, shown as card banner)
+    Badge class → g-badge rbr | g-badge gd | g-badge general
+  ═══════════════════════════════════════════════════════════════════════════
+  -->
+  <div class="guides-grid" id="guides-grid">
+
+    <!-- ── EXAMPLE CARD — remove or replace when first real guide is added ── -->
+    <a href="guide/farmingcoinsinrbr.html" class="guide-card" data-game="rbr" data-search="How to farm Coins in Rocket Bot Royale">
+      <div class="guide-card-banner">
+        <img src="ui/guide/farmingcoinsinrbr.png" alt="How to farm Coins in Rocket Bot Royale"
+        <div class="guide-card-banner-ph">📖</div>
+      </div>
+      <div class="guide-card-body">
+        <div class="guide-card-title">How to farm Coins in Rocket Bot Royale</div>
+        <div class="guide-card-desc">For beginners, this guide explains every way to get coins in Rocket Bot Royale!</div>
+        <div class="guide-card-meta">
+          <span class="guide-card-author">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            TarasKhan475
+          </span>
+        </div>
+      </div>
+    </a>
+
+    <!--
+    TEMPLATE — copy this block, fill it in, delete the comment tags:
+
+    <a href="guides/YOUR-GUIDE-ID.html" class="guide-card" data-game="rbr" data-search="your keywords here">
+      <div class="guide-card-banner">
+        <img src="ui/guides/YOUR-GUIDE-ID.png" alt="Guide title"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="guide-card-banner-ph" style="display:none;">📖</div>
+        <span class="g-badge rbr">Rocket Bot Royale</span>
+      </div>
+      <div class="guide-card-body">
+        <div class="guide-card-game">Rocket Bot Royale</div>
+        <div class="guide-card-title">Guide Title Here</div>
+        <div class="guide-card-desc">Short description of what this guide covers.</div>
+        <div class="guide-card-meta">
+          <span class="guide-card-author">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Author Name
+          </span>
+          <span>Jan 1, 2025</span>
+        </div>
+      </div>
+    </a>
+    -->
+
+    <div class="guides-empty" id="guides-empty">No guides match your search.</div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links"><a href="#">About</a><a href="#">Contact</a></div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<script src="js/bottom-bar-loader.js"></script>
+<script>
+/* ── Hamburger ── */
+(function(){
+  var b=document.getElementById('hamburger'),m=document.getElementById('mobile-menu');
+  b.addEventListener('click',function(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o);m.setAttribute('aria-hidden',!o);});
+  m.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){m.classList.remove('open');b.setAttribute('aria-expanded','false');m.setAttribute('aria-hidden','true');});});
+})();
+
+var _activeFilter = 'all';
+
+function setPill(btn){
+  document.querySelectorAll('.g-pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  _activeFilter = btn.dataset.filter;
+  filterGuides();
+}
+
+function filterGuides(){
+  var q = (document.getElementById('guides-search').value || '').toLowerCase();
+  var cards = document.querySelectorAll('.guide-card');
+  var visible = 0;
+  cards.forEach(function(card){
+    var gameMatch   = _activeFilter === 'all' || card.dataset.game === _activeFilter;
+    var searchMatch = !q || (card.dataset.search || '').includes(q)
+                         || card.querySelector('.guide-card-title').textContent.toLowerCase().includes(q);
+    var show = gameMatch && searchMatch;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('guides-empty').style.display = visible === 0 ? 'block' : 'none';
+}
+</script>
+
+</body>
+</html>

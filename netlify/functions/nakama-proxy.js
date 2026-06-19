@@ -1,25 +1,5 @@
-/**
- * netlify/functions/nakama-proxy.js
- *
- * Proxies requests to dev-nakama.winterpixel.io with the correct
- * Origin/Referer headers that Cloudflare expects from the game client.
- *
- * Deploy: place this file at netlify/functions/nakama-proxy.js in your site root.
- * It becomes available at /.netlify/functions/nakama-proxy on your Netlify site.
- *
- * Usage from the browser:
- *   POST /.netlify/functions/nakama-proxy
- *   Body: {
- *     method:  "POST" | "GET" | "DELETE",
- *     path:    "/v2/account/authenticate/email?create=false",
- *     headers: { "authorization": "Basic ..." },   // optional extra headers
- *     body:    { ... }                              // optional, for POST
- *   }
- */
-
 const NAKAMA_BASE = 'https://dev-nakama.winterpixel.io';
 
-// Headers that make Cloudflare think the request is coming from the game client
 const SPOOF_HEADERS = {
   'Origin':          'https://rocketbotroyale2.winterpixel.io',
   'Referer':         'https://rocketbotroyale2.winterpixel.io/',
@@ -47,10 +27,8 @@ exports.handler = async function(event) {
     return { statusCode: 400, body: 'Missing path' };
   }
 
-  // Build full URL
   const url = NAKAMA_BASE + path;
 
-  // Merge headers: spoof first, then any auth headers from the client
   const finalHeaders = Object.assign({}, SPOOF_HEADERS, extraHeaders);
   if (body) finalHeaders['Content-Type'] = 'application/json';
 
