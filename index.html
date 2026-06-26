@@ -185,10 +185,6 @@
   <div class="hero-inner">
     <h1>The Entire Winterpixel Community!</h1>
     <p>Games · News · Forum · Tools · Sites · Discord - everything!</p>
-  </div>
-</section>
-
-<!-- ===================== SEARCH ===================== -->
 <div class="search-bar">
   <div class="search-inner">
     <div class="search-box">
@@ -199,9 +195,10 @@
       <button class="search-clear" id="search-clear" title="Clear">✕</button>
     </div>
     <div class="search-results" id="search-results"></div>
-    <button class="filter-btn" id="filter-btn">Search</button>
   </div>
 </div>
+  </div>
+</section>
 
 <!-- ===================== MAIN ===================== -->
 <main class="page-wrap">
@@ -239,11 +236,6 @@
   <div class="forum-preview">
     <div class="forum-preview-header">
       <div class="forum-preview-title">
-        <div class="fp-icon">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-        </div>
         Recent Activity
       </div>
 
@@ -346,6 +338,19 @@
         </div>
       </div>
 
+      <!-- Project Gatherwood -->
+      <div class="game-entry" data-search-name="Project Gatherwood" data-search-sub="Exploration based MMO game">
+        <button class="dir-item game-toggle" aria-expanded="false">
+          <div class="dir-avatar"><img src="ui/icons/projectgatherwood.png" alt="Project Gatherwood" onerror="this.style.display='none';this.parentElement.style.background='#e8faff';this.parentElement.insertAdjacentHTML('beforeend','<span style=&quot;font-size:20px;&quot;>🎮</span>')" /></div>
+          <div class="dir-info"><div class="dir-name">Project Gatherwood</div><div class="dir-sub">Exploration based MMO game</div></div>
+          <span class="dir-chevron">›</span>
+        </button>
+        <div class="game-links">
+          <a href="https://gatherwood.winterpixel.io/" class="game-link" target="_blank" rel="noopener">🎮 Link 1</a>
+          <a href="https://farmer-staging.winterpixel.io/" class="game-link" target="_blank" rel="noopener">🎮 Staging</a>
+        </div>
+      </div>
+
       <!-- Big Battle Mini -->
       <div class="game-entry" data-search-name="Big Battle Mini" data-search-sub="Play minigames with cursor!">
         <button class="dir-item game-toggle" aria-expanded="false">
@@ -424,7 +429,7 @@
       <div class="tools-sidebar-list" id="tools-sidebar-list">
         <a href="friends.html" class="tool-list-btn" data-search-name="RBR Friend Manager!" data-search-sub="The Best Stats Tracking site for Rocket Bot Royale">
           <img src="ui/thumbnails/rbrmanagefriends.png" alt="The most powerful Rocket Bot Royale Friend Manager" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-          <div class="tool-list-btn-placeholder" style="display:none;">🤝</div>
+
           <div class="tool-list-btn-label">RBR Friend Manager</div>
         </a>
 
@@ -517,17 +522,13 @@
         </svg>
       </div>
       Guides &amp; Tutorials
+      <a href="guides.html" class="see-all">See all →</a>
     </div>
-    <a href="#" class="see-all">See all &#x2192;</a>
   </div>
   <div class="news-scroll-wrap">
     <div class="news-scroll" style="gap:12px;">
-      <a href="#" class="guide-card"><div class="guide-thumb">&#x1F680;</div><div class="guide-body"><span class="guide-tag">Beginner</span><h3>Getting Started with Rocket Bot Royale</h3><p>Everything you need to know to hit the ground running in RBR.</p></div></a>
-      <a href="#" class="guide-card"><div class="guide-thumb">&#x2699;&#xFE0F;</div><div class="guide-body"><span class="guide-tag">Advanced</span><h3>Optimising Your Loadout for Ranked Play</h3><p>Meta picks, upgrade priorities and team composition tips.</p></div></a>
-      <a href="#" class="guide-card"><div class="guide-thumb">&#x1F5FA;&#xFE0F;</div><div class="guide-body"><span class="guide-tag">Maps</span><h3>Map Control Guide &mdash; Every Zone Explained</h3><p>Learn spawn patterns, high-ground spots, and rotation paths.</p></div></a>
-      <a href="#" class="guide-card"><div class="guide-thumb">&#x1F4E6;</div><div class="guide-body"><span class="guide-tag">Economy</span><h3>Crate Opening &mdash; Odds &amp; Best Value Breakdown</h3><p>Which crates to open and when to save your coins.</p></div></a>
-      <a href="#" class="guide-card"><div class="guide-thumb">&#x1F3AF;</div><div class="guide-body"><span class="guide-tag">Goober Dash</span><h3>Top 10 Tricks Every Goober Dash Player Should Know</h3><p>Shortcuts, skips, and tech that separates good from great.</p></div></a>
-      <a href="#" class="guide-card"><div class="guide-thumb">&#x1F527;</div><div class="guide-body"><span class="guide-tag">Modding</span><h3>How to Install &amp; Use Community Mods Safely</h3><p>Step-by-step setup guide for the modding ecosystem.</p></div></a>
+      <a href="guide/farmingcoinsinrbr.html" class="guide-card"><div class="guide-thumb"><img src="ui/guide/farmingcoinsinrbr.png" alt="Guide for how to farm coins in rocket bot royale"></div><div class="guide-body"><h3>How to Farm Coins in Rocket Bot Royale</h3><p>There are many methods such as 100 coins every 30 min and winning ranked.</p></div></a>
+      <a href="guide-creator.html" class="guide-card"><div class="guide-thumb">Guide Creator</div><div class="guide-body"><h3>Make your own guide!</h3><p>Make your own guide by using the online guide editor!</p></div></a>
     </div>
   </div>
 

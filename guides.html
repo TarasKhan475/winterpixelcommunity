@@ -14,7 +14,7 @@
     .page-hero {
       position: relative; overflow: hidden;
       background: linear-gradient(135deg, var(--blue-deep) 0%, #0f2d6b 60%, #0a1f4e 100%);
-      padding: 3rem 1.5rem 3.5rem;
+      padding: 1rem 1.5rem 1rem;
     }
     .page-hero-tile {
       position: absolute; inset: 0;
@@ -307,11 +307,6 @@
         </svg>
         Community Guides
       </h1>
-      <p>Tips, strategies, and walkthroughs for Rocket Bot Royale, Goober Dash, and more — written by the community.</p>
-      <div class="hero-stats-row">
-        <div class="hero-stat"><span class="hero-stat-num" id="guide-count">1</span><span class="hero-stat-label">Guides Published</span></div>
-        <div class="hero-stat"><span class="hero-stat-num">3</span><span class="hero-stat-label">Categories</span></div>
-      </div>
     </div>
   </div>
 </div>
@@ -333,9 +328,9 @@
     <!-- Filter pills -->
     <div class="guides-filters">
       <button class="g-pill active" data-filter="all"     onclick="setPill(this)">All</button>
-      <button class="g-pill"        data-filter="rbr"     onclick="setPill(this)">🚀 Rocket Bot Royale</button>
-      <button class="g-pill"        data-filter="gd"      onclick="setPill(this)">🟣 Goober Dash</button>
-      <button class="g-pill"        data-filter="general" onclick="setPill(this)">📖 General</button>
+      <button class="g-pill"        data-filter="rbr"     onclick="setPill(this)">Rocket Bot Royale</button>
+      <button class="g-pill"        data-filter="gd"      onclick="setPill(this)">Goober Dash</button>
+      <button class="g-pill"        data-filter="general" onclick="setPill(this)">General</button>
     </div>
 
     <!--
@@ -358,9 +353,7 @@
           <span class="g-badge rbr">Rocket Bot Royale</span>
         </div>
         <div class="guide-card-body">
-          <div class="guide-card-game">Rocket Bot Royale</div>
           <div class="guide-card-title">How to Farm Coins in Rocket Bot Royale</div>
-          <div class="guide-card-desc">For beginners — every method to earn coins explained, from daily quests to match performance.</div>
           <div class="guide-card-meta">
             <span class="guide-card-author">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -405,16 +398,13 @@
 
   <!-- ── RIGHT: sidebar ── -->
   <aside class="guides-sidebar">
-
-    <!-- Comic book promo widget -->
     <a href="https://rocketpiproyale.netlify.app/" class="comic-widget" target="_blank" rel="noopener">
       <div class="comic-widget-cover">
         <img src="ui/comiccover.png" alt="Rocket Pip Royale comic cover"
              onerror="this.style.display='none';this.parentElement.style.background='var(--blue-pale)';this.parentElement.insertAdjacentHTML('beforeend','<div style=&quot;font-size:60px;padding:2rem;&quot;>📚</div>')" />
-        <span class="comic-widget-cover-badge">🆕 Fan Comic</span>
+        <span class="comic-widget-cover-badge">Fan Comic</span>
       </div>
       <div class="comic-widget-body">
-        <div class="comic-widget-label">Community Creation</div>
         <div class="comic-widget-title">Rocket Pip Royale</div>
         <div class="comic-widget-desc">A fan-made comic series set in the Rocket Bot Royale universe. Made by TarasKhan475.</div>
         <div class="comic-widget-btn">

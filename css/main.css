@@ -336,6 +336,8 @@ button { cursor: pointer; font-family: 'Baloo 2', cursive; }
   padding: 1.8rem 2rem 2.8rem;
   position: relative; overflow: hidden;
   background: white;
+  overflow: visible;
+  text-align: center;
 }
 
 .hero-bg {
@@ -370,7 +372,7 @@ button { cursor: pointer; font-family: 'Baloo 2', cursive; }
 
 /* ---- SEARCH BAR ---- */
 .search-bar {
-  background: white; padding: 0.1rem 0rem 0.0rem;
+
   display: flex; align-items: center; justify-content: center;
 }
 
