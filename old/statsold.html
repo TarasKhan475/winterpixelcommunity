@@ -21,18 +21,25 @@
       min-height: calc(100vh - 55px - 52px);
     }
     .stats-tile-bg {
-      position: absolute; inset: 0;
+      position: absolute;
+      inset: 0;
       background-image: url('ui/tile.png');
-      background-repeat: repeat; background-size: auto;
+      background-repeat: repeat;
+      background-size: auto;
       animation: tile-scroll 20s linear infinite;
-      pointer-events: none; z-index: 0;
+      pointer-events: none;
+      z-index: 0;
     }
     .stats-tile-fade {
-      position: absolute; inset: 0;
+      position: absolute;
+      inset: 0;
       background: linear-gradient(to bottom,
-        rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.70) 35%,
-        rgba(255,255,255,0.95) 70%, #ffffff 100%);
-      pointer-events: none; z-index: 0;
+        rgba(255,255,255,0.15) 0%,
+        rgba(255,255,255,0.70) 35%,
+        rgba(255,255,255,0.95) 70%,
+        #ffffff 100%);
+      pointer-events: none;
+      z-index: 0;
     }
     @keyframes tile-scroll {
       from { background-position: 0 0; }
@@ -40,12 +47,13 @@
     }
 
     .stats-layout {
-      max-width: 900px; margin: 0 auto;
+      max-width: 900px;
+      margin: 0 auto;
       padding: 2rem 1.25rem 3rem;
-      position: relative; z-index: 1;
+      position: relative;
+      z-index: 1;
     }
 
-    /* ── Tracker Hero ── */
     .tracker-hero {
       background: linear-gradient(135deg, var(--blue-deep) 0%, #0a2a3f 100%);
       border-radius: var(--radius-md); padding: 2rem 2rem 1.5rem;
@@ -56,6 +64,7 @@
       width: 120px; height: 120px;
       background: url('ui/icons/insight.png') center/contain no-repeat;
       opacity: 0.12; pointer-events: none;
+      border-radius: var(--radius-md);
     }
     .tracker-hero-label {
       font-size: 10px; font-weight: 800; text-transform: uppercase;
@@ -108,6 +117,11 @@
     .tracker-btn:hover   { background: #33d4ff; }
     .tracker-btn:active  { transform: scale(0.97); }
     .tracker-btn:disabled{ opacity: 0.5; cursor: not-allowed; transform: none; }
+    .tracker-btn.secondary {
+      background: rgba(255,255,255,0.12); color: white;
+      border: 1.5px solid rgba(255,255,255,0.2);
+    }
+    .tracker-btn.secondary:hover { background: rgba(255,255,255,0.2); }
 
     .tracker-status { font-size: 12px; font-weight: 600; margin-top: 10px; color: rgba(255,255,255,0.7); min-height: 16px; }
     .tracker-status.err { color: #ff6b6b; }
@@ -119,33 +133,12 @@
       margin-bottom: 2rem; display: none;
     }
     .stats-panel.visible { display: block; }
-
-    /* ── Panel header ── */
     .stats-panel-header {
       background: var(--blue-pale); border-bottom: 1.5px solid var(--blue-light);
-      padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 14px 18px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
     }
-    .stats-tank-img {
-      width: 72px; height: 72px; object-fit: contain; flex-shrink: 0;
-      image-rendering: pixelated;
-      transform: scale(1.5);
-    }
-    .stats-panel-info { flex: 1; min-width: 0; }
-    .name-badge-row {
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    }
-    .stats-panel-name { font-size: 18px; font-weight: 800; color: var(--blue-deep); line-height: 1.2; }
-    .stats-badge-img {
-      width: 40px; height: 40px; object-fit: contain; flex-shrink: 0;
-      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.2));
-    }
-    .stats-online-dot {
-      font-size: 11px; font-weight: 700; padding: 2px 8px;
-      border-radius: 99px; white-space: nowrap;
-    }
-    .stats-online-dot.online  { background: #dcfce7; color: #16a34a; }
-    .stats-online-dot.offline { background: #f1f5f9; color: #64748b; }
-    .stats-panel-meta { font-size: 11px; color: var(--gray-muted); margin-top: 4px; line-height: 1.7; }
+    .stats-panel-name { font-size: 16px; font-weight: 800; color: var(--blue-deep); }
+    .stats-panel-meta { font-size: 11px; color: var(--gray-muted); margin-top: 1px; }
     .friend-code-wrap  { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
     .friend-code-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-muted); }
     .friend-code-value {
@@ -160,59 +153,30 @@
     }
     .friend-code-copy:hover  { color: var(--blue); background: var(--blue-light); }
     .friend-code-copy.copied { color: #16a34a; }
+    .stats-panel-actions { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+    .stats-action-btn {
+      padding: 5px 12px; border-radius: 99px;
+      border: 1.5px solid var(--blue-light); background: white;
+      font-family: 'Baloo 2', cursive; font-size: 11px; font-weight: 700; color: var(--blue);
+      cursor: pointer; transition: background 0.12s, border-color 0.12s;
+    }
+    .stats-action-btn:hover  { background: var(--blue-pale); border-color: var(--blue); }
+    .stats-action-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
 
-    /* ── Tab bar ── */
-    .stats-tab-bar {
-      display: flex; border-bottom: 1.5px solid var(--blue-light);
-      background: white; overflow-x: auto; scrollbar-width: none;
-    }
-    .stats-tab-bar::-webkit-scrollbar { display: none; }
-    .stats-tab-btn {
-      padding: 10px 18px; background: none; border: none;
-      font-family: 'Baloo 2', cursive; font-size: 12px; font-weight: 700;
-      color: var(--gray-muted); cursor: pointer; white-space: nowrap;
-      border-bottom: 2px solid transparent; margin-bottom: -1.5px;
-      transition: color 0.12s, border-color 0.12s;
-    }
-    .stats-tab-btn:hover  { color: var(--blue-deep); }
-    .stats-tab-btn.active { color: var(--blue-deep); border-bottom-color: var(--blue); }
-
-    /* ── Delta strip ── */
-    .stats-delta-bar { display: none; flex-wrap: wrap; background: var(--blue-light); border-bottom: 1.5px solid var(--blue-light); }
-    .stats-delta-bar.has-data { display: flex; }
-    .delta-pill {
-      padding: 7px 14px; background: white; font-size: 11px; font-weight: 700;
-      display: flex; align-items: center; gap: 5px;
-      border-right: 1px solid var(--blue-light); border-bottom: 1px solid var(--blue-light);
-    }
-    .delta-pill-label { color: var(--gray-muted); font-weight: 600; }
-    .delta-pill-val.up   { color: #16a34a; }
-    .delta-pill-val.down { color: #dc2626; }
-    .delta-bar-since { padding: 7px 12px; font-size: 10px; color: var(--gray-muted); font-weight: 600; background: white; border-bottom: 1px solid var(--blue-light); margin-left: auto; white-space: nowrap; }
-
-    /* ── Stat sections ── */
-    .stats-section { border-bottom: 1.5px solid var(--blue-light); }
-    .stats-section:last-child { border-bottom: none; }
-    .stats-section-header {
-      padding: 8px 14px; background: var(--blue-pale);
-      border-bottom: 1px solid var(--blue-light);
-      font-size: 10px; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.7px; color: var(--gray-muted);
-      display: flex; align-items: center; gap: 6px;
-    }
+    /* Stat grid */
     .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 1px; background: var(--blue-light);
     }
-    .stat-cell        { background: white; padding: 10px 14px; }
+    .stat-cell        { background: white; padding: 12px 14px; }
     .stat-cell-label  { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-muted); margin-bottom: 3px; }
-    .stat-cell-value  { font-size: 17px; font-weight: 800; color: var(--blue-deep); line-height: 1; }
+    .stat-cell-value  { font-size: 18px; font-weight: 800; color: var(--blue-deep); line-height: 1; }
     .stat-cell-delta  { font-size: 11px; font-weight: 700; margin-top: 3px; }
     .stat-cell-delta.up   { color: #16a34a; }
     .stat-cell-delta.down { color: #dc2626; }
     .stat-cell-delta.same { color: var(--gray-muted); }
 
-    /* ── History tab ── */
+    /* Chart */
     .chart-section         { padding: 18px; display: none; }
     .chart-section.visible { display: block; }
     .chart-stat-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -231,7 +195,7 @@
     }
     .chart-no-data-icon { font-size: 36px; }
 
-    /* ── Loading skeleton ── */
+    /* Loading skeleton */
     @keyframes shimmer { from { background-position: -400px 0; } to { background-position: 400px 0; } }
     .skeleton {
       background: linear-gradient(90deg, #f0f4f8 25%, #e2eaf2 50%, #f0f4f8 75%);
@@ -240,9 +204,8 @@
 
     @media (max-width: 600px) {
       .tracker-hero { padding: 1.4rem 1.2rem 1.2rem; }
+      .stats-panel-actions { width: 100%; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .stats-panel-header { padding: 10px 12px; gap: 8px; }
-      .stats-tank-img { width: 56px; height: 56px; }
     }
   </style>
 </head>
@@ -260,7 +223,7 @@
       <a href="news.html">News</a>
       <a href="forum.html">Forum</a>
       <a href="tools.html" class="active">Tools</a>
-      <a href="community.html">Community</a>
+      <a href="index.html#sites">Sites</a>
     </nav>
     <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
@@ -277,7 +240,7 @@
     <a href="news.html">News</a>
     <a href="forum.html">Forum</a>
     <a href="tools.html">Tools</a>
-    <a href="community.html">Community</a>
+    <a href="index.html#sites">Sites</a>
     <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
       Join Discord
@@ -292,7 +255,7 @@
 
   <main class="stats-layout">
 
-    <!-- Hero / search -->
+    <!-- Stats tracker hero -->
     <div class="tracker-hero">
       <div class="tracker-hero-label">Rocket Bot Royale</div>
       <h2>Player Stats Tracker</h2>
@@ -303,27 +266,17 @@
                  placeholder="Username, User ID, or Friend Code…" autocomplete="off" spellcheck="false" />
           <div class="tracker-dropdown" id="tracker-dropdown"></div>
         </div>
-        <button class="tracker-btn" id="tracker-search-btn">Look Up</button>
+        <button class="tracker-btn" id="tracker-search-btn" onclick="trackerSearch()">Look Up</button>
       </div>
       <div class="tracker-status" id="tracker-status"></div>
+    <div id="fallback-banner" style="display:none;margin-top:10px;background:rgba(220,38,38,0.18);border:1.5px solid rgba(220,38,38,0.45);border-radius:var(--radius-sm);padding:9px 14px;font-size:12px;font-weight:700;color:#ff6b6b;align-items:center;gap:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>⚠ Fallback mode — cannot connect to game server. Showing last known data from database.</div>
     </div>
 
-    <!-- Result panel -->
+    <!-- Stats result panel -->
     <div class="stats-panel" id="stats-panel">
-
-      <!-- Header: tank · name/meta · badge -->
       <div class="stats-panel-header">
-        <img id="stats-tank-img" class="stats-tank-img"
-             src="ui/icons/pfp/default_tank.png" alt="Tank"
-             onerror="this.onerror=null;this.src='ui/icons/pfp/default_tank.png'" />
-
-        <div class="stats-panel-info">
-          <div class="name-badge-row">
-            <div class="stats-panel-name" id="stats-name">—</div>
-            <img id="stats-badge-img" class="stats-badge-img" src="" alt="Badge"
-                 style="display:none;" onerror="this.style.display='none'" />
-            <span id="stats-online-dot" class="stats-online-dot offline" style="display:none;"></span>
-          </div>
+        <div>
+          <div class="stats-panel-name" id="stats-name">—</div>
           <div class="stats-panel-meta" id="stats-meta">—</div>
           <div class="friend-code-wrap" id="friend-code-wrap" style="display:none;">
             <span class="friend-code-label">Friend Code</span>
@@ -335,42 +288,36 @@
             </button>
           </div>
         </div>
+        <div class="stats-panel-actions">
+          <button class="stats-action-btn active" id="tab-stats"   onclick="switchTab('stats')">Stats</button>
+          <button class="stats-action-btn"        id="tab-history" onclick="switchTab('history')">History</button>
+          <button class="stats-action-btn"        id="tab-raw"     onclick="switchTab('raw')">Raw</button>
+        </div>
       </div>
 
-      <!-- Tab bar -->
-      <div class="stats-tab-bar">
-        <button class="stats-tab-btn active" id="tab-stats"   data-tab="stats">Stats</button>
-        <button class="stats-tab-btn"        id="tab-history" data-tab="history">History</button>
-        <button class="stats-tab-btn"        id="tab-raw"     data-tab="raw">Raw JSON</button>
-      </div>
-
-      <!-- Stats tab -->
       <div id="view-stats">
-        <div class="stats-delta-bar" id="stats-delta-bar"></div>
-        <div id="stats-sections"></div>
+        <div class="stats-grid" id="stats-grid"></div>
       </div>
 
-      <!-- History tab -->
       <div class="chart-section" id="view-history">
         <div class="chart-stat-pills" id="chart-pills"></div>
         <div class="chart-wrap">
           <canvas id="stats-chart"></canvas>
           <div class="chart-no-data" id="chart-no-data" style="display:none;">
             <div class="chart-no-data-icon">📈</div>
-            <div>No history yet — look up this player again tomorrow!</div>
+            <div>No history yet. Look up this player again tomorrow!</div>
           </div>
         </div>
       </div>
 
-      <!-- Raw tab -->
       <div id="view-raw" style="display:none;">
-        <div style="padding:10px 16px;border-bottom:1px solid var(--blue-light);display:flex;gap:8px;justify-content:flex-end;">
-          <button class="chart-stat-pill" id="raw-download-btn">⬇ Download JSON</button>
+        <div style="padding:10px 16px;border-bottom:1px solid var(--blue-light);display:flex;justify-content:flex-end;">
+          <button class="stats-action-btn" id="raw-download-btn">⬇ Download JSON</button>
         </div>
-        <pre id="stats-raw" style="padding:16px;font-size:11px;overflow:auto;max-height:500px;background:#f8fafc;margin:0;line-height:1.6;"></pre>
+        <pre id="stats-raw" style="padding:16px;font-size:11px;overflow:auto;max-height:400px;background:#f8fafc;margin:0;"></pre>
       </div>
+    </div>
 
-    </div><!-- /stats-panel -->
   </main>
 </div>
 
@@ -385,90 +332,43 @@
   </div>
 </footer>
 
+<script src="/js/nakama.js"></script>
 <script src="js/bottom-bar-loader.js"></script>
 <script>
-/* ================================================================
-   CONFIG
-================================================================ */
+/* ── Firebase + API config ── */
 var FIREBASE_CONFIG = {
-  apiKey:            'AIzaSyDyrbOkMUrDcXmeE3WlwNrWbkOVNg-UGEg',
-  authDomain:        'winterpixelcommunity.firebaseapp.com',
-  projectId:         'winterpixelcommunity',
-  storageBucket:     'winterpixelcommunity.firebasestorage.app',
-  messagingSenderId: '590927242514',
-  appId:             '1:590927242514:web:d99b37ff6ad67f1b83ffcb'
+  apiKey:            "AIzaSyDyrbOkMUrDcXmeE3WlwNrWbkOVNg-UGEg",
+  authDomain:        "winterpixelcommunity.firebaseapp.com",
+  projectId:         "winterpixelcommunity",
+  storageBucket:     "winterpixelcommunity.firebasestorage.app",
+  messagingSenderId: "590927242514",
+  appId:             "1:590927242514:web:d99b37ff6ad67f1b83ffcb"
 };
 
-// On localhost we call the game server directly (no CORS issue).
-// On the public site all calls go through the Netlify function proxy.
-var IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-var NAKAMA_BASE   = 'https://dev-nakama.winterpixel.io/v2';
-var PROXY_URL     = '/.netlify/functions/nakama-proxy';
-var BASIC_AUTH    = 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=';
+var AUTH_BASIC = 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=';
+function showFallbackBanner(){var b=document.getElementById('fallback-banner');if(b)b.style.display='flex';}
+function hideFallbackBanner(){var b=document.getElementById('fallback-banner');if(b)b.style.display='none';}
 
 var UUID_RE        = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+// Friend codes are exactly 8 lowercase hex characters e.g. 182e359f
 var FRIEND_CODE_RE = /^[a-f0-9]{8}$/i;
 
 if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-var db          = firebase.firestore();
-var auth        = firebase.auth();
+var db   = firebase.firestore();
+var auth = firebase.auth();
 var currentUser = null;
 auth.onAuthStateChanged(function(u) { currentUser = u; });
 
-/* ================================================================
-   API LAYER — transparently switches between direct and proxy
-================================================================ */
 var _cachedToken    = null;
 var _tokenExpiresAt = 0;
 
-/**
- * nakamaFetch — single call point for all Nakama requests.
- *   path:    Nakama path, e.g. '/v2/rpc/rpc_get_users_with_profile'
- *   token:   Bearer token string, or null to use Basic auth
- *   body:    already-serialised request body string
- */
-async function nakamaFetch(path, token, body) {
-  var authHeader = token ? ('Bearer ' + token) : BASIC_AUTH;
-
-  if (IS_LOCAL) {
-    // Direct call — browser allows it from localhost
-    var resp = await fetch(NAKAMA_BASE + path.replace(/^\/v2/, ''), {
-      method: 'POST',
-      headers: {
-        'accept':          'application/json',
-        'authorization':   authHeader,
-        'content-type':    'application/json',
-        'origin':          'https://rocketbotroyale2.winterpixel.io',
-        'referer':         'https://rocketbotroyale2.winterpixel.io/',
-      },
-      body: body,
-    });
-    if (!resp.ok) throw new Error('Request failed (' + resp.status + ')');
-    return resp.json();
-  } else {
-    // Proxy call — Netlify function format: POST a wrapper object
-    var resp = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        method:  'POST',
-        path:    path,           // full path including /v2
-        headers: { authorization: authHeader },
-        body:    JSON.parse(body), // proxy re-serialises it
-      }),
-    });
-    if (!resp.ok) throw new Error('Proxy error (' + resp.status + ')');
-    return resp.json();
-  }
-}
-
 async function getToken() {
   if (_cachedToken && Date.now() < _tokenExpiresAt) return _cachedToken;
-  var data = await nakamaFetch(
-    '/v2/account/authenticate/email?create=false',
-    null,
-    JSON.stringify({ email: 'test6969khan@test.com', password: 'password', vars: { client_version: '9999999999' } })
-  );
+  var data = await nakamaFetch('/v2/account/authenticate/email?create=false', {
+    method: 'POST', auth: AUTH_BASIC,
+    body: { email: 'test6969khan@test.com', password: 'password', vars: { client_version: '9999999999' } }
+  });
+  if (!data.token) throw new Error('Game auth failed');
   _cachedToken    = data.token;
   _tokenExpiresAt = Date.now() + 55 * 60 * 1000;
   return _cachedToken;
@@ -476,24 +376,23 @@ async function getToken() {
 
 async function fetchProfile(userId) {
   var token = await getToken();
-  var data  = await nakamaFetch(
-    '/v2/rpc/rpc_get_users_with_profile',
-    token,
-    JSON.stringify(JSON.stringify({ ids: [String(userId)] }))
-  );
-  var inner = JSON.parse(data.payload);
+  var data  = await nakamaFetch('/v2/rpc/rpc_get_users_with_profile', {
+    method: 'POST', token: token,
+    body: JSON.stringify({ ids: [String(userId)] })
+  });
+  var inner = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
   if (!inner || !inner[0]) throw new Error('Player not found');
   return inner[0];
 }
 
+/* ── Friend code → User ID lookup ── */
 async function lookupFriendCode(friendCode) {
   try {
     var token = await getToken();
-    var data  = await nakamaFetch(
-      '/v2/rpc/winterpixel_query_user_id_for_friend_code',
-      token,
-      JSON.stringify(JSON.stringify({ friend_code: friendCode.toLowerCase() }))
-    );
+    var data = await nakamaFetch('/v2/rpc/winterpixel_query_user_id_for_friend_code', {
+      method: 'POST', token: token,
+      body: JSON.stringify({ friend_code: friendCode.toLowerCase() })
+    });
     var payload = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
     return (payload && (payload.user_id || payload.id)) || null;
   } catch(e) {
@@ -501,22 +400,24 @@ async function lookupFriendCode(friendCode) {
   }
 }
 
-/* ================================================================
-   INPUT RESOLVER
-================================================================ */
+/* ── Input resolver: UUID → friend code → Firebase username ── */
 async function resolveInput(input) {
+  // 1. Direct UUID
   if (UUID_RE.test(input)) return { userId: input, source: 'uuid' };
 
+  // 2. Looks like a friend code → try the API first
   if (FRIEND_CODE_RE.test(input)) {
     setStatus('Checking friend code…');
     var fcUserId = await lookupFriendCode(input);
     if (fcUserId) return { userId: fcUserId, source: 'friend_code' };
   }
 
+  // 3. Fall back to Firebase username index
   setStatus('Searching by username…');
+  var lowerInput = input.toLowerCase();
   try {
     var snap = await db.collection('playerIndex')
-                       .where('displayName_lower', '==', input.toLowerCase())
+                       .where('displayName_lower', '==', lowerInput)
                        .limit(1).get();
     if (!snap.empty) return { userId: snap.docs[0].id, source: 'index' };
   } catch(e) {}
@@ -524,122 +425,26 @@ async function resolveInput(input) {
   return { userId: null, source: 'not_found' };
 }
 
-/* ================================================================
-   STAT METADATA
-================================================================ */
+/* ── Stat labels + formatters ── */
 var STAT_LABELS = {
-  player_kills:'Player Kills', deaths:'Deaths', games_won:'Wins', games_played:'Games Played',
-  most_player_kills:'Best Kill Game', gems_found:'Gems Found', best_rank:'Best Rank',
-  _kdr:'K/D Ratio', _winrate:'Win Rate', _level:'Level', _awards_seen:'Skins Unlocked',
-  total_kills:'Total Kills (inc. Bots)', assists:'Assists', bot_kills:'Bot Kills',
-  longest_killstreak:'Best Killstreak', double_kills:'Double Kills',
-  triple_kills:'Triple Kills', quad_kills:'Quad Kills', '5_kills':'Penta Kills',
-  first_bloods:'First Bloods', top_5:'Top 5 Finishes', dunk_tanks:'Dunk Kills',
-  coins_found:'Coins Found', crates_collected:'Crates Opened',
-  meters_driven:'Distance Driven', missiles_fired:'Missiles Fired',
-  ranked_royale_played:'Ranked Games', ranked_royale_won:'Ranked Wins',
-  squads_played:'Squads Games', squads_won:'Squads Wins',
-  teams_played:'Teams Games', teams_won:'Teams Wins',
-  deathmatch_played:'Deathmatch Games', deathmatch_won:'Deathmatch Wins',
-  minemayhem_played:'Mine Mayhem Games', minemayhem_won:'Mine Mayhem Wins',
-  laser_tag_played:'Laser Tag Games', laser_tag_won:'Laser Tag Wins',
-  license_to_kill_played:'Licence to Kill Games', license_to_kill_won:'Licence to Kill Wins',
-  low_gravity_played:'Low Gravity Games', low_gravity_won:'Low Gravity Wins',
-  speed_shot_played:'Speed Shot Games', speed_shot_won:'Speed Shot Wins',
-  kills_using_flak:'Flak Kills', kills_using_mine:'Mine Kills',
-  kills_using_nuke:'Nuke Kills', 'kills_using_triple-shot':'Triple Shot Kills',
-  kills_using_grenade:'Grenade Kills', kills_using_homing:'Homing Kills',
-  kills_using_drill:'Drill Kills', kills_using_laser:'Laser Kills',
-  kills_using_poison:'Poison Kills', kills_using_shield:'Shield Kills',
-  flaks_used:'Flaks Used', mines_used:'Mines Used', nukes_used:'Nukes Used',
-  grenades_used:'Grenades Used', homings_used:'Homings Used',
-  drills_used:'Drills Used', lasers_used:'Lasers Used',
-  poisons_used:'Poisons Used', shields_used:'Shields Used',
-  'triple-shots_used':'Triple Shots Used', whirlwinds_used:'Whirlwinds Used',
-  smokes_used:'Smokes Used', snipers:'Snipers Fired',
-  blocks_using_proj:'Blocks (Projectile)', blocks_using_shield:'Blocks (Shield)',
-  beachball_shots:'Beachball Shots', two_birdss:'Two Birds (One Shot)', yardsales:'Yard Sales',
+  player_kills:'Total Kills', deaths:'Deaths', games_won:'Wins',
+  games_played:'Games Played', most_player_kills:'Best Kill Game',
+  gems_found:'Gems Found', best_rank:'Best Rank',
+  _kdr:'KDR', _winrate:'Win Rate', _level:'Level', _awards_seen:'Skins Unlocked',
 };
-
-// Sections define the grouping order in the Stats tab.
-// Keys not listed in any section fall into "Other".
-var STAT_SECTIONS = [
-  {
-    label: '⭐ Overview',
-    keys: ['_level', '_kdr', '_winrate', 'player_kills', 'deaths', 'games_won', 'games_played', 'best_rank', '_awards_seen'],
-  },
-  {
-    label: '⚔️ Combat',
-    keys: [
-      'total_kills', 'assists', 'bot_kills', 'most_player_kills',
-      'longest_killstreak', 'double_kills', 'triple_kills', 'quad_kills', '5_kills',
-      'first_bloods', 'top_5', 'dunk_tanks',
-    ],
-  },
-  {
-    label: '🏆 Game Modes',
-    keys: [
-      'ranked_royale_played', 'ranked_royale_won',
-      'squads_played', 'squads_won',
-      'teams_played', 'teams_won',
-      'deathmatch_played', 'deathmatch_won',
-      'minemayhem_played', 'minemayhem_won',
-      'laser_tag_played', 'laser_tag_won',
-      'license_to_kill_played', 'license_to_kill_won',
-      'low_gravity_played', 'low_gravity_won',
-      'speed_shot_played', 'speed_shot_won',
-    ],
-  },
-  {
-    label: '🔫 Weapon Kills',
-    keys: [
-      'kills_using_flak', 'kills_using_mine', 'kills_using_nuke',
-      'kills_using_triple-shot', 'kills_using_grenade', 'kills_using_homing',
-      'kills_using_drill', 'kills_using_laser', 'kills_using_poison', 'kills_using_shield',
-    ],
-  },
-  {
-    label: '🧰 Item Usage',
-    keys: [
-      'flaks_used', 'mines_used', 'nukes_used', 'grenades_used', 'homings_used',
-      'drills_used', 'lasers_used', 'poisons_used', 'shields_used',
-      'triple-shots_used', 'whirlwinds_used', 'smokes_used', 'snipers',
-      'blocks_using_proj', 'blocks_using_shield', 'missiles_fired',
-    ],
-  },
-  {
-    label: '🗺️ Exploration & Fun',
-    keys: ['gems_found', 'coins_found', 'crates_collected', 'meters_driven', 'beachball_shots', 'two_birdss', 'yardsales'],
-  },
-];
-
 function statLabel(key) {
-  return STAT_LABELS[key] || key.replace(/_/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  return STAT_LABELS[key] || key.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
 }
 function formatStatValue(key, val) {
-  if (key === '_winrate')      return Math.round(val) + '%';
-  if (key === '_kdr')          return (Math.round(val * 100) / 100).toFixed(2);
-  if (key === 'meters_driven') return Math.round(val / 1000).toLocaleString() + ' km';
+  if (key === '_winrate') return Math.round(val) + '%';
+  if (key === '_kdr')     return (Math.round(val * 100) / 100).toFixed(2);
   if (typeof val === 'number') return val.toLocaleString();
   return String(val);
 }
-function timeAgo(ts) {
-  var diff = Date.now() - ts * 1000;
-  var s = Math.floor(diff / 1000), m = Math.floor(s/60), h = Math.floor(m/60), d = Math.floor(h/24);
-  if (d > 365) return Math.floor(d/365) + 'y ago';
-  if (d > 30)  return Math.floor(d/30)  + 'mo ago';
-  if (d > 1)   return d + 'd ago';
-  if (d === 1) return 'Yesterday';
-  if (h > 0)   return h + 'h ago';
-  if (m > 0)   return m + 'm ago';
-  return 'Just now';
-}
-function todayKey() { return new Date().toISOString().slice(0, 10); }
+function todayKey() { return new Date().toISOString().slice(0,10); }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* ================================================================
-   FIREBASE SNAPSHOT HISTORY
-================================================================ */
+/* ── Firebase snapshot save/load ── */
 function saveSnapshot(gameUserId, statsFlat, displayName) {
   if (!gameUserId) return;
   var payload = { stats: statsFlat, timestamp: Date.now() };
@@ -672,9 +477,7 @@ async function loadSnapshots(gameUserId) {
   return results;
 }
 
-/* ================================================================
-   SEARCH
-================================================================ */
+/* ── Tracker search ── */
 var _lastProfile     = null;
 var _lastUserId      = null;
 var _snapshots       = [];
@@ -702,17 +505,43 @@ async function trackerSearch() {
       btn.disabled = false;
       return;
     }
+    var profile;
+    try {
+      profile = await fetchProfile(resolved.userId);
+      hideFallbackBanner();
+    } catch(proxyErr) {
+      showFallbackBanner();
+      var snaps = await loadSnapshots(resolved.userId).catch(function(){ return []; });
+      if (!snaps.length) {
+        setStatus('Cannot reach game server and no cached data found for this player.', true);
+        btn.disabled = false;
+        return;
+      }
+      var latestSnap = snaps[snaps.length - 1];
+      var s = latestSnap.stats || {};
+      profile = {
+        display_name: input,
+        create_time:  null,
+        online:       false,
+        metadata: {
+          stats:       s,
+          progress:    { level: s._level || '?' },
+          awards_seen: s._awards_seen || 0,
+          friend_code: null,
+        }
+      };
+      setStatus('Cached data from ' + latestSnap.date + ' (game server unreachable)', false);
+      _snapshots = snaps;
+    }
+    _lastProfile = profile;
+    _lastUserId  = resolved.userId;
 
-    var profile   = await fetchProfile(resolved.userId);
-    _lastProfile  = profile;
-    _lastUserId   = resolved.userId;
-
-    var stats     = (profile.metadata && profile.metadata.stats) || {};
+    var stats     = profile.metadata && profile.metadata.stats ? profile.metadata.stats : {};
     var statsFlat = Object.assign({}, stats, {
       _level:       profile.metadata && profile.metadata.progress ? profile.metadata.progress.level : 0,
       _awards_seen: profile.metadata ? profile.metadata.awards_seen : 0,
-      _kdr:         stats.deaths       ? stats.player_kills / stats.deaths            : 0,
-      _winrate:     stats.games_played ? (100 * stats.games_won / stats.games_played) : 0,
+      _kdr:         stats.deaths       ? stats.player_kills / stats.deaths             : 0,
+      _winrate:     stats.games_played ? (100 * stats.games_won / stats.games_played)  : 0,
     });
 
     renderProfile(profile, statsFlat, []);
@@ -721,7 +550,6 @@ async function trackerSearch() {
     saveSnapshot(resolved.userId, statsFlat, profile.display_name);
     loadSnapshots(resolved.userId).then(function(snaps) {
       _snapshots = snaps;
-      renderProfile(profile, statsFlat, snaps);
       renderChartPills(statsFlat, snaps);
     }).catch(function(e){ console.warn('History load failed:', e); });
 
@@ -732,57 +560,16 @@ async function trackerSearch() {
   }
 }
 
-/* ================================================================
-   RENDER
-================================================================ */
+/* ── Render profile ── */
 function renderProfile(profile, statsFlat, snapshots) {
-  /* ── Name ── */
-  document.getElementById('stats-name').textContent = profile.display_name || 'Unknown';
+  var name = profile.display_name || 'Unknown';
+  document.getElementById('stats-name').textContent = name;
 
-  /* ── Tank image ── */
-  var skin    = (profile.metadata && profile.metadata.skin) || 'default_tank';
-  var tankImg = document.getElementById('stats-tank-img');
-  tankImg.src     = 'ui/icons/pfp/' + skin + '.png';
-  tankImg.title   = skin.replace(/_/g, ' ');
-  tankImg.onerror = function() { this.onerror = null; this.src = 'ui/icons/pfp/default_tank.png'; };
-
-  /* ── Badge ── */
-  var badge    = profile.metadata && profile.metadata.badge;
-  var badgeImg = document.getElementById('stats-badge-img');
-  if (badge) {
-    badgeImg.src           = 'ui/icons/badges/' + badge + '.png';
-    badgeImg.title         = badge.replace(/_/g, ' ');
-    badgeImg.style.display = '';
-    badgeImg.onerror       = function() { this.style.display = 'none'; };
-  } else {
-    badgeImg.style.display = 'none';
-  }
-
-  /* ── Online dot ── */
-  var dot = document.getElementById('stats-online-dot');
-  dot.style.display = '';
-  if (profile.online) {
-    dot.textContent  = '● Online';
-    dot.className    = 'stats-online-dot online';
-  } else {
-    dot.textContent  = '● Offline';
-    dot.className    = 'stats-online-dot offline';
-  }
-
-  /* ── Meta line ── */
+  var created = profile.create_time ? new Date(profile.create_time * 1000).toLocaleDateString('en-US',{year:'numeric',month:'short'}) : '';
   var level   = profile.metadata && profile.metadata.progress ? profile.metadata.progress.level : '?';
-  var xp      = profile.metadata && profile.metadata.progress ? profile.metadata.progress.xp : null;
-  var active  = profile.metadata && profile.metadata.results_rewarded_video_last_collect;
-  var created = profile.create_time
-    ? new Date(profile.create_time * 1000).toLocaleDateString('en-US', { year:'numeric', month:'short' })
-    : null;
-  var parts = ['Lv. ' + level];
-  if (xp !== null) parts.push(xp.toLocaleString() + ' XP');
-  if (active)      parts.push('Last active ' + timeAgo(active));
-  if (created)     parts.push('Joined ' + created);
-  document.getElementById('stats-meta').textContent = parts.join(' · ');
+  document.getElementById('stats-meta').textContent =
+    'Level ' + level + (created ? ' · Joined ' + created : '') + (profile.online ? ' · 🟢 Online' : ' · ⚫ Offline');
 
-  /* ── Friend code ── */
   var friendCode = profile.metadata && profile.metadata.friend_code;
   var fcWrap = document.getElementById('friend-code-wrap');
   if (friendCode) {
@@ -799,77 +586,32 @@ function renderProfile(profile, statsFlat, snapshots) {
     fcWrap.style.display = 'none';
   }
 
-  /* ── Delta bar ── */
-  var prevSnap  = snapshots.length >= 2 ? snapshots[snapshots.length - 2] : null;
-  var prevStats = prevSnap ? prevSnap.stats : null;
-  var deltaBar  = document.getElementById('stats-delta-bar');
-  deltaBar.innerHTML = '';
-  var KEY_DELTAS = ['player_kills', 'deaths', 'games_won', 'games_played', '_kdr'];
-  var anyDelta   = false;
-  if (prevStats) {
-    KEY_DELTAS.forEach(function(key) {
-      var val   = statsFlat[key];
-      var prev  = prevStats[key];
-      if (val === undefined || prev === undefined) return;
-      var delta = val - prev;
-      if (delta === 0) return;
-      anyDelta = true;
+  var prevStats = snapshots.length >= 2 ? snapshots[snapshots.length - 2].stats : null;
+  var grid = document.getElementById('stats-grid');
+  grid.innerHTML = '';
+  var orderedKeys = ['_level','_kdr','_winrate','player_kills','deaths','games_won','games_played','most_player_kills','gems_found','best_rank','_awards_seen'];
+  Object.keys(statsFlat).forEach(function(k){ if (orderedKeys.indexOf(k) === -1) orderedKeys.push(k); });
+
+  orderedKeys.forEach(function(key) {
+    if (!(key in statsFlat)) return;
+    var val   = statsFlat[key];
+    var prev  = prevStats ? prevStats[key] : null;
+    var delta = (prev !== null && prev !== undefined && typeof val === 'number') ? val - prev : null;
+    var deltaHtml = '';
+    if (delta !== null && delta !== 0) {
       var sign = delta > 0 ? '+' : '';
       var cls  = delta > 0 ? 'up' : 'down';
-      deltaBar.innerHTML +=
-        '<div class="delta-pill"><span class="delta-pill-label">' + escHtml(statLabel(key)) + '</span>' +
-        '<span class="delta-pill-val ' + cls + '">' + sign + formatStatValue(key, delta) + '</span></div>';
-    });
-    if (anyDelta) deltaBar.innerHTML += '<div class="delta-bar-since">vs ' + escHtml(prevSnap.date) + '</div>';
-  }
-  deltaBar.className = 'stats-delta-bar' + (anyDelta ? ' has-data' : '');
-
-  /* ── Stat sections ── */
-  var sectionsEl = document.getElementById('stats-sections');
-  sectionsEl.innerHTML = '';
-
-  // Track which keys have been rendered
-  var rendered = {};
-
-  STAT_SECTIONS.forEach(function(section) {
-    var sectionKeys = section.keys.filter(function(k) {
-      return statsFlat[k] !== undefined;
-    });
-    if (!sectionKeys.length) return;
-
-    var html = '<div class="stats-section">' +
-      '<div class="stats-section-header">' + escHtml(section.label) + '</div>' +
-      '<div class="stats-grid">';
-
-    sectionKeys.forEach(function(key) {
-      rendered[key] = true;
-      html += buildStatCell(key, statsFlat[key], prevStats ? prevStats[key] : undefined, statsFlat);
-    });
-
-    html += '</div></div>';
-    sectionsEl.innerHTML += html;
+      deltaHtml = '<div class="stat-cell-delta ' + cls + '">' + sign + formatStatValue(key, delta) + ' since last</div>';
+    } else if (delta === 0) {
+      deltaHtml = '<div class="stat-cell-delta same">No change</div>';
+    }
+    grid.innerHTML += '<div class="stat-cell"><div class="stat-cell-label">' + escHtml(statLabel(key)) + '</div><div class="stat-cell-value">' + escHtml(formatStatValue(key, val)) + '</div>' + deltaHtml + '</div>';
   });
 
-  // "Other" section for unknown keys
-  var otherKeys = Object.keys(statsFlat).filter(function(k) {
-    return !rendered[k] && k.charAt(0) !== '_';
-  });
-  if (otherKeys.length) {
-    var html = '<div class="stats-section">' +
-      '<div class="stats-section-header">Other</div>' +
-      '<div class="stats-grid">';
-    otherKeys.forEach(function(key) {
-      html += buildStatCell(key, statsFlat[key], prevStats ? prevStats[key] : undefined, statsFlat);
-    });
-    html += '</div></div>';
-    sectionsEl.innerHTML += html;
-  }
-
-  /* ── Raw JSON tab ── */
   var rawJson = JSON.stringify(profile, null, 2);
   document.getElementById('stats-raw').textContent = rawJson;
   document.getElementById('raw-download-btn').onclick = function() {
-    var blob = new Blob([rawJson], { type: 'application/json' });
+    var blob = new Blob([rawJson], { type:'application/json' });
     var url  = URL.createObjectURL(blob);
     var a    = document.createElement('a');
     a.href = url; a.download = (profile.display_name || 'player') + '-stats.json'; a.click();
@@ -881,36 +623,18 @@ function renderProfile(profile, statsFlat, snapshots) {
   switchTab('stats');
 }
 
-function buildStatCell(key, val, prev, statsFlat) {
-  var delta     = (prev !== undefined && typeof val === 'number') ? val - prev : null;
-  var deltaHtml = '';
-  if (delta !== null && delta !== 0) {
-    var sign = delta > 0 ? '+' : '';
-    var cls  = delta > 0 ? 'up' : 'down';
-    deltaHtml = '<div class="stat-cell-delta ' + cls + '">' + sign + formatStatValue(key, delta) + '</div>';
-  } else if (delta === 0) {
-    deltaHtml = '<div class="stat-cell-delta same">—</div>';
-  }
-  return '<div class="stat-cell">' +
-    '<div class="stat-cell-label">' + escHtml(statLabel(key)) + '</div>' +
-    '<div class="stat-cell-value">' + escHtml(formatStatValue(key, val)) + '</div>' +
-    deltaHtml + '</div>';
-}
-
-/* ================================================================
-   CHART
-================================================================ */
+/* ── Chart ── */
 function renderChartPills(statsFlat, snapshots) {
   var pills = document.getElementById('chart-pills');
   pills.innerHTML = '';
-  var chartableKeys = Object.keys(statsFlat).filter(function(k) {
-    return typeof statsFlat[k] === 'number' && snapshots.some(function(s) { return k in s.stats; });
+  var chartableKeys = Object.keys(statsFlat).filter(function(k){
+    return typeof statsFlat[k] === 'number' && snapshots.some(function(s){ return k in s.stats; });
   });
   if (!chartableKeys.length) return;
   _activeChartStat = _activeChartStat || chartableKeys[0];
   chartableKeys.forEach(function(key) {
     var pill = document.createElement('button');
-    pill.className   = 'chart-stat-pill' + (key === _activeChartStat ? ' active' : '');
+    pill.className = 'chart-stat-pill' + (key === _activeChartStat ? ' active' : '');
     pill.textContent = statLabel(key);
     pill.onclick = function() {
       _activeChartStat = key;
@@ -940,7 +664,7 @@ function drawChart(statKey, snapshots) {
       labels: points.map(function(p){ return p.date; }),
       datasets: [{
         label: statLabel(statKey),
-        data:  points.map(function(p){ return p.stats[statKey]; }),
+        data: points.map(function(p){ return p.stats[statKey]; }),
         borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.08)',
         borderWidth: 2.5, pointBackgroundColor: '#0ea5e9',
         pointRadius: 4, pointHoverRadius: 6, tension: 0.35, fill: true,
@@ -960,37 +684,30 @@ function drawChart(statKey, snapshots) {
   });
 }
 
-/* ================================================================
-   TABS
-================================================================ */
 function switchTab(tab) {
   document.getElementById('view-stats').style.display   = tab === 'stats'   ? '' : 'none';
   document.getElementById('view-history').className     = 'chart-section' + (tab === 'history' ? ' visible' : '');
   document.getElementById('view-raw').style.display     = tab === 'raw'     ? '' : 'none';
-  document.querySelectorAll('.stats-tab-btn').forEach(function(btn) {
-    btn.classList.toggle('active', btn.dataset.tab === tab);
+  ['stats','history','raw'].forEach(function(t){
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
   });
   if (tab === 'history' && _snapshots.length && _activeChartStat) drawChart(_activeChartStat, _snapshots);
 }
 
-document.querySelectorAll('.stats-tab-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() { switchTab(btn.dataset.tab); });
-});
-
-/* ================================================================
-   AUTOCOMPLETE DROPDOWN
-================================================================ */
+/* ── Username autocomplete dropdown ── */
 (function() {
   var input    = document.getElementById('tracker-input');
   var dropdown = document.getElementById('tracker-dropdown');
   var timer    = null;
 
   function closeDropdown() { dropdown.classList.remove('open'); dropdown.innerHTML = ''; }
+
   function selectResult(userId) { input.value = userId; closeDropdown(); trackerSearch(); }
 
   input.addEventListener('input', function() {
     clearTimeout(timer);
     var val = input.value.trim();
+    // Don't show autocomplete for UUIDs
     if (!val || UUID_RE.test(val) || val.length < 2) { closeDropdown(); return; }
     timer = setTimeout(function() {
       var lower = val.toLowerCase();
@@ -1007,15 +724,14 @@ document.querySelectorAll('.stats-tab-btn').forEach(function(btn) {
           snap.forEach(function(doc) {
             var d    = doc.data();
             var name = d.displayName || doc.id;
+            var uid  = doc.id;
             var item = document.createElement('div');
             item.className = 'tracker-dropdown-item';
             item.innerHTML =
               '<div class="tracker-dropdown-avatar">' + escHtml(name.slice(0,2).toUpperCase()) + '</div>' +
-              '<div style="min-width:0;flex:1;">' +
-                '<div class="tracker-dropdown-name">' + escHtml(name) + '</div>' +
-                '<div class="tracker-dropdown-id">' + escHtml(doc.id) + '</div>' +
-              '</div>';
-            item.addEventListener('mousedown', function(e){ e.preventDefault(); selectResult(doc.id); });
+              '<div style="min-width:0;flex:1;"><div class="tracker-dropdown-name">' + escHtml(name) + '</div>' +
+              '<div class="tracker-dropdown-id">' + escHtml(uid) + '</div></div>';
+            item.addEventListener('mousedown', function(e){ e.preventDefault(); selectResult(uid); });
             dropdown.appendChild(item);
           });
           dropdown.classList.add('open');
@@ -1028,7 +744,6 @@ document.querySelectorAll('.stats-tab-btn').forEach(function(btn) {
     if (e.key === 'Enter')  { closeDropdown(); trackerSearch(); }
     if (e.key === 'Escape') closeDropdown();
   });
-  document.getElementById('tracker-search-btn').addEventListener('click', trackerSearch);
   document.addEventListener('click', function(e) {
     if (!input.contains(e.target) && !dropdown.contains(e.target)) closeDropdown();
   });
@@ -1037,9 +752,7 @@ document.querySelectorAll('.stats-tab-btn').forEach(function(btn) {
   });
 })();
 
-/* ================================================================
-   AUTO-FILL from sessionStorage (friendtoid.html / forum embed)
-================================================================ */
+/* ── Auto-fill from friendtoid.html ── */
 (function() {
   try {
     var prefill = sessionStorage.getItem('ftoid_prefill');
@@ -1051,9 +764,7 @@ document.querySelectorAll('.stats-tab-btn').forEach(function(btn) {
   } catch(e) {}
 })();
 
-/* ================================================================
-   HAMBURGER
-================================================================ */
+/* ── Hamburger ── */
 (function() {
   var btn  = document.getElementById('hamburger');
   var menu = document.getElementById('mobile-menu');
@@ -1065,11 +776,12 @@ document.querySelectorAll('.stats-tab-btn').forEach(function(btn) {
   menu.querySelectorAll('a').forEach(function(a) {
     a.addEventListener('click', function() {
       menu.classList.remove('open');
-      btn.setAttribute('aria-expanded', 'false');
-      menu.setAttribute('aria-hidden', 'true');
+      btn.setAttribute('aria-expanded','false');
+      menu.setAttribute('aria-hidden','true');
     });
   });
 })();
 </script>
+
 </body>
 </html>
