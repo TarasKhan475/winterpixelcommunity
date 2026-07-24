@@ -125,7 +125,23 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             Choose your avatar
           </div>
-          <div class="pfp-grid" id="pfp-grid"></div>
+
+          <!-- Search bar -->
+          <div style="position:relative;margin-bottom:12px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="2.5" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="pfp-search" placeholder="Search avatars…"
+              style="width:100%;box-sizing:border-box;padding:8px 12px 8px 32px;border:1.5px solid var(--gray-border);border-radius:var(--radius-sm);font-family:'Baloo 2',cursive;font-size:13px;color:var(--blue-deep);background:#F8FAFF;outline:none;"
+              oninput="filterPfpGrid(this.value)" />
+          </div>
+
+          <div style="position:relative;">
+            <div class="pfp-grid" id="pfp-grid"></div>
+            <div id="pfp-popover" style="display:none;position:absolute;z-index:200;background:white;border:1.5px solid var(--blue-light);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,198,255,0.15);padding:4px;">
+              <div id="pfp-color-label" style="display:none;"></div>
+              <div id="pfp-swatches" style="display:flex;gap:3px;flex-wrap:wrap;"></div>
+            </div>
+          </div>
+
           <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <button class="profile-save-btn" id="pfp-save-btn">Save avatar</button>
             <span class="profile-save-status" id="pfp-save-status">Saved!</span>
@@ -236,12 +252,27 @@ function formatDate(ts) {
 }
 
 // ================================================================
-// PFP CATALOGUE — 100 placeholders, swap paths for real images
-// Naming: ui/icons/pfp/pfp_001.png … pfp_100.png
+// PFP CATALOGUE — loaded from data/pfp-catalogue.json
+// Generate it once by running: node scan-pfp.js
 // ================================================================
-var PFP_LIST = [];
-for (var i = 1; i <= 100; i++) {
-  PFP_LIST.push('ui/icons/pfp/pfp_' + String(i).padStart(3,'0') + '.png');
+var PFP_CATALOGUE = [];
+var _pfpLoaded    = false;
+
+function loadPfpCatalogue(cb) {
+  if (_pfpLoaded) { cb(); return; }
+  fetch('/data/pfp-catalogue.json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      PFP_CATALOGUE = data;
+      _pfpLoaded    = true;
+      cb();
+    })
+    .catch(function(e) {
+      console.warn('pfp-catalogue.json not found — run: node scan-pfp.js', e);
+      PFP_CATALOGUE = [];
+      _pfpLoaded    = true;
+      cb();
+    });
 }
 
 // ================================================================
@@ -363,11 +394,8 @@ function showCustomizePanel(data) {
   // Pre-fill bio
   document.getElementById('bio-input').value = data.bio || '';
 
-  // Build PFP grid (only once — avoid rebuilding on every auth state change)
-  if (!document.getElementById('pfp-grid').dataset.built) {
-    buildPfpGrid(data.pfp || null);
-    document.getElementById('pfp-grid').dataset.built = '1';
-  }
+  // Build PFP grid — catalogue is fetched once and cached in memory
+  buildPfpGrid(data.pfp || null);
 
   // Avatar click → open panel scrolled to pfp picker
   var avatarWrap = document.getElementById('view-avatar');
@@ -425,33 +453,158 @@ function closeCustomizePanel() {
   }
 }
 
+// ── PFP grid helpers ──────────────────────────────────────────────────────────
+
+var _activePfpEntry = null;
+
 function buildPfpGrid(currentPfp) {
+  loadPfpCatalogue(function() {
+    selectedPfp = currentPfp || null;
+    _renderPfpGrid(PFP_CATALOGUE, currentPfp);
+  });
+}
+
+function _renderPfpGrid(entries, currentPfp) {
   var grid = document.getElementById('pfp-grid');
+  closePfpPopover();
   grid.innerHTML = '';
-  selectedPfp = currentPfp;
+  if (!entries.length) {
+    grid.innerHTML = '<div style="padding:0.5rem;font-size:13px;color:var(--gray-muted);">No avatars found!';
+    return;
+  }
+  entries.forEach(function(entry) {
+    // Pick a random color variant as the thumbnail
+    var randColor  = entry.colors[Math.floor(Math.random() * entry.colors.length)];
+    var thumbFile  = randColor.file;
+    var isActive   = entry.colors.some(function(c){ return c.file===currentPfp||('/'+c.file)===currentPfp; });
 
-  PFP_LIST.forEach(function(path) {
     var div = document.createElement('div');
-    div.className = 'pfp-option' + (path === currentPfp ? ' selected' : '');
-    div.dataset.path = path;
+    div.className = 'pfp-option' + (isActive ? ' selected' : '');
+    div.dataset.searchKey = entry.searchKey;
+    div.style.cssText = 'position:relative;overflow:hidden;';
+    div.title = entry.name;
 
+    // Tank image
     var img = document.createElement('img');
-    img.src = path;
-    img.alt = '';
+    img.src     = '/' + thumbFile;
+    img.alt     = entry.name;
     img.loading = 'lazy';
-    img.onerror = function() { div.style.display='none'; };
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    img.onerror = function(){ div.style.display='none'; };
     div.appendChild(img);
 
-    div.addEventListener('click', function() {
+    // Name overlay — centered, bottom of tile, black outline
+    var overlay = document.createElement('div');
+    overlay.style.cssText = [
+      'position:absolute',
+      'bottom:0','left:0','right:0',
+      'padding:3px 4px 4px',
+      'background:linear-gradient(to top,rgba(0,198,255,0.62) 0%,transparent 100%)',
+      'font-family:\'Baloo 2\',cursive',
+      'font-size:12px','font-weight:800',
+      'color:white',
+      'text-align:center',
+      'white-space:nowrap','overflow:hidden','text-overflow:ellipsis',
+      'text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000',
+      'pointer-events:none',
+      'letter-spacing:.2px',
+    ].join(';');
+    overlay.textContent = entry.name;
+    div.appendChild(overlay);
+
+    div.addEventListener('click', function(){
       document.querySelectorAll('.pfp-option').forEach(function(o){ o.classList.remove('selected'); });
       div.classList.add('selected');
-      selectedPfp = path;
+      _activePfpEntry = entry;
+      if (entry.colors.length === 1) {
+        selectedPfp = '/' + entry.colors[0].file;
+        closePfpPopover();
+      } else {
+        showColorPopover(entry, div, currentPfp);
+      }
     });
 
     grid.appendChild(div);
   });
+
+  // Auto-open popover for currently active entry
+  if (currentPfp) {
+    var activeEntry = entries.find(function(e){ return e.colors.some(function(c){ return c.file===currentPfp||('/'+c.file)===currentPfp; }); });
+    if (activeEntry && activeEntry.colors.length > 1) {
+      _activePfpEntry = activeEntry;
+      var activeTile = grid.querySelector('[data-search-key="'+activeEntry.searchKey+'"]');
+      if (activeTile) showColorPopover(activeEntry, activeTile, currentPfp);
+    }
+  }
 }
 
+function closePfpPopover() {
+  var pop = document.getElementById('pfp-popover');
+  if (pop) pop.style.display = 'none';
+}
+
+function showColorPopover(entry, tileEl, currentPfp) {
+  var pop      = document.getElementById('pfp-popover');
+  var swatches = document.getElementById('pfp-swatches');
+  var label    = document.getElementById('pfp-color-label');
+
+  swatches.innerHTML = '';
+
+  entry.colors.forEach(function(c){
+    var isChosen = ('/'+c.file)===selectedPfp || c.file===selectedPfp || ('/'+c.file)===currentPfp || c.file===currentPfp;
+    var sw = document.createElement('div');
+    sw.style.cssText = 'cursor:pointer;flex-shrink:0;';
+
+    var imgWrap = document.createElement('div');
+    imgWrap.style.cssText = 'width:36px;height:36px;border-radius:var(--radius-sm);border:2px solid '+(isChosen?'var(--blue)':'transparent')+';overflow:hidden;transition:border-color .12s;background:var(--blue-pale);';
+
+    var si = document.createElement('img');
+    si.src = '/' + c.file; si.alt = c.label; si.loading = 'lazy';
+    si.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    si.onerror = function(){ imgWrap.style.display='none'; };
+    imgWrap.appendChild(si);
+
+    sw.appendChild(imgWrap);
+
+    sw.addEventListener('click', function(e){
+      e.stopPropagation();
+      swatches.querySelectorAll('div > div').forEach(function(w){ w.style.borderColor='transparent'; });
+      imgWrap.style.borderColor = 'var(--blue)';
+      selectedPfp = '/' + c.file;
+    });
+
+    swatches.appendChild(sw);
+  });
+
+  // Position popover: below the tile by default, above if not enough space below
+  pop.style.display = 'block';
+  var gridWrap = tileEl.parentElement.parentElement; // the position:relative div
+  var tileRect = tileEl.getBoundingClientRect();
+  var wrapRect = gridWrap.getBoundingClientRect();
+
+  var leftPos  = tileEl.offsetLeft;
+  var topBelow = tileEl.offsetTop + tileEl.offsetHeight + 6;
+  var topAbove = tileEl.offsetTop - pop.offsetHeight - 6;
+
+  // Clamp horizontally so popover doesn't overflow the grid wrapper
+  var maxLeft = wrapRect.width - pop.offsetWidth - 4;
+  if (leftPos > maxLeft) leftPos = Math.max(0, maxLeft);
+
+  // Use above if below would go off screen
+  var spaceBelow = window.innerHeight - tileRect.bottom;
+  var useAbove   = spaceBelow < (pop.offsetHeight + 20) && tileRect.top > pop.offsetHeight + 20;
+
+  pop.style.left = leftPos + 'px';
+  pop.style.top  = (useAbove ? topAbove : topBelow) + 'px';
+  pop.style.removeProperty('bottom');
+}
+
+function filterPfpGrid(query) {
+  var q = query.trim().toLowerCase();
+  closePfpPopover();
+  var filtered = q ? PFP_CATALOGUE.filter(function(e){ return e.searchKey.includes(q); }) : PFP_CATALOGUE;
+  _renderPfpGrid(filtered, selectedPfp);
+}
 function savePfp() {
   if (!currentUser || !selectedPfp) return;
   var btn = document.getElementById('pfp-save-btn');
@@ -702,6 +855,16 @@ document.getElementById('logout-btn').addEventListener('click', function() {
     });
   });
 })();
+
+// Close pfp popover when clicking outside
+document.addEventListener('click', function(e) {
+  var pop = document.getElementById('pfp-popover');
+  if (pop && pop.style.display !== 'none') {
+    if (!e.target.closest('#pfp-popover') && !e.target.closest('.pfp-option')) {
+      closePfpPopover();
+    }
+  }
+});
 </script>
 
 </body>

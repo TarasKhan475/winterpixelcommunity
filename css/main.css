@@ -426,7 +426,7 @@ button { cursor: pointer; font-family: 'Baloo 2', cursive; }
 
 .search-result-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 11px 14px; text-decoration: none; color: inherit;
+  padding: 11px 5px; text-decoration: none; color: inherit;
   border-bottom: 1px solid var(--blue-light);
   transition: background var(--transition); cursor: pointer;
 }
@@ -435,12 +435,12 @@ button { cursor: pointer; font-family: 'Baloo 2', cursive; }
 .search-result-item:hover { background: var(--blue-pale); }
 
 .search-result-icon {
-  width: 34px; height: 34px; border-radius: 50%;
+  width: 50px; height: 50px; border-radius: 15%;
   overflow: hidden; flex-shrink: 0; background: var(--blue-pale);
   display: flex; align-items: center; justify-content: center; font-size: 17px;
 }
 
-.search-result-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.search-result-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 15%; }
 .search-result-text { flex: 1; min-width: 0; }
 .search-result-name { font-size: 14px; font-weight: 700; color: var(--blue-deep); }
 .search-result-sub { font-size: 12px; color: var(--gray-mid); }
