@@ -1,4 +1,4 @@
-// ── Fandom wikis you support ─────────────────────────────────────
+// ── Fandom wikis supported ─────────────────────────────────────
 var FANDOM_WIKIS = [
   { id: 'rbr', label: 'Rocket Bot Royale Wiki', wiki: 'rocketbotroyale' },
   { id: 'gd',  label: 'Goober Dash Wiki',       wiki: 'gooberdash'      },
@@ -12,26 +12,42 @@ var SVG_ATTACH = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" st
 var SVG_WIKI   = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
 var SVG_STATS  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>';
 
-// ── API helpers (mirrored from stats.html) ───────────────────────
-var _BASE_URL      = 'https://dev-nakama.winterpixel.io/v2';
-var _BASE_HEADERS  = {
-  accept:         'application/json',
-  authorization:  'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=',
-  origin:         'https://rocketbotroyale2.winterpixel.io',
-  referer:        'https://rocketbotroyale2.winterpixel.io/',
-  'content-type': 'application/json'
-};
+// ── API helpers ──────────────────────────────────────────────────
+var _IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+var _NAKAMA_BASE  = 'https://dev-nakama.winterpixel.io/v2';
+var _PROXY_URL    = '/.netlify/functions/nakama-proxy';
+var _BASIC_AUTH   = 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=';
 var _cachedToken    = null;
 var _tokenExpiresAt = 0;
 
+async function _nakamaFetch(path, token, body) {
+  var authHeader = token ? ('Bearer ' + token) : _BASIC_AUTH;
+  if (_IS_LOCAL) {
+    var resp = await fetch(_NAKAMA_BASE + path.replace(/^\/v2/, ''), {
+      method: 'POST',
+      headers: { accept:'application/json', authorization:authHeader, 'content-type':'application/json',
+                 origin:'https://rocketbotroyale2.winterpixel.io', referer:'https://rocketbotroyale2.winterpixel.io/' },
+      body: body,
+    });
+    if (!resp.ok) throw new Error('Request failed (' + resp.status + ')');
+    return resp.json();
+  } else {
+    var resp = await fetch(_PROXY_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ method:'POST', path:path, headers:{ authorization:authHeader }, body:JSON.parse(body) }),
+    });
+    if (!resp.ok) throw new Error('Proxy error (' + resp.status + ')');
+    return resp.json();
+  }
+}
+
 async function _getToken() {
   if (_cachedToken && Date.now() < _tokenExpiresAt) return _cachedToken;
-  var resp = await fetch(_BASE_URL + '/account/authenticate/email?create=false', {
-    method: 'POST', headers: _BASE_HEADERS,
-    body: JSON.stringify({ email:'test6969khan@test.com', password:'password', vars:{ client_version:'9999999999' } })
-  });
-  if (!resp.ok) throw new Error('Auth failed');
-  var data = await resp.json();
+  var data = await _nakamaFetch(
+    '/v2/account/authenticate/email?create=false', null,
+    JSON.stringify({ email:'test6969khan@test.com', password:'password', vars:{ client_version:'9999999999' } })
+  );
   _cachedToken    = data.token;
   _tokenExpiresAt = Date.now() + 55 * 60 * 1000;
   return _cachedToken;
@@ -49,17 +65,12 @@ async function _resolvePlayer(input) {
   if (_FRIEND_CODE_RE.test(input)) {
     try {
       var token = await _getToken();
-      var resp  = await fetch(_BASE_URL + '/rpc/winterpixel_query_user_id_for_friend_code', {
-        method: 'POST',
-        headers: { accept:'application/json', authorization:'Bearer '+token, 'content-type':'application/json',
-                   origin:'https://rocketbotroyale2.winterpixel.io', referer:'https://rocketbotroyale2.winterpixel.io/' },
-        body: JSON.stringify(JSON.stringify({ friend_code: input.toLowerCase() }))
-      });
-      if (resp.ok) {
-        var d = await resp.json();
-        var p = typeof d.payload === 'string' ? JSON.parse(d.payload) : d.payload;
-        if (p && (p.user_id || p.id)) return p.user_id || p.id;
-      }
+      var d = await _nakamaFetch(
+        '/v2/rpc/winterpixel_query_user_id_for_friend_code', token,
+        JSON.stringify(JSON.stringify({ friend_code: input.toLowerCase() }))
+      );
+      var p = typeof d.payload === 'string' ? JSON.parse(d.payload) : d.payload;
+      if (p && (p.user_id || p.id)) return p.user_id || p.id;
     } catch(e) {}
   }
 
@@ -75,14 +86,10 @@ async function _resolvePlayer(input) {
 
 async function _fetchProfile(userId) {
   var token = await _getToken();
-  var resp  = await fetch(_BASE_URL + '/rpc/rpc_get_users_with_profile', {
-    method: 'POST',
-    headers: { accept:'application/json', authorization:'Bearer '+token, 'content-type':'application/json',
-               origin:'https://rocketbotroyale2.winterpixel.io', referer:'https://rocketbotroyale2.winterpixel.io/' },
-    body: JSON.stringify(JSON.stringify({ ids: [userId] }))
-  });
-  if (!resp.ok) throw new Error('Fetch failed');
-  var data  = await resp.json();
+  var data  = await _nakamaFetch(
+    '/v2/rpc/rpc_get_users_with_profile', token,
+    JSON.stringify(JSON.stringify({ ids: [userId] }))
+  );
   var inner = JSON.parse(data.payload);
   if (!inner || !inner[0]) throw new Error('Not found');
   return inner[0];

@@ -1,10 +1,3 @@
-// ================================================================
-// EMOJI SYSTEM — forum-emoji.js
-// Depends on: #compose-input, #emoji-btn, #emoji-picker,
-//             #emoji-picker-cats, #emoji-picker-grid,
-//             #emoji-search-input, #emoji-autocomplete
-// ================================================================
-
 var EMOJI_DATA = [
   {cat:'😀 Smileys', emojis:[
     ['😀','grinning'],['😁','beaming'],['😂','joy'],['🤣','rofl'],['😃','smiley'],
@@ -168,16 +161,26 @@ document.getElementById('compose-input').addEventListener('input', function(){
   checkEmojiAutocomplete(this);
 });
 
+// Use capture phase (third arg = true) so this fires BEFORE forum.js's bubble-phase
+// keydown listener that sends the message on Enter. When the autocomplete is open,
+// Enter selects the emoji and the event never reaches the send handler.
 document.getElementById('compose-input').addEventListener('keydown', function(e){
   var ac = document.getElementById('emoji-autocomplete');
   if (!ac.classList.contains('open')) return;
-  if (e.key === 'ArrowDown') { e.preventDefault(); _acIndex = Math.min(_acIndex+1, _acEmojis.length-1); highlightAcItem(); }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); _acIndex = Math.max(_acIndex-1, 0); highlightAcItem(); }
-  else if (e.key === 'Enter' || e.key === 'Tab') {
-    if (_acEmojis.length) { e.preventDefault(); selectAcEmoji(_acEmojis[_acIndex]); }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault(); e.stopImmediatePropagation();
+    _acIndex = Math.min(_acIndex+1, _acEmojis.length-1); highlightAcItem();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault(); e.stopImmediatePropagation();
+    _acIndex = Math.max(_acIndex-1, 0); highlightAcItem();
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (_acEmojis.length) selectAcEmoji(_acEmojis[_acIndex]);
+  } else if (e.key === 'Escape') {
+    e.preventDefault(); e.stopImmediatePropagation();
+    closeEmojiAc();
   }
-  else if (e.key === 'Escape') { closeEmojiAc(); }
-});
+}, true);
 
 function checkEmojiAutocomplete(inp) {
   var val = inp.value;
