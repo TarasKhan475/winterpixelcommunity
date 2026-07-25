@@ -1,7 +1,7 @@
-// ── Fandom wikis supported ─────────────────────────────────────
+// ── Supported Fandom wikis ─────────────────────────────────────
 var FANDOM_WIKIS = [
   { id: 'rbr', label: 'Rocket Bot Royale Wiki', wiki: 'rocketbotroyale' },
-  { id: 'gd',  label: 'Goober Dash Wiki',       wiki: 'gooberdash'      },
+  { id: 'gd', label: 'Goober Dash Wiki', wiki: 'goober-dash' },
 ];
 
 // Allowed fandom wiki subdomains (troll-proofing: only these are accepted)
@@ -243,21 +243,89 @@ function _renderAttachTab(tab) {
 
   if (tab === 'wiki') {
     body.innerHTML =
-      '<p class="attach-section-hint">Share a wiki page as a link card.<br>You can also paste a fandom URL directly into the message box.</p>' +
-      '<div class="attach-embed-list">' +
-        FANDOM_WIKIS.map(function(w) {
-          return '<div class="attach-wiki-row" data-wiki="'+w.wiki+'" data-label="'+escHtml(w.label)+'">' +
-            '<div class="attach-embed-icon">'+SVG_WIKI+'</div>' +
-            '<div class="attach-embed-info">' +
-              '<strong>'+escHtml(w.label)+'</strong>' +
-              '<input class="attach-embed-input" placeholder="Page title, e.g. Flak_Cannon" />' +
-            '</div>' +
-            '<button class="attach-embed-add">Add</button>' +
-          '</div>';
+      '<div class="wiki-tab-strip">' +
+        FANDOM_WIKIS.map(function(w, i) {
+          return '<button class="wiki-sub-tab'+(i===0?' active':'')+'" data-wiki="'+w.wiki+'" data-label="'+escHtml(w.label)+'">'+escHtml(w.label)+'</button>';
         }).join('') +
-      '</div>';
+      '</div>' +
+      '<input id="wiki-article-input" class="attach-embed-input" placeholder="Search articles\u2026" autocomplete="off" style="margin-bottom:6px;" />' +
+      '<div id="wiki-article-results" class="wiki-article-results"></div>';
 
-  } else if (tab === 'stats') {
+    var wikiState = {
+      active: { wiki: FANDOM_WIKIS[0].wiki, label: FANDOM_WIKIS[0].label },
+      timer:  null
+    };
+
+    var wikiInput   = document.getElementById('wiki-article-input');
+    var wikiResults = document.getElementById('wiki-article-results');
+
+    var renderWikiResults = function(titles, active) {
+      wikiResults.innerHTML = '';
+      if (!titles.length) {
+        wikiResults.innerHTML = '<div class="wiki-result-empty">No articles found</div>';
+        return;
+      }
+      titles.forEach(function(title) {
+        var slug         = title.replace(/ /g, '_');
+        var capturedWiki = { wiki: active.wiki, label: active.label };
+        var item         = document.createElement('div');
+        item.className   = 'wiki-result-item';
+        item.innerHTML   =
+          '<span class="wiki-result-icon">'+SVG_WIKI+'</span>' +
+          '<div class="wiki-result-text">' +
+            '<div class="wiki-result-title">'+escHtml(title)+'</div>' +
+            '<div class="wiki-result-url">'+escHtml(active.wiki)+'.fandom.com/wiki/'+escHtml(slug)+'</div>' +
+          '</div>';
+        item.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          _selectAttachment({ type:'wiki', data:{ wiki:capturedWiki.wiki, label:capturedWiki.label, slug:slug } });
+          _closeAttachPicker();
+        });
+        wikiResults.appendChild(item);
+      });
+    };
+
+    var doWikiSearch = function(query) {
+      var active = wikiState.active;
+      wikiResults.innerHTML = '<div class="wiki-result-loading">Searching\u2026</div>';
+      var url = 'https://' + active.wiki + '.fandom.com/api.php' +
+        '?action=opensearch&search=' + encodeURIComponent(query) +
+        '&limit=10&namespace=0&format=json&origin=*';
+      fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(data) { renderWikiResults(data[1] || [], active); })
+        .catch(function() {
+          wikiResults.innerHTML = '<div class="wiki-result-empty">Search failed \u2014 check your connection</div>';
+        });
+    };
+
+    var setActiveWiki = function(wiki, label) {
+      wikiState.active = { wiki: wiki, label: label };
+      document.querySelectorAll('.wiki-sub-tab').forEach(function(t) {
+        t.classList.toggle('active', t.dataset.wiki === wiki);
+      });
+      wikiInput.value = '';
+      doWikiSearch('winterpixel');
+      wikiInput.focus();
+    };
+
+    body.querySelectorAll('.wiki-sub-tab').forEach(function(t) {
+      t.addEventListener('click', function() { setActiveWiki(t.dataset.wiki, t.dataset.label); });
+    });
+
+    wikiInput.addEventListener('input', function() {
+      clearTimeout(wikiState.timer);
+      var q = wikiInput.value.trim();
+      wikiState.timer = setTimeout(function() {
+        doWikiSearch(q || 'winterpixel');
+      }, 300);
+    });
+
+    // Pre-populate on open
+    doWikiSearch('winterpixel');
+    setTimeout(function() { wikiInput.focus(); }, 50);
+
+    } else if (tab === 'stats') {
     body.innerHTML =
       '<p class="attach-section-hint">Look up a player and share their stats card.</p>' +
       '<div class="stats-search-wrap">' +
@@ -353,24 +421,7 @@ function _wireAttachEvents() {
       return;
     }
 
-    // Wiki "Add" button
-    var addBtn = e.target.closest('.attach-wiki-row .attach-embed-add');
-    if (addBtn) {
-      var row   = addBtn.closest('.attach-wiki-row');
-      var inp   = row && row.querySelector('.attach-embed-input');
-      var slug  = inp ? inp.value.trim().replace(/\s+/g, '_') : '';
-      if (!slug) { if (inp) inp.style.borderColor = 'red'; return; }
-      _selectAttachment({
-        type: 'wiki',
-        data: {
-          wiki:  row.dataset.wiki,
-          label: row.dataset.label,
-          slug:  slug,
-        }
-      });
-      _closeAttachPicker();
-      return;
-    }
+    // Wiki results handled by mousedown on .wiki-result-item (inside _renderAttachTab)
 
     // Remove preview
     if (e.target.closest('#attach-preview-remove')) {

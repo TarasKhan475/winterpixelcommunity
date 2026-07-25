@@ -1,3 +1,8 @@
+/* ================================================================
+   forum.css — page-scoped styles for forum.html
+   Global variables and base styles live in css/main.css
+================================================================ */
+
 /* ---- Layout ---- */
 .forum-wrap {
   max-width: 1500px;
@@ -201,11 +206,11 @@
 /* Base card */
 .msg-embed {
   margin-top: 6px;
-  max-width: 300px;
+  max-width: 400px;
   background: var(--blue-pale);
   border-left: 4px solid #0ea5e9;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  padding: 2px 6px 2px;
+  padding: 8px 12px 10px;
   font-size: 13px;
 }
 
@@ -226,14 +231,14 @@
 }
 
 /* ── Stats card ── */
+/* both wiki and stats share the base .msg-embed border-left color */
 
 .embed-stats-header {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
 }
 .embed-tank {
   width: 48px; height: 48px; object-fit: contain;
   image-rendering: pixelated; flex-shrink: 0;
-  transform: scale(1.3);
 }
 .embed-stats-info { flex: 1; min-width: 0; }
 .embed-stats-name {
@@ -257,7 +262,7 @@
 }
 .embed-stat {
   background: white; border: 1px solid var(--blue-light);
-  border-radius: 4px; padding: 0px 0px; text-align: center;
+  border-radius: 4px; padding: 4px 6px; text-align: center;
 }
 .embed-stat-val {
   font-size: 13px; font-weight: 800; color: var(--blue-deep); line-height: 1;
@@ -278,14 +283,14 @@
 ================================================================ */
 .compose-wrap {
   flex-shrink: 0; border-top: 1.5px solid var(--blue-light);
-  padding: 4px 10px 0px;
+  padding: 8px 12px 6px;
   position: relative;
 }
 
 .reply-preview {
-  display: none; align-items: center; gap: 4px;
+  display: none; align-items: center; gap: 8px;
   background: var(--blue-pale); border: 1px solid var(--blue-light);
-  border-radius: var(--radius-sm); padding: 4px 4px; margin-bottom: 4px;
+  border-radius: var(--radius-sm); padding: 4px 8px; margin-bottom: 6px;
   font-size: 12px; color: var(--gray-mid);
 }
 .reply-preview.visible { display: flex; }
@@ -403,7 +408,7 @@
   position: absolute; bottom: calc(100% + 6px); right: 40px;
   background: white; border: 1.5px solid var(--blue-light);
   border-radius: var(--radius-md); box-shadow: 0 8px 28px rgba(0,0,0,0.12);
-  width: 320px; max-height: 340px; display: none; flex-direction: column;
+  width: 320px; height: 380px; display: none; flex-direction: column;
   z-index: 300; overflow: hidden;
 }
 .attach-picker.open { display: flex; }
@@ -423,8 +428,7 @@
 .attach-tab.active { color: var(--blue-deep); border-bottom-color: var(--blue); }
 
 .attach-picker-body {
-  flex: 1; overflow-y: auto; padding: 8px;
-  scrollbar-width: thin; scrollbar-color: var(--blue-light) transparent;
+  flex: 1; overflow: hidden; padding: 8px; display: flex; flex-direction: column; gap: 6px;
 }
 .attach-picker-body::-webkit-scrollbar { width: 4px; }
 .attach-picker-body::-webkit-scrollbar-thumb { background: var(--blue-light); border-radius: 4px; }
@@ -432,20 +436,51 @@
 .attach-section-hint { font-size: 11px; color: var(--gray-muted); margin: 0 0 8px; line-height: 1.5; }
 .attach-embed-list { display: flex; flex-direction: column; gap: 6px; }
 
-/* Wiki row */
-.attach-wiki-row {
-  display: flex; align-items: flex-start; gap: 8px;
-  padding: 2px; border: 1.5px solid var(--blue-light);
-  border-radius: var(--radius-sm);
+/* Wiki sub-tab strip */
+.wiki-tab-strip {
+  display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap;
 }
+.wiki-sub-tab {
+  padding: 4px 10px; border-radius: 99px;
+  border: 1.5px solid var(--blue-light); background: white;
+  font-family: 'Baloo 2', cursive; font-size: 11px; font-weight: 700;
+  color: var(--blue-muted); cursor: pointer; transition: all 0.12s;
+}
+.wiki-sub-tab:hover  { border-color: var(--blue); color: var(--blue-deep); }
+.wiki-sub-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+/* Wiki article search */
+.wiki-search-wrap { display: flex; flex-direction: column; flex: 1; overflow: hidden; gap: 6px; }
+/* Results fill remaining picker space and scroll internally */
+.wiki-article-results {
+  flex: 1; overflow-y: auto; border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm);
+  scrollbar-width: thin; scrollbar-color: var(--blue-light) transparent;
+}
+.wiki-article-results::-webkit-scrollbar { width: 4px; }
+.wiki-article-results::-webkit-scrollbar-thumb { background: var(--blue-light); border-radius: 4px; }
+.wiki-result-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; cursor: pointer; border-bottom: 1px solid var(--blue-light);
+  transition: background 0.1s;
+}
+.wiki-result-item:last-child { border-bottom: none; }
+.wiki-result-item:hover { background: var(--blue-pale); }
+.wiki-result-icon { display: flex; align-items: center; color: var(--blue-muted); flex-shrink: 0; }
+.wiki-result-text { flex: 1; min-width: 0; }
+.wiki-result-title { font-size: 12px; font-weight: 700; color: var(--blue-deep); }
+.wiki-result-url   { font-size: 10px; color: var(--gray-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wiki-result-loading,
+.wiki-result-empty { padding: 10px; font-size: 11px; color: var(--gray-muted); text-align: center; }
+
 .attach-embed-icon { display: flex; align-items: center; flex-shrink: 0; color: var(--blue-muted); }
 .attach-embed-info { flex: 1; min-width: 0; }
 .attach-embed-info strong { display: block; font-size: 12px; color: var(--blue-deep); font-weight: 700; margin-bottom: 4px; }
 .attach-embed-input {
   display: block; width: 100%; box-sizing: border-box;
-  border: 1.5px solid var(--blue-pale); border-radius: 4px;
+  border: 1.5px solid var(--blue-light); border-radius: 4px;
   padding: 5px 8px; font-size: 12px; font-family: 'Baloo 2', cursive;
-  color: var(--blue-deep); background: var(--blue-pale); outline: none;
+  color: var(--blue-deep); background: white; outline: none;
   transition: border-color var(--transition);
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
 }
@@ -463,7 +498,7 @@
 /* Stats search tab */
 .stats-search-wrap { display: flex; flex-direction: column; gap: 8px; }
 .stats-ac-wrap { position: relative; }
-.stats-ac-wrap .attach-embed-input { margin-top: 0; font-size: 12px; padding: 6px 8px; background: var(--blue-pale); }
+.stats-ac-wrap .attach-embed-input { margin-top: 0; font-size: 12px; padding: 6px 8px; background: white; }
 .stats-ac-dropdown {
   display: none; position: absolute; top: calc(100% + 3px); left: 0; right: 0;
   background: white; border: 1.5px solid var(--blue-light);
