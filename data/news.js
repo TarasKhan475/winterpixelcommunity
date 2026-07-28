@@ -22,6 +22,30 @@
  */
 
 const NEWS = [
+    {
+    id: "pixelcommunityupdatev3",
+    title: "Winterpixel Community Update 3!",
+    summary: "Ui revamped and new cosmetics viewer tool!",
+    content: `
+      <h3>What is in this update?</h3>
+      <p>You might have noticed that the entire front page got a slightly new look! But there is definitely more, tools page got a nicer look too! There is actually way more features that got added that I can barely summarize!</p>
+      <h3>Changes</h3>
+      <ul>
+        <li><strong>Front Page redesigned with cooler banners</strong></li>
+        <li><strong>New View Cosmetics tool added, you can view cosmetics of anyone easily!</strong></li>
+        <li>Tools Page redesigned with a cleaner ui</li>
+        <li>Account footer now looks cleaner with white non distracting color (got a lot of complaints on it being distracting! By the way I got a bit lazy on forums page footer color)</li>
+        <li><strong>You can now choose from thousands of different tanks and colors as your pfp</strong></li>
+        <li>Embedding articles now actually gives you real articles, and you can also now embed user stats because before there was a api error because of the new api restrictions devs set</li>
+        <li>Pressing enter when typing ":happy" now actually enters the emoji instead of sending the message</li>
+      </ul>
+      <p><strong>you might have also noticed many new people on the site that is because I made a youtube ad for my site youtube.com/watch?v=qaOtQdeKL5M</strong></p>
+    `,
+    tag: "Update",
+    date: "July 28, 2026",
+    author: "TarasKhan475",
+    thumb: "📰"
+  },
   {
     id: "pixelcommunityupdatev2",
     title: "Winterpixel Community Update",

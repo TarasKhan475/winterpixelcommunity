@@ -10,83 +10,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
   <style>
-    /* ── Hero ── */
-    .tools-hero {
-      background: linear-gradient(135deg, var(--blue-deep) 0%, #0a2a3f 100%);
-      padding: 0.5rem 1.5rem 1rem;
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    .tools-layout { max-width: 1200px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+
+    .tools-search-wrap {
+      display: flex; gap: 10px; margin-bottom: 0.5rem; align-items: center;
     }
-    .tools-hero-banner-img {
-      height: 72px; width: auto; display: block;
-    }
-    .tools-search-hero {
-      max-width: 640px; width: 100%;
-      display: flex; gap: 0; align-items: stretch;
-    }
-    .tools-search-hero-box {
+    .tools-search-box {
       flex: 1; display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.1);
-      border: 1.5px solid rgba(255,255,255,0.2);
-      border-right: none;
-      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-      padding: 9px 14px;
-      transition: background 0.15s, border-color 0.15s;
+      border: 2px solid var(--blue-light); border-radius: var(--radius-sm);
+      padding: 8px 12px; background: #F8FAFF; transition: border-color var(--transition);
     }
-    .tools-search-hero-box:focus-within {
-      background: rgba(255,255,255,0.18);
-      border-color: rgba(255,255,255,0.45);
-    }
-    .tools-search-hero-box svg { flex-shrink: 0; }
-    .tools-search-hero-box input {
+    .tools-search-box:focus-within { border-color: var(--blue); }
+    .tools-search-box input {
       flex: 1; border: none; background: transparent;
-      font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 600;
-      color: white; outline: none;
+      font-family: 'Baloo 2', cursive; font-size: 14px; color: var(--blue-deep); outline: none;
     }
-    .tools-search-hero-box input::placeholder { color: rgba(255,255,255,0.4); }
-    .tools-search-hero-btn {
-      padding: 9px 18px;
-      background: #00c6ff; color: var(--blue-deep); border: none;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 800;
-      cursor: pointer; white-space: nowrap; transition: background 0.15s;
-    }
-    .tools-search-hero-btn:hover { background: #33d4ff; }
+    .tools-search-box input::placeholder { color: var(--blue-muted); }
 
-    /* ── Layout ── */
-    .tools-layout {
-      max-width: 1200px; margin: 0 auto; padding: 0.5rem 1.25rem 3rem;
-    }
-
-    /* ── Filter pills ── */
-    .tools-filters {
-      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem;
-      align-items: center;
-    }
+    .tools-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
     .tool-pill {
       padding: 5px 16px; border-radius: 9999px;
       border: 1.5px solid var(--blue-light); background: white;
       font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 700;
       color: var(--blue); cursor: pointer;
-      transition: background 0.12s, color 0.12s, border-color 0.12s, box-shadow 0.12s;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
     }
-    .tool-pill:hover  { background: var(--blue-pale); }
+    .tool-pill:hover { background: var(--blue-pale); }
     .tool-pill.active { background: var(--blue); color: white; border-color: var(--blue); }
-    /* Icon pills — just the image, no text, no background, no rounding */
-    .tool-pill-icon {
-      padding: 3px; background: transparent; border-color: transparent;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .tool-pill-icon img {
-      width: 36px; height: 36px; object-fit: contain; display: block;
-      transition: transform 0.12s, opacity 0.12s;
-      opacity: 0.7;
-    }
-    .tool-pill-icon:hover { background: transparent; border-color: transparent; }
-    .tool-pill-icon:hover img { opacity: 1; transform: scale(1.1); }
-    .tool-pill-icon.active { background: transparent; border-color: transparent; box-shadow: none; }
-    .tool-pill-icon.active img { opacity: 1; transform: scale(1.15); }
 
-    /* ── Tool grid ── */
     .tools-full-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -97,7 +48,7 @@
       border: 1.5px solid var(--blue-light); background: white;
       text-decoration: none; color: inherit;
       display: flex; flex-direction: column;
-      transition: border-color 0.15s, transform 0.15s;
+      transition: border-color 0.15s, transform 0.15s; cursor: pointer;
     }
     .tool-card:hover { border-color: var(--blue); transform: translateY(-3px); }
     .tool-card-thumb {
@@ -128,12 +79,8 @@
       font-size: 14px; color: var(--gray-muted); grid-column: 1 / -1;
     }
 
-
-
     @media (max-width: 600px) {
       .tools-full-grid { grid-template-columns: 1fr; }
-      .tools-hero-overlay { padding: 0 1rem 1rem; }
-      .tools-hero-img { max-height: 160px; }
     }
   </style>
 </head>
@@ -176,60 +123,34 @@
   </nav>
 </header>
 
-<!-- ===================== HERO ===================== -->
-<div class="tools-hero">
-  <img class="tools-hero-banner-img" src="ui/thumbnails/banners/tools.png" alt=""
-       onerror="this.style.display='none'" />
-  <div class="tools-search-hero">
-    <div class="tools-search-hero-box">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.5">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+<!-- ===================== PAGE HERO ===================== -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <h1>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" style="vertical-align:-4px;margin-right:6px;">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
       </svg>
-      <input type="text" id="tools-search" placeholder="Search tools…"
-             autocomplete="off" oninput="filterTools()" />
-    </div>
-    <button class="tools-search-hero-btn" onclick="filterTools()">Search</button>
+      Tools &amp; Apps
+    </h1>
+    <p>Community-built tools for Rocket Bot Royale, Goober Dash, and more.</p>
   </div>
 </div>
 
 <!-- ===================== MAIN ===================== -->
 <main class="tools-layout">
 
+  <!-- Search + filters -->
+  <div class="tools-search-wrap">
+    <div class="tools-search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="tools-search" placeholder="Search tools…" autocomplete="off" oninput="filterTools()" />
+    </div>
+  </div>
+
   <div class="tools-filters">
     <button class="tool-pill active" data-filter="all" onclick="setPill(this)">All</button>
-    <button class="tool-pill tool-pill-icon" data-filter="rbr" onclick="setPill(this)">
-      <img src="ui/icons/rocketbotroyale.png" alt="Rocket Bot Royale" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="gd" onclick="setPill(this)">
-      <img src="ui/icons/gooberdash.png" alt="Goober Dash" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="projectgatherwood" onclick="setPill(this)">
-      <img src="ui/icons/projectgatherwood.png" alt="Project Gatherwood" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="broski" onclick="setPill(this)">
-      <img src="ui/icons/broski.png" alt="Broski" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="bigbattlemini" onclick="setPill(this)">
-      <img src="ui/icons/bigbattlemini.png" alt="Big Battle Mini" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="gooberroyale" onclick="setPill(this)">
-      <img src="ui/icons/gooberroyale.png" alt="Goober Royale" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="goobershot" onclick="setPill(this)">
-      <img src="ui/icons/goobershot.png" alt="Goober Shot" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="gooberworld" onclick="setPill(this)">
-      <img src="ui/icons/gooberworld.png" alt="Goober World" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="bobble" onclick="setPill(this)">
-      <img src="ui/icons/bobble.png" alt="Bobble" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="balloon" onclick="setPill(this)">
-      <img src="ui/icons/balloon.png" alt="Balloon" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="moonrockminers" onclick="setPill(this)">
-      <img src="ui/icons/moonrockminers.png" alt="Moon Rock Miners" />
-    </button>
+    <button class="tool-pill" data-filter="rbr" onclick="setPill(this)">Rocket Bot Royale</button>
+    <button class="tool-pill" data-filter="gd" onclick="setPill(this)">Goober Dash</button>
     <button class="tool-pill" data-filter="other" onclick="setPill(this)">Other</button>
   </div>
 
@@ -250,27 +171,13 @@
       </div>
     </a>
 
-    <a href="cosmetics.html" class="tool-card" data-game="rbr"
-       data-name="Player Cosmetics Tracker" data-desc="cosmetics tanks badges trails parachutes collection history">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/rbrcosmetics.png" alt="Player Cosmetics Tracker"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">🎨</div>
-        <span class="tool-badge new">New</span>
-      </div>
-      <div class="tool-card-body">
-        <div class="tool-card-game">Rocket Bot Royale</div>
-        <div class="tool-card-name">Player Cosmetics Tracker</div>
-        <div class="tool-card-desc">View all cosmetics at once from any player! Also has history!</div>
-      </div>
-    </a>
-
     <a href="friends.html" class="tool-card" data-game="rbr"
        data-name="Friend Manager" data-desc="manage friends accept decline remove activity">
       <div class="tool-card-thumb">
         <img src="ui/thumbnails/rbrmanagefriends.png" alt="Friend Manager"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
         <div class="tool-card-thumb-placeholder" style="display:none;">🤝</div>
+        <span class="tool-badge new">New</span>
       </div>
       <div class="tool-card-body">
         <div class="tool-card-game">Rocket Bot Royale</div>
@@ -294,16 +201,16 @@
     </a>
 
     <a href="https://rbr.sebastian-105.com/stats" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
-       data-name="RBR Stats and Leaderboards by Sebastian" data-desc="RBR Stats and Leaderboards by Sebastian">
+       data-name="RBR Stats and Leaderboards by Sebastian" data-desc="RRB Stats and Leaderboards by Sebastian">
       <div class="tool-card-thumb">
-        <img src="ui/thumbnails/sebrbruserstats.png" alt="RBR Stats and Leaderboards"
+        <img src="ui/thumbnails/sebrbruserstats.png" alt="Rocket Bot Royale User Stats"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
         <div class="tool-card-thumb-placeholder" style="display:none;">📈</div>
       </div>
       <div class="tool-card-body">
         <div class="tool-card-game">Rocket Bot Royale</div>
-        <div class="tool-card-name">RBR Stats &amp; Leaderboards</div>
-        <div class="tool-card-desc">Individual stats and leaderboards for every season.</div>
+        <div class="tool-card-name">RBR Stats & Leaderboards</div>
+        <div class="tool-card-desc">Has individual stats and leaderboards for every season and leaderboards by stats</div>
       </div>
     </a>
 
@@ -382,7 +289,7 @@
 
 </main>
 
-<!-- ===================== STANDARD FOOTER ===================== -->
+<!-- ===================== FOOTER ===================== -->
 <footer class="hub-footer">
   <div class="footer-inner">
     <div class="footer-links">
@@ -393,13 +300,10 @@
   </div>
 </footer>
 
-
-
 <script src="js/bottom-bar-loader.js"></script>
 <script>
-/* ── Hamburger ── */
 (function() {
-  var btn  = document.getElementById('hamburger');
+  var btn = document.getElementById('hamburger');
   var menu = document.getElementById('mobile-menu');
   btn.addEventListener('click', function() {
     var open = menu.classList.toggle('open');
@@ -415,7 +319,6 @@
   });
 })();
 
-/* ── Filter / search ── */
 var _activeFilter = 'all';
 
 function setPill(btn) {
@@ -431,17 +334,15 @@ function filterTools() {
   var visible = 0;
   cards.forEach(function(card) {
     var gameMatch = _activeFilter === 'all' || card.dataset.game === _activeFilter;
-    var name      = (card.dataset.name || '').toLowerCase();
-    var desc      = (card.dataset.desc || '').toLowerCase();
+    var name = (card.dataset.name || '').toLowerCase();
+    var desc = (card.dataset.desc || '').toLowerCase();
     var textMatch = !q || name.includes(q) || desc.includes(q);
-    var show      = gameMatch && textMatch;
+    var show = gameMatch && textMatch;
     card.style.display = show ? '' : 'none';
     if (show) visible++;
   });
   document.getElementById('tools-no-results').style.display = visible === 0 ? 'block' : 'none';
 }
-
-
 </script>
 
 </body>

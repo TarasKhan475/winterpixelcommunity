@@ -126,6 +126,17 @@ button { cursor: pointer; font-family: 'Baloo 2', cursive; }
 .see-all { font-size: 13px; font-weight: 700; color: var(--blue); text-decoration: none; white-space: nowrap; }
 .see-all:hover { text-decoration: underline; }
 
+/* ---- Section Banner (replaces icon+title with a banner image) ---- */
+.section-banner-img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 60px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
 /* ---- News Tag Badge ---- */
 .news-tag {
   display: inline-block; font-size: 11px; font-weight: 700;
@@ -360,6 +371,36 @@ button { cursor: pointer; font-family: 'Baloo 2', cursive; }
   height: 90px;
   background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 100%);
   pointer-events: none;
+}
+
+/* Spinning earth decoration — sits behind hero content/search bar, faded
+   into the page just like the scrolling tile background (thanks to .hero-fade
+   painting on top of it). Only the top half is visible: the wrap is exactly
+   half as tall as it is wide, and clips (overflow:hidden) the bottom half
+   of the square earth.png image away. */
+.hero-earth-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(60%, 420px);   /* <-- ADJUST THIS to control the max size of the earth */
+  aspect-ratio: 2 / 1;      /* keep at 2/1 — this is what shows only the top half */
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-earth {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;      /* image is a perfect square */
+  animation: earth-spin 90s linear infinite; /* slow spin — raise the seconds to slow it further */
+}
+
+@keyframes earth-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
@@ -684,6 +725,7 @@ body {
   .page-wrap { padding: 0 1rem 3rem; }
   .search-bar { padding: 0.75rem 1rem; }
   .hero { padding: 2rem 1rem 2.5rem; }
+  .hero-earth-wrap { width: min(80%, 260px); }
   .news-scroll .news-card { width: 240px; }
   .dir-item { padding: 6px 14px 6px 6px; }
   .tools-grid { grid-template-columns: 1fr; }

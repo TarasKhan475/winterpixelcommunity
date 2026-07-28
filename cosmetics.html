@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Cosmetics – Winterpixel Community</title>
+  <meta name="description" content="Browse any Rocket Bot Royale player's tanks, badges, trails, parachutes and track when they unlocked them." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <style>
+/* ── Page shell ── */
+.cos-page { position: relative; min-height: calc(100vh - 55px - 52px); }
+.cos-tile-bg {
+  position: absolute; inset: 0;
+  background-image: url('ui/tile2.png');
+  background-repeat: repeat; background-size: auto;
+  animation: tile-scroll 24s linear infinite;
+  pointer-events: none; z-index: 0;
+}
+.cos-tile-fade {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.72) 30%,
+    rgba(255,255,255,0.96) 65%, #fff 100%);
+  pointer-events: none; z-index: 0;
+}
+@keyframes tile-scroll { from { background-position: 0 0; } to { background-position: 120px 120px; } }
+
+.cos-layout {
+  max-width: 960px; margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+  position: relative; z-index: 1;
+}
+
+/* ── Hero / search ── */
+.cos-hero {
+  background: linear-gradient(135deg, #0d1f2d 0%, #0a3045 100%);
+  border-radius: var(--radius-md); padding: 2rem 2rem 1.5rem;
+  margin-bottom: 1.5rem; color: white; position: relative; overflow: hidden;
+}
+.cos-hero::before {
+  content: ''; position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%);
+  width: 130px; height: 130px;
+  background: url('ui/icons/pfp/default_tank.png') center/contain no-repeat;
+  opacity: 0.07; pointer-events: none; image-rendering: pixelated;
+}
+.cos-hero-label {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1.5px; color: #00e5ff; margin-bottom: 6px;
+}
+.cos-hero h2 { font-size: clamp(20px,3vw,26px); font-weight: 800; margin: 0 0 5px; line-height: 1.2; }
+.cos-hero p  { font-size: 13px; color: rgba(255,255,255,0.6); margin: 0 0 1.4rem; max-width: 520px; }
+
+.cos-search-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+.cos-input-wrap { flex: 1; min-width: 200px; position: relative; }
+.cos-input {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,0.08); border: 1.5px solid rgba(0,229,255,0.25);
+  border-radius: var(--radius-sm); padding: 9px 14px;
+  font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 600;
+  color: white; outline: none; transition: border-color 0.15s;
+}
+.cos-input::placeholder { color: rgba(255,255,255,0.3); }
+.cos-input:focus { border-color: #00e5ff; }
+
+.cos-dropdown {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: white; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--blue-light);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14); z-index: 200; overflow: hidden;
+}
+.cos-dropdown.open { display: block; }
+.cos-dropdown-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; cursor: pointer; border-bottom: 1px solid var(--blue-light);
+  transition: background 0.1s;
+}
+.cos-dropdown-item:last-child { border-bottom: none; }
+.cos-dropdown-item:hover { background: var(--blue-pale); }
+.cos-dropdown-avatar {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--blue-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: var(--blue); flex-shrink: 0;
+}
+.cos-dropdown-name { font-size: 13px; font-weight: 700; color: var(--blue-deep); }
+.cos-dropdown-id   { font-size: 10px; color: var(--gray-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cos-dropdown-empty { padding: 10px 14px; font-size: 12px; color: var(--gray-muted); text-align: center; }
+
+.cos-btn {
+  padding: 9px 18px; background: #00e5ff; color: #0d1f2d;
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 800;
+  cursor: pointer; white-space: nowrap; transition: background 0.15s, transform 0.1s;
+}
+.cos-btn:hover   { background: #33ecff; }
+.cos-btn:active  { transform: scale(0.97); }
+.cos-btn:disabled{ opacity: 0.5; cursor: not-allowed; transform: none; }
+.cos-status { font-size: 12px; font-weight: 600; margin-top: 10px; color: rgba(255,255,255,0.65); min-height: 16px; }
+.cos-status.err { color: #ff6b6b; }
+
+/* ── Result panel ── */
+.cos-panel {
+  background: white; border-radius: var(--radius-md);
+  border: 1.5px solid var(--blue-light); overflow: hidden;
+  margin-bottom: 2rem; display: none;
+}
+.cos-panel.visible { display: block; }
+
+/* ── Panel header ── */
+.cos-panel-header {
+  background: var(--blue-pale); border-bottom: 1.5px solid var(--blue-light);
+  padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.cos-tank-img {
+  width: 72px; height: 72px; object-fit: contain; flex-shrink: 0;
+  image-rendering: pixelated; position: relative; z-index: 1;
+  transform: scale(2.0);
+}
+.cos-header-info { flex: 1; min-width: 0; }
+.cos-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cos-player-name { font-size: 18px; font-weight: 800; color: var(--blue-deep); line-height: 1.2; }
+.cos-badge-img {
+  width: 36px; height: 36px; object-fit: contain; flex-shrink: 0;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.2));
+}
+.cos-online {
+  font-size: 11px; font-weight: 700; padding: 2px 8px;
+  border-radius: 99px; white-space: nowrap;
+}
+.cos-online.online  { background: #dcfce7; color: #16a34a; }
+.cos-online.offline { background: #f1f5f9; color: #64748b; }
+.cos-header-meta { font-size: 11px; color: var(--gray-muted); margin-top: 3px; line-height: 1.7; }
+.cos-counts { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.cos-count-pill {
+  font-size: 10px; font-weight: 800; padding: 2px 8px;
+  border-radius: 99px; background: white; border: 1.5px solid var(--blue-light);
+  color: var(--blue-deep);
+}
+
+/* ── Tab bar ── */
+.cos-tab-bar {
+  display: flex; border-bottom: 1.5px solid var(--blue-light);
+  background: white; overflow-x: auto; scrollbar-width: none;
+  position: relative; z-index: 2;
+}
+.cos-tab-bar::-webkit-scrollbar { display: none; }
+.cos-tab-btn {
+  padding: 5px 18px; background: none; border: none;
+  font-family: 'Baloo 2', cursive; font-size: 12px; font-weight: 700;
+  color: var(--gray-muted); cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent; margin-bottom: -1.5px;
+  transition: color 0.12s, border-color 0.12s;
+}
+.cos-tab-btn:hover  { color: var(--blue-deep); }
+.cos-tab-btn.active { color: var(--blue-deep); border-bottom-color: var(--blue); }
+
+/* ── Gallery view ── */
+.cos-gallery { padding: 4px; }
+.cos-section { margin-bottom: 24px; }
+.cos-section-title {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.7px; color: var(--gray-muted);
+  padding: 6px 0; margin-bottom: 10px;
+  border-bottom: 1.5px solid var(--blue-light);
+  display: flex; align-items: center; gap: 8px;
+}
+.cos-section-count {
+  background: var(--blue-light); color: var(--blue);
+  font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 99px;
+}
+
+.cos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+}
+
+/* ── Cosmetic card ── */
+.cos-card {
+  background: var(--blue-pale); border: 1.5px solid var(--blue-light);
+  border-radius: var(--radius-sm); padding: 2px 2px 2px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  cursor: pointer; transition: border-color 0.12s, background 0.12s, transform 0.1s;
+  position: relative;
+}
+.cos-card:hover { border-color: var(--blue); background: white; transform: translateY(-1px); }
+.cos-card.is-equipped { border-color: #00c6ff; background: white; }
+.cos-card.is-equipped::after {
+  content: 'equipped';
+  position: absolute; top: -1px; right: -1px;
+  font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
+  background: #00c6ff; color: #0d1f2d;
+  padding: 1px 5px; border-radius: 0 var(--radius-sm) 0 4px;
+}
+.cos-card-img {
+  transform: scale(1.8);
+  width: 56px; height: 56px; object-fit: contain;
+  image-rendering: pixelated; flex-shrink: 0;
+}
+.cos-card-name {
+  font-size: 9px; font-weight: 700; color: var(--blue-deep);
+  text-align: center; line-height: 1.3; word-break: break-word;
+}
+.cos-card-sub {
+  font-size: 8px; color: var(--gray-muted); font-weight: 600; text-align: center;
+}
+
+/* Tank card specifics */
+.cos-tank-card { position: relative; }
+.cos-color-badge {
+  position: absolute; top: 4px; left: 4px;
+  background: var(--blue-deep); color: white;
+  font-size: 8px; font-weight: 800; padding: 1px 5px; border-radius: 99px;
+  line-height: 1.4;
+}
+
+/* ── Tank color hover popup ── */
+.cos-popup-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 500;
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.cos-popup-overlay.open { display: flex; }
+.cos-popup {
+  background: rgba(0,0,0,0.45); border-radius: var(--radius-md);
+  border: 1.5px solid var(--blue-light); padding: 8px;
+  max-width: 480px; width: 100%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+  max-height: 80vh; overflow-y: auto;
+}
+.cos-popup-title {
+  font-size: 13px; font-weight: 800; color: white;
+  margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
+}
+.cos-popup-close {
+  background: none; border: none; cursor: pointer; font-size: 18px;
+  color: var(--gray-muted); line-height: 1; padding: 0 4px;
+}
+.cos-popup-close:hover { color: var(--blue-deep); }
+.cos-popup-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 2px;
+}
+.cos-popup-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 2px 2px; border-radius: 6px; border: 1.5px solid var(--blue-light);
+  background: var(--blue-pale);
+}
+.cos-popup-item img {
+  width: 44px; height: 44px; object-fit: contain; image-rendering: pixelated;
+  transform: scale(2.0);
+}
+.cos-popup-item span {
+  font-size: 8px; font-weight: 700; color: var(--blue-deep); text-align: center;
+}
+
+/* ── History tab ── */
+.cos-history { padding: 0; display: none; }
+.cos-history.visible { display: block; }
+
+.cos-timeline-toolbar {
+  display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+  border-bottom: 1.5px solid var(--blue-light); background: var(--blue-pale);
+  flex-wrap: wrap;
+}
+.cos-timeline-toolbar-label {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--gray-muted); margin-right: 4px;
+}
+.cos-zoom-btn {
+  padding: 4px 12px; border-radius: 99px;
+  border: 1.5px solid var(--blue-light); background: white;
+  font-family: 'Baloo 2', cursive; font-size: 11px; font-weight: 700;
+  color: var(--blue-muted); cursor: pointer; transition: all 0.12s;
+}
+.cos-zoom-btn:hover  { border-color: var(--blue); color: var(--blue-deep); }
+.cos-zoom-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+.cos-timeline { padding: 16px; overflow-y: auto; max-height: 520px;
+  scrollbar-width: thin; scrollbar-color: var(--blue-light) transparent; }
+.cos-timeline::-webkit-scrollbar { width: 4px; }
+.cos-timeline::-webkit-scrollbar-thumb { background: var(--blue-light); border-radius: 4px; }
+
+.cos-timeline-group { margin-bottom: 20px; }
+.cos-timeline-group-label {
+  font-size: 11px; font-weight: 800; color: var(--blue-deep);
+  margin-bottom: 8px; padding-bottom: 4px;
+  border-bottom: 1.5px solid var(--blue-light);
+  display: flex; align-items: center; gap: 8px;
+}
+.cos-timeline-group-label span {
+  font-size: 9px; font-weight: 700; color: var(--gray-muted);
+}
+
+.cos-tl-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 6px 0; border-bottom: 1px solid var(--blue-light);
+}
+.cos-tl-row:last-child { border-bottom: none; }
+.cos-tl-date {
+  font-size: 10px; font-weight: 700; color: var(--gray-muted);
+  min-width: 70px; flex-shrink: 0; padding-top: 3px;
+}
+.cos-tl-items { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+.cos-tl-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 4px; border-radius: 5px; border: 1px solid var(--blue-light);
+  background: var(--blue-pale); width: 48px; cursor: pointer;
+  transition: background 0.1s;
+}
+.cos-tl-item:hover { background: white; border-color: var(--blue); }
+.cos-tl-item img {
+  width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated;
+}
+.cos-tl-item span {
+  font-size: 7px; font-weight: 700; color: var(--blue-deep);
+  text-align: center; word-break: break-word; line-height: 1.2;
+}
+.cos-tl-overflow {
+  display: flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 5px;
+  border: 1.5px dashed var(--blue-light); background: var(--blue-pale);
+  font-size: 11px; font-weight: 800; color: var(--blue);
+  cursor: pointer; transition: background 0.1s;
+}
+.cos-tl-overflow:hover { background: white; }
+
+/* Username change entry */
+.cos-tl-username-change {
+  width: 100%; padding: 5px 8px; border-radius: 5px;
+  background: #fefce8; border: 1px solid #fde047;
+  font-size: 11px; font-weight: 600; color: #713f12;
+}
+.cos-tl-username-change strong { color: #92400e; }
+
+/* Goal entry */
+.cos-tl-goal {
+  padding: 4px 8px; border-radius: 5px;
+  background: #f0fdf4; border: 1px solid #86efac;
+  font-size: 10px; font-weight: 700; color: #14532d;
+  white-space: nowrap;
+}
+
+.cos-history-empty {
+  padding: 3rem; text-align: center; font-size: 13px; color: var(--gray-muted);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.cos-history-empty-icon { font-size: 36px; }
+
+/* ── Raw tab ── */
+.cos-raw { display: none; }
+.cos-raw-toolbar {
+  padding: 10px 16px; border-bottom: 1px solid var(--blue-light);
+  display: flex; gap: 8px; justify-content: flex-end; background: var(--blue-pale);
+}
+.cos-raw-btn {
+  padding: 4px 12px; border-radius: 99px;
+  border: 1.5px solid var(--blue-light); background: white;
+  font-family: 'Baloo 2', cursive; font-size: 11px; font-weight: 700;
+  color: var(--blue); cursor: pointer; transition: all 0.12s;
+}
+.cos-raw-btn:hover { background: var(--blue); color: white; border-color: var(--blue); }
+pre#cos-raw-content {
+  padding: 16px; font-size: 11px; overflow: auto; max-height: 520px;
+  background: #f8fafc; margin: 0; line-height: 1.6;
+  scrollbar-width: thin; scrollbar-color: var(--blue-light) transparent;
+}
+
+@media (max-width: 600px) {
+  .cos-hero { padding: 1.4rem 1.2rem 1.2rem; }
+  .cos-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; }
+  .cos-tank-img { width: 54px; height: 54px; }
+  .cos-panel-header { padding: 10px 12px; gap: 8px; }
+}
+  </style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community Logo" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html" class="active">Tools</a>
+      <a href="community.html">Community</a>
+    </nav>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="news.html">News</a>
+    <a href="forum.html">Forum</a>
+    <a href="tools.html">Tools</a>
+    <a href="community.html">Community</a>
+  </nav>
+</header>
+
+<!-- ===================== MAIN ===================== -->
+<div class="cos-page">
+  <div class="cos-tile-bg"></div>
+  <div class="cos-tile-fade"></div>
+
+  <main class="cos-layout">
+
+    <!-- Hero search -->
+    <div class="cos-hero">
+      <div class="cos-hero-label">Rocket Bot Royale</div>
+      <h2>Player Cosmetics Tracker</h2>
+      <p>Browse any player's tanks, badges, trails and parachutes. Revisit daily to build a history of what they unlock over time.</p>
+      <div class="cos-search-row">
+        <div class="cos-input-wrap">
+          <input id="cos-input" class="cos-input" type="text"
+                 placeholder="Username, User ID, or Friend Code…"
+                 autocomplete="off" spellcheck="false" />
+          <div class="cos-dropdown" id="cos-dropdown"></div>
+        </div>
+        <button class="cos-btn" id="cos-search-btn">Look Up</button>
+      </div>
+      <div class="cos-status" id="cos-status"></div>
+    </div>
+
+    <!-- Result panel -->
+    <div class="cos-panel" id="cos-panel">
+
+      <!-- Header -->
+      <div class="cos-panel-header">
+        <img id="cos-tank-img" class="cos-tank-img"
+             src="ui/icons/pfp/default_tank.png" alt="Tank"
+             onerror="this.onerror=null;this.src='ui/icons/pfp/default_tank.png'" />
+        <div class="cos-header-info">
+          <div class="cos-name-row">
+            <div class="cos-player-name" id="cos-player-name">—</div>
+            <img id="cos-badge-img" class="cos-badge-img" src="" alt="Badge"
+                 style="display:none;" onerror="this.style.display='none'" />
+            <span id="cos-online-dot" class="cos-online offline" style="display:none;"></span>
+          </div>
+          <div class="cos-header-meta" id="cos-header-meta"></div>
+          <div class="cos-counts" id="cos-counts"></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="cos-tab-bar">
+        <button class="cos-tab-btn active" data-tab="gallery">Collection</button>
+        <button class="cos-tab-btn"        data-tab="history">History</button>
+        <button class="cos-tab-btn"        data-tab="raw">Raw Data</button>
+      </div>
+
+      <!-- Gallery tab -->
+      <div id="view-gallery" class="cos-gallery"></div>
+
+      <!-- History tab -->
+      <div id="view-history" class="cos-history">
+        <div class="cos-timeline-toolbar">
+          <span class="cos-timeline-toolbar-label">Group by</span>
+          <button class="cos-zoom-btn active" data-zoom="week">Week</button>
+          <button class="cos-zoom-btn"        data-zoom="month">Month</button>
+          <button class="cos-zoom-btn"        data-zoom="year">Year</button>
+        </div>
+        <div class="cos-timeline" id="cos-timeline"></div>
+      </div>
+
+      <!-- Raw tab -->
+      <div id="view-raw" class="cos-raw">
+        <div class="cos-raw-toolbar">
+          <button class="cos-raw-btn" id="cos-dl-btn">Download JSON</button>
+        </div>
+        <pre id="cos-raw-content"></pre>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Tank colors popup -->
+<div class="cos-popup-overlay" id="cos-popup-overlay">
+  <div class="cos-popup" id="cos-popup">
+    <div class="cos-popup-title">
+      <span id="cos-popup-title-text">Tank Colors</span>
+      <button class="cos-popup-close" id="cos-popup-close">✕</button>
+    </div>
+    <div class="cos-popup-grid" id="cos-popup-grid"></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links"><a href="#">About</a><a href="#">Contact</a></div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<script>
+/* ================================================================
+   CONFIG
+================================================================ */
+var FIREBASE_CONFIG = {
+  apiKey:            'AIzaSyDyrbOkMUrDcXmeE3WlwNrWbkOVNg-UGEg',
+  authDomain:        'winterpixelcommunity.firebaseapp.com',
+  projectId:         'winterpixelcommunity',
+  storageBucket:     'winterpixelcommunity.firebasestorage.app',
+  messagingSenderId: '590927242514',
+  appId:             '1:590927242514:web:d99b37ff6ad67f1b83ffcb'
+};
+var IS_LOCAL   = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+var PROXY_URL  = '/.netlify/functions/nakama-proxy';
+var BASIC_AUTH = 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=';
+var UUID_RE    = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+var FC_RE      = /^[a-f0-9]{8}$/i;
+
+// Image path helpers
+var PATH_PFP    = 'ui/icons/pfp/';
+var PATH_BADGE  = 'ui/icons/badges/';
+var PATH_404    = 'ui/icons/badges/404.png';
+
+// Max items shown inline before "+N more"
+var TL_MAX_INLINE = 10;
+
+if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+var db = firebase.firestore();
+
+/* ================================================================
+   CLASSIFY AWARDS
+   Returns { type, base, color } for each award string.
+   Types: 'tank' | 'badge' | 'trail' | 'parachute' | 'unknown'
+================================================================ */
+function classifyAward(id) {
+  if (id.startsWith('trail_'))     return { type: 'trail',     base: id, color: null };
+  if (id.startsWith('parachute_')) return { type: 'parachute', base: id, color: null };
+
+  // Tanks: color_base or gold_base — color is the first segment
+  // Gold prefix always treated as a color variant
+  var COLORS = ['red','blue','green','yellow','orange','purple','pink','mint','gold','white','black','brown','olive','grey','gray'];
+  var parts = id.split('_');
+  if (parts.length >= 2 && COLORS.indexOf(parts[0]) !== -1) {
+    return { type: 'tank', base: parts.slice(1).join('_'), color: parts[0] };
+  }
+
+  // Everything else is a badge_candidate: the gallery builder tries to load
+  // ui/icons/badges/<id>.png — if it loads it stays in Badges,
+  // if it 404s it moves to Unknown. No hardcoded lists needed.
+  return { type: 'badge_candidate', base: id, color: null };
+}
+
+/* ================================================================
+   API LAYER
+================================================================ */
+var _token    = null;
+var _tokenExp = 0;
+
+async function nakamaFetch(path, token, body) {
+  var authHeader = token ? ('Bearer ' + token) : BASIC_AUTH;
+  if (IS_LOCAL) {
+    var r = await fetch('https://dev-nakama.winterpixel.io/v2' + path.replace(/^\/v2/,''), {
+      method: 'POST',
+      headers: { accept:'application/json', authorization:authHeader,
+                 'content-type':'application/json',
+                 origin:'https://rocketbotroyale2.winterpixel.io',
+                 referer:'https://rocketbotroyale2.winterpixel.io/' },
+      body: body
+    });
+    if (!r.ok) throw new Error('Request failed (' + r.status + ')');
+    return r.json();
+  } else {
+    var r = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ method:'POST', path:path,
+                             headers:{ authorization:authHeader },
+                             body: JSON.parse(body) })
+    });
+    if (!r.ok) throw new Error('Proxy error (' + r.status + ')');
+    return r.json();
+  }
+}
+
+async function getToken() {
+  if (_token && Date.now() < _tokenExp) return _token;
+  var d = await nakamaFetch('/v2/account/authenticate/email?create=false', null,
+    JSON.stringify({ email:'test6969khan@test.com', password:'password',
+                     vars:{ client_version:'9999999999' } }));
+  _token = d.token; _tokenExp = Date.now() + 55*60*1000;
+  return _token;
+}
+
+async function fetchProfile(userId) {
+  var t = await getToken();
+  var d = await nakamaFetch('/v2/rpc/rpc_get_users_with_profile', t,
+    JSON.stringify(JSON.stringify({ ids:[String(userId)] })));
+  var inner = JSON.parse(d.payload);
+  if (!inner || !inner[0]) throw new Error('Player not found');
+  return inner[0];
+}
+
+async function lookupFriendCode(fc) {
+  try {
+    var t = await getToken();
+    var d = await nakamaFetch('/v2/rpc/winterpixel_query_user_id_for_friend_code', t,
+      JSON.stringify(JSON.stringify({ friend_code: fc.toLowerCase() })));
+    var p = typeof d.payload === 'string' ? JSON.parse(d.payload) : d.payload;
+    return (p && (p.user_id || p.id)) || null;
+  } catch(e) { return null; }
+}
+
+/* ================================================================
+   RESOLVE INPUT → userId
+================================================================ */
+async function resolveInput(input) {
+  if (UUID_RE.test(input)) return input;
+  if (FC_RE.test(input)) {
+    setStatus('Checking friend code…');
+    var id = await lookupFriendCode(input);
+    if (id) return id;
+  }
+  setStatus('Searching by username…');
+  try {
+    var snap = await db.collection('cosmeticPlayerIndex')
+                       .where('displayName_lower','==',input.toLowerCase())
+                       .limit(1).get();
+    if (!snap.empty) return snap.docs[0].data().userId;
+  } catch(e) {}
+  return null;
+}
+
+/* ================================================================
+   FIRESTORE — COSMETIC SNAPSHOTS
+   Only writes when we have a live API response.
+================================================================ */
+function todayKey() { return new Date().toISOString().slice(0,10); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function saveSnapshot(userId, profile) {
+  var meta = profile.metadata || {};
+  var doc  = {
+    timestamp:    Date.now(),
+    display_name: profile.display_name || '',
+    skin:         meta.skin   || 'default_tank',
+    badge:        meta.badge  || null,
+    awards:       meta.awards || [],
+    goals:        meta.goals  || [],
+  };
+  db.collection('cosmeticHistory').doc(userId)
+    .collection('snapshots').doc(todayKey())
+    .set(doc)
+    .then(function() {
+      // Update cosmeticPlayerIndex keyed by userId
+      db.collection('cosmeticPlayerIndex').doc(userId).set({
+        userId:          userId,
+        displayName:     profile.display_name || '',
+        displayName_lower: (profile.display_name || '').toLowerCase(),
+        lastSeen:        Date.now()
+      }, { merge:true }).catch(function(){});
+    })
+    .catch(function(e){ console.warn('Snapshot write:', e); });
+  try { sessionStorage.removeItem('cosSnap_'+userId); } catch(e){}
+}
+
+async function loadSnapshots(userId) {
+  var key = 'cosSnap_'+userId;
+  try {
+    var c = JSON.parse(sessionStorage.getItem(key)||'null');
+    if (c) return c;
+  } catch(e){}
+  var snap = await db.collection('cosmeticHistory').doc(userId)
+                     .collection('snapshots').orderBy('timestamp','asc').limit(90).get();
+  var out = [];
+  snap.forEach(function(d){ out.push(Object.assign({date:d.id}, d.data())); });
+  try { sessionStorage.setItem(key, JSON.stringify(out)); } catch(e){}
+  return out;
+}
+
+/* ================================================================
+   STATE
+================================================================ */
+var _lastProfile   = null;
+var _lastUserId    = null;
+var _snapshots     = [];
+var _rawJson       = '';
+var _activeZoom    = 'week';
+
+function setStatus(msg, err) {
+  var el = document.getElementById('cos-status');
+  el.textContent = msg;
+  el.className   = 'cos-status' + (err ? ' err' : '');
+}
+
+/* ================================================================
+   MAIN SEARCH
+================================================================ */
+async function doSearch() {
+  var input = document.getElementById('cos-input').value.trim();
+  if (!input) return;
+  var btn   = document.getElementById('cos-search-btn');
+  btn.disabled = true;
+  setStatus('Looking up…');
+  document.getElementById('cos-panel').classList.remove('visible');
+
+  try {
+    var userId = await resolveInput(input);
+
+    if (!userId) {
+      // Fallback: try loading existing snapshots by treating input as a userId
+      // (covers case where user pastes an ID that's already tracked)
+      var fallbackSnaps = [];
+      try {
+        fallbackSnaps = await loadSnapshots(input);
+      } catch(e){}
+
+      if (fallbackSnaps.length) {
+        // Use last snapshot as display data — no API write
+        var last = fallbackSnaps[fallbackSnaps.length-1];
+        // Resolve display name from cosmeticPlayerIndex
+        var nameDoc = await db.collection('cosmeticPlayerIndex').doc(input).get()
+                               .catch(function(){ return null; });
+        var displayName = (nameDoc && nameDoc.exists)
+          ? nameDoc.data().displayName
+          : (last.display_name || input);
+        renderFromSnapshot(input, displayName, last, fallbackSnaps);
+        setStatus('Showing cached data — could not connect to game server.');
+        return;
+      }
+
+      setStatus('No player found for "'+input+'". Try their User ID or check the spelling.', true);
+      return;
+    }
+
+    // Try live API
+    var profile;
+    try {
+      profile = await fetchProfile(userId);
+    } catch(apiErr) {
+      // API failed — try fallback from Firestore
+      var fbSnaps = await loadSnapshots(userId).catch(function(){ return []; });
+      if (fbSnaps.length) {
+        var nameDoc2 = await db.collection('cosmeticPlayerIndex').doc(userId).get()
+                                .catch(function(){ return null; });
+        var fbName = (nameDoc2 && nameDoc2.exists)
+          ? nameDoc2.data().displayName
+          : (fbSnaps[fbSnaps.length-1].display_name || userId);
+        renderFromSnapshot(userId, fbName, fbSnaps[fbSnaps.length-1], fbSnaps);
+        setStatus('Game server unavailable — showing last cached data.');
+        return;
+      }
+      throw new Error('Cannot connect to game server and no cached data available.');
+    }
+
+    _lastProfile = profile;
+    _lastUserId  = userId;
+    _rawJson     = JSON.stringify(profile, null, 2);
+
+    saveSnapshot(userId, profile);
+    var snaps = await loadSnapshots(userId).catch(function(){ return []; });
+    _snapshots = snaps;
+
+    renderProfile(profile, userId, snaps);
+    setStatus('');
+
+  } catch(e) {
+    setStatus('Error: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ================================================================
+   RENDER FROM SNAPSHOT (fallback mode — no API write)
+================================================================ */
+function renderFromSnapshot(userId, displayName, snap, allSnaps) {
+  var fakeProfile = {
+    display_name: displayName,
+    online:       false,
+    metadata: {
+      skin:   snap.skin   || 'default_tank',
+      badge:  snap.badge  || null,
+      awards: snap.awards || [],
+      goals:  snap.goals  || [],
+    }
+  };
+  _lastProfile = fakeProfile;
+  _lastUserId  = userId;
+  _rawJson     = JSON.stringify(snap, null, 2);
+  _snapshots   = allSnaps;
+  renderProfile(fakeProfile, userId, allSnaps);
+}
+
+/* ================================================================
+   RENDER PROFILE
+================================================================ */
+function renderProfile(profile, userId, snapshots) {
+  var meta   = profile.metadata || {};
+  var awards = meta.awards || [];
+
+  /* ── Header ── */
+  document.getElementById('cos-player-name').textContent = profile.display_name || 'Unknown';
+
+  var tankImg = document.getElementById('cos-tank-img');
+  var skin    = meta.skin || 'default_tank';
+  tankImg.src     = PATH_PFP + skin + '.png';
+  tankImg.onerror = function(){ this.onerror=null; this.src=PATH_PFP+'default_tank.png'; };
+
+  var badgeImg = document.getElementById('cos-badge-img');
+  if (meta.badge) {
+    badgeImg.src           = PATH_BADGE + meta.badge + '.png';
+    badgeImg.style.display = '';
+    badgeImg.onerror       = function(){ this.style.display='none'; };
+  } else {
+    badgeImg.style.display = 'none';
+  }
+
+  var dot = document.getElementById('cos-online-dot');
+  dot.style.display = '';
+  dot.textContent   = profile.online ? '● Online' : '● Offline';
+  dot.className     = 'cos-online ' + (profile.online ? 'online' : 'offline');
+
+  var level  = meta.progress ? meta.progress.level : null;
+  var fc     = meta.friend_code || null;
+  var parts  = [];
+  if (level !== null) parts.push('Level ' + level);
+  if (fc)             parts.push('Friend Code: ' + fc);
+  document.getElementById('cos-header-meta').textContent = parts.join(' · ');
+
+  /* ── Classify all awards ── */
+  var tanks      = {};   // base → [color, ...]
+  var badges     = [];
+  var trails     = [];
+  var parachutes = [];
+  var unknown    = [];
+
+  awards.forEach(function(id) {
+    var cl = classifyAward(id);
+    if (cl.type === 'tank') {
+      if (!tanks[cl.base]) tanks[cl.base] = [];
+      tanks[cl.base].push({ color: cl.color, id: id });
+    } else if (cl.type === 'trail')       { trails.push(id); }
+    else if (cl.type === 'parachute')     { parachutes.push(id); }
+    else /* badge_candidate */            { badges.push(id); }
+    // badge_candidate items start in badges[];
+    // buildBadgeSection will move them to unknown[] if the image 404s
+  });
+
+  /* ── Count pills ── */
+  var counts = document.getElementById('cos-counts');
+  counts.innerHTML = [
+    { label: Object.keys(tanks).length + ' Tanks', n: Object.keys(tanks).length },
+    { label: badges.length + ' Badges', n: badges.length },
+    { label: trails.length + ' Trails', n: trails.length },
+    { label: parachutes.length + ' Parachutes', n: parachutes.length },
+  ].filter(function(x){ return x.n > 0; }).map(function(x){
+    return '<span class="cos-count-pill">'+escHtml(x.label)+'</span>';
+  }).join('');
+
+  /* ── Raw JSON ── */
+  document.getElementById('cos-raw-content').textContent = _rawJson;
+
+  /* ── Build gallery ── */
+  var gallery = document.getElementById('view-gallery');
+  gallery.innerHTML = '';
+
+  // Equipped items for highlighting
+  var equippedSkin  = skin;
+  var equippedBadge = meta.badge || null;
+  var equippedTrail = meta.trail || null;
+  var equippedPara  = meta.parachute || null;
+
+  gallery.appendChild(buildTankSection(tanks, equippedSkin));
+  // Badges + unknown: we attempt to load the badge image; cards where it 404s
+  // are moved into an 'unknown' section rendered after all known sections.
+  if (badges.length) {
+    var unknownFromBadges = [];
+    gallery.appendChild(buildBadgeSection(badges, equippedBadge, unknownFromBadges));
+    // unknownFromBadges is populated asynchronously as images error —
+    // the unknown section node is appended now and filled in as 404s fire.
+    var unknownSec = buildSection('Unknown', [], 'unknown', null);
+    unknownSec.style.display = 'none'; // shown only if 404s occur
+    gallery.appendChild(unknownSec);
+    // Store reference so image onerror callbacks can append to it
+    gallery._unknownSec = unknownSec;
+  }
+  if (trails.length)     gallery.appendChild(buildSection('Trails',     trails,     'trail',     equippedTrail));
+  if (parachutes.length) gallery.appendChild(buildSection('Parachutes', parachutes, 'parachute', equippedPara));
+
+  /* ── History tab ── */
+  renderTimeline(snapshots, _activeZoom);
+
+  /* ── Show panel ── */
+  document.getElementById('cos-panel').classList.add('visible');
+  switchTab('gallery');
+}
+
+/* ================================================================
+   GALLERY BUILDERS
+================================================================ */
+function imgPath(type, id) {
+  if (type === 'badge' || type === 'unknown') return PATH_BADGE + id + '.png';
+  if (type === 'trail')     return PATH_BADGE + id + '.png';
+  if (type === 'parachute') return PATH_BADGE + id + '.png';
+  return PATH_404;
+}
+
+function niceName(id) {
+  return id.replace(/_/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+}
+
+// buildBadgeSection: renders badge_candidate items, moves 404s to unknownSec
+function buildBadgeSection(ids, equippedId, unknownArr) {
+  var sec  = document.createElement('div');
+  sec.className = 'cos-section';
+  var grid = document.createElement('div');
+  grid.className = 'cos-grid';
+  var titleEl = document.createElement('div');
+  titleEl.className = 'cos-section-title';
+  var countSpan = document.createElement('span');
+  countSpan.className = 'cos-section-count';
+  titleEl.textContent = 'Badges';
+  titleEl.appendChild(countSpan);
+  sec.appendChild(titleEl);
+  sec.appendChild(grid);
+
+  var visibleCount = 0;
+  function updateCount() {
+    countSpan.textContent = visibleCount;
+  }
+  updateCount();
+
+  ids.forEach(function(id) {
+    var imgSrc = PATH_BADGE + id + '.png';
+    var card   = document.createElement('div');
+    card.className = 'cos-card';
+    if (id === equippedId) card.classList.add('is-equipped');
+
+    var img = document.createElement('img');
+    img.className = 'cos-card-img';
+    img.alt       = id;
+
+    img.addEventListener('load', function() {
+      // Image loaded — this is a real badge, keep it here
+      visibleCount++;
+      updateCount();
+    });
+
+    img.addEventListener('error', function() {
+      // Image 404 — move card to unknown section
+      card.remove();
+      var gallery = document.getElementById('view-gallery');
+      var unknownSec = gallery && gallery._unknownSec;
+      if (unknownSec) {
+        var unknownGrid = unknownSec.querySelector('.cos-grid');
+        if (!unknownGrid) {
+          unknownGrid = document.createElement('div');
+          unknownGrid.className = 'cos-grid';
+          unknownSec.appendChild(unknownGrid);
+        }
+        // Build a 404 card for the unknown section
+        var uCard = document.createElement('div');
+        uCard.className = 'cos-card';
+        uCard.innerHTML =
+          '<img class="cos-card-img" src="'+PATH_404+'" alt="'+escHtml(id)+'" '+
+            'onerror="this.onerror=null;" />'+
+          '<div class="cos-card-name">'+escHtml(niceName(id))+'</div>';
+        unknownGrid.appendChild(uCard);
+        // Update unknown section count
+        var unknownTitle = unknownSec.querySelector('.cos-section-title');
+        if (!unknownTitle) {
+          unknownTitle = document.createElement('div');
+          unknownTitle.className = 'cos-section-title';
+          unknownTitle.textContent = 'Unknown';
+          var uCount = document.createElement('span');
+          uCount.className = 'cos-section-count';
+          unknownTitle.appendChild(uCount);
+          unknownSec.insertBefore(unknownTitle, unknownGrid);
+        }
+        var uCountEl = unknownTitle.querySelector('.cos-section-count');
+        if (uCountEl) uCountEl.textContent = unknownGrid.children.length;
+        unknownSec.style.display = '';
+      }
+    });
+
+    // Set src after wiring events
+    img.src = imgSrc;
+
+    var nameEl = document.createElement('div');
+    nameEl.className  = 'cos-card-name';
+    nameEl.textContent = niceName(id);
+
+    card.appendChild(img);
+    card.appendChild(nameEl);
+    grid.appendChild(card);
+  });
+
+  return sec;
+}
+
+function buildSection(title, ids, type, equippedId) {
+  var sec  = document.createElement('div');
+  sec.className = 'cos-section';
+  var grid = document.createElement('div');
+  grid.className = 'cos-grid';
+
+  sec.innerHTML = '<div class="cos-section-title">'+escHtml(title)+
+    '<span class="cos-section-count">'+ids.length+'</span></div>';
+  sec.appendChild(grid);
+
+  ids.forEach(function(id) {
+    var card = document.createElement('div');
+    card.className = 'cos-card';
+    if (id === equippedId) card.classList.add('is-equipped');
+
+    var imgSrc = (type === 'badge') ? PATH_BADGE + id + '.png' : PATH_BADGE + id + '.png';
+    if (type === 'trail' || type === 'parachute' || type === 'unknown') imgSrc = PATH_BADGE + id + '.png';
+
+    card.innerHTML =
+      '<img class="cos-card-img" src="'+escHtml(imgSrc)+'" alt="'+escHtml(id)+'" '+
+        'onerror="this.onerror=null;this.src=\''+PATH_404+'\'" />'+
+      '<div class="cos-card-name">'+escHtml(niceName(id))+'</div>';
+    grid.appendChild(card);
+  });
+
+  return sec;
+}
+
+function buildTankSection(tanks, equippedSkin) {
+  var sec  = document.createElement('div');
+  sec.className = 'cos-section';
+  var grid = document.createElement('div');
+  grid.className = 'cos-grid';
+  var count = Object.keys(tanks).length;
+
+  sec.innerHTML = '<div class="cos-section-title">Tanks'+
+    '<span class="cos-section-count">'+count+'</span></div>';
+  sec.appendChild(grid);
+
+  Object.keys(tanks).sort().forEach(function(base) {
+    var variants  = tanks[base]; // [{color, id}, ...]
+    var PRIORITY = ['gold', 'black', 'white', 'brown'];
+    var display = null;
+    for (var p = 0; p < PRIORITY.length; p++) {
+      display = variants.find(function(v){ return v.color === PRIORITY[p]; });
+      if (display) break;
+    }
+    if (!display) display = variants[Math.floor(Math.random()*variants.length)];
+    var isEquipped = variants.some(function(v){ return v.id === equippedSkin; });
+
+    var card = document.createElement('div');
+    card.className = 'cos-card cos-tank-card';
+    if (isEquipped) card.classList.add('is-equipped');
+
+    var imgSrc = PATH_PFP + display.id + '.png';
+    card.innerHTML =
+      '<span class="cos-color-badge">'+variants.length+'</span>'+
+      '<img class="cos-card-img" src="'+escHtml(imgSrc)+'" alt="'+escHtml(base)+'" '+
+        'onerror="this.onerror=null;this.src=\''+PATH_404+'\'" />'+
+      '<div class="cos-card-name">'+escHtml(niceName(base))+'</div>'+
+      '<div class="cos-card-sub">'+variants.map(function(v){ return v.color; }).join(', ')+'</div>';
+
+    // Click → show color popup
+    card.addEventListener('click', function() { openTankPopup(base, variants); });
+    grid.appendChild(card);
+  });
+
+  return sec;
+}
+
+/* ================================================================
+   TANK COLOR POPUP
+================================================================ */
+function openTankPopup(base, variants) {
+  document.getElementById('cos-popup-title-text').textContent = niceName(base) + ' — All Colors';
+  var grid = document.getElementById('cos-popup-grid');
+  grid.innerHTML = '';
+  variants.forEach(function(v) {
+    var item = document.createElement('div');
+    item.className = 'cos-popup-item';
+    item.innerHTML =
+      '<img src="'+escHtml(PATH_PFP+v.id+'.png')+'" alt="'+escHtml(v.color)+'" '+
+        'onerror="this.onerror=null;this.src=\''+PATH_404+'\'" />'+
+      '<span>'+escHtml(v.color)+'</span>';
+    grid.appendChild(item);
+  });
+  document.getElementById('cos-popup-overlay').classList.add('open');
+}
+
+document.getElementById('cos-popup-close').addEventListener('click', function() {
+  document.getElementById('cos-popup-overlay').classList.remove('open');
+});
+document.getElementById('cos-popup-overlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+/* ================================================================
+   TIMELINE
+================================================================ */
+function renderTimeline(snapshots, zoom) {
+  _activeZoom = zoom;
+  document.querySelectorAll('.cos-zoom-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.zoom === zoom);
+  });
+
+  var container = document.getElementById('cos-timeline');
+  container.innerHTML = '';
+
+  if (snapshots.length < 2) {
+    container.innerHTML =
+      '<div class="cos-history-empty">'+
+        '<div class="cos-history-empty-icon">📅</div>'+
+        '<div>No history yet — look up this player again tomorrow to start building a timeline.</div>'+
+      '</div>';
+    return;
+  }
+
+  // Build diff entries from consecutive snapshots
+  var entries = []; // { date, newAwards, removedAwards, usernameFrom, usernameTo, goals }
+
+  for (var i = 1; i < snapshots.length; i++) {
+    var prev    = snapshots[i-1];
+    var curr    = snapshots[i];
+    var prevSet = {};
+    (prev.awards || []).forEach(function(a){ prevSet[a]=1; });
+
+    var newAwards = (curr.awards || []).filter(function(a){ return !prevSet[a]; });
+    var goals     = (curr.goals  || []).filter(function(g) {
+      var prevGoal = (prev.goals||[]).find(function(p){ return p.goal_id===g.goal_id; });
+      return !prevGoal && g.unlocked_time;
+    });
+
+    var usernameFrom = null, usernameTo = null;
+    if (prev.display_name && curr.display_name && prev.display_name !== curr.display_name) {
+      usernameFrom = prev.display_name;
+      usernameTo   = curr.display_name;
+    }
+
+    if (newAwards.length || goals.length || usernameFrom) {
+      entries.push({ date: curr.date, newAwards: newAwards, goals: goals,
+                     usernameFrom: usernameFrom, usernameTo: usernameTo });
+    }
+  }
+
+  if (!entries.length) {
+    container.innerHTML =
+      '<div class="cos-history-empty">'+
+        '<div class="cos-history-empty-icon">✓</div>'+
+        '<div>No changes detected between snapshots yet.</div>'+
+      '</div>';
+    return;
+  }
+
+  // Group entries by zoom level
+  function groupKey(date) {
+    if (zoom === 'week') {
+      // ISO week key: YYYY-WNN
+      var d  = new Date(date);
+      var jan4 = new Date(d.getFullYear(), 0, 4);
+      var week = Math.ceil(((d - jan4) / 86400000 + jan4.getDay() + 1) / 7);
+      return d.getFullYear() + '-W' + String(week).padStart(2,'0');
+    }
+    if (zoom === 'month') return date.slice(0,7); // YYYY-MM
+    return date.slice(0,4); // YYYY
+  }
+
+  function groupLabel(key) {
+    if (zoom === 'week') {
+      var parts = key.split('-W');
+      return 'Week ' + parts[1] + ', ' + parts[0];
+    }
+    if (zoom === 'month') {
+      var d = new Date(key + '-01');
+      return d.toLocaleDateString('en-US',{ year:'numeric', month:'long' });
+    }
+    return key; // year
+  }
+
+  var groups = {};
+  var groupOrder = [];
+  entries.forEach(function(e) {
+    var k = groupKey(e.date);
+    if (!groups[k]) { groups[k] = []; groupOrder.push(k); }
+    groups[k].push(e);
+  });
+
+  groupOrder.forEach(function(key) {
+    var grp   = groups[key];
+    var block = document.createElement('div');
+    block.className = 'cos-timeline-group';
+
+    // Count total new items in group for subtitle
+    var totalNew = grp.reduce(function(s,e){ return s+e.newAwards.length+e.goals.length+(e.usernameFrom?1:0); },0);
+    block.innerHTML =
+      '<div class="cos-timeline-group-label">'+escHtml(groupLabel(key))+
+        '<span>'+totalNew+' change'+(totalNew!==1?'s':'')+'</span>'+
+      '</div>';
+
+    grp.forEach(function(entry) {
+      var row = document.createElement('div');
+      row.className = 'cos-tl-row';
+      row.innerHTML = '<div class="cos-tl-date">'+escHtml(entry.date)+'</div>';
+
+      var items = document.createElement('div');
+      items.className = 'cos-tl-items';
+
+      // Username change — always first
+      if (entry.usernameFrom) {
+        var uch = document.createElement('div');
+        uch.className = 'cos-tl-username-change';
+        uch.innerHTML = 'Name changed from <strong>'+escHtml(entry.usernameFrom)+
+                        '</strong> to <strong>'+escHtml(entry.usernameTo)+'</strong>';
+        items.appendChild(uch);
+      }
+
+      // Awards
+      var shown   = entry.newAwards.slice(0, TL_MAX_INLINE);
+      var overflow = entry.newAwards.length - shown.length;
+
+      shown.forEach(function(awardId) {
+        var cl = classifyAward(awardId);
+        var src = cl.type === 'tank' ? PATH_PFP + awardId + '.png' : PATH_BADGE + awardId + '.png';
+        var el  = document.createElement('div');
+        el.className = 'cos-tl-item';
+        el.title     = niceName(awardId);
+        el.innerHTML = '<img src="'+escHtml(src)+'" alt="'+escHtml(awardId)+'" '+
+                         'onerror="this.onerror=null;this.src=\''+PATH_404+'\'">'+
+                       '<span>'+escHtml(niceName(awardId))+'</span>';
+        items.appendChild(el);
+      });
+
+      if (overflow > 0) {
+        var more = document.createElement('div');
+        more.className = 'cos-tl-overflow';
+        more.textContent = '+' + overflow;
+        var overflowItems = entry.newAwards.slice(TL_MAX_INLINE);
+        more.addEventListener('click', function() { openOverflowPopup(overflowItems); });
+        items.appendChild(more);
+      }
+
+      // Goals (bonus)
+      entry.goals.forEach(function(g) {
+        var el = document.createElement('div');
+        el.className = 'cos-tl-goal';
+        el.textContent = 'Goal: ' + niceName(g.goal_id);
+        items.appendChild(el);
+      });
+
+      row.appendChild(items);
+      block.appendChild(row);
+    });
+
+    container.appendChild(block);
+  });
+}
+
+function openOverflowPopup(awardIds) {
+  document.getElementById('cos-popup-title-text').textContent = 'More Unlocks';
+  var grid = document.getElementById('cos-popup-grid');
+  grid.innerHTML = '';
+  awardIds.forEach(function(id) {
+    var cl  = classifyAward(id);
+    var src = cl.type === 'tank' ? PATH_PFP + id + '.png' : PATH_BADGE + id + '.png';
+    var item = document.createElement('div');
+    item.className = 'cos-popup-item';
+    item.innerHTML = '<img src="'+escHtml(src)+'" alt="'+escHtml(id)+'" onerror="this.onerror=null;this.src=\''+PATH_404+'\'">'+
+                     '<span>'+escHtml(niceName(id))+'</span>';
+    grid.appendChild(item);
+  });
+  document.getElementById('cos-popup-overlay').classList.add('open');
+}
+
+/* ================================================================
+   TABS
+================================================================ */
+function switchTab(tab) {
+  document.getElementById('view-gallery').style.display  = tab==='gallery' ? 'block' : 'none';
+  var hist = document.getElementById('view-history');
+  hist.className = 'cos-history' + (tab==='history'?' visible':'');
+  document.getElementById('view-raw').style.display      = tab==='raw' ? 'block' : 'none';
+  document.querySelectorAll('.cos-tab-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.tab===tab);
+  });
+  if (tab==='history') renderTimeline(_snapshots, _activeZoom);
+}
+
+document.querySelectorAll('.cos-tab-btn').forEach(function(b){
+  b.addEventListener('click', function(){ switchTab(b.dataset.tab); });
+});
+
+document.querySelectorAll('.cos-zoom-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    renderTimeline(_snapshots, b.dataset.zoom);
+  });
+});
+
+/* ================================================================
+   DOWNLOAD RAW
+================================================================ */
+document.getElementById('cos-dl-btn').addEventListener('click', function() {
+  var blob = new Blob([_rawJson], { type:'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url;
+  a.download = ((_lastProfile && _lastProfile.display_name) || 'player') + '-cosmetics.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ================================================================
+   AUTOCOMPLETE DROPDOWN
+================================================================ */
+(function() {
+  var input    = document.getElementById('cos-input');
+  var dropdown = document.getElementById('cos-dropdown');
+  var timer    = null;
+
+  function close() { dropdown.classList.remove('open'); dropdown.innerHTML=''; }
+
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    var val = input.value.trim();
+    if (!val || UUID_RE.test(val) || val.length < 2) { close(); return; }
+    timer = setTimeout(function() {
+      var lower = val.toLowerCase();
+      db.collection('cosmeticPlayerIndex')
+        .where('displayName_lower','>=',lower)
+        .where('displayName_lower','<=',lower+'\uf8ff')
+        .limit(6).get()
+        .then(function(snap) {
+          if (snap.empty) {
+            dropdown.innerHTML='<div class="cos-dropdown-empty">No tracked players found — try their User ID</div>';
+            dropdown.classList.add('open'); return;
+          }
+          dropdown.innerHTML='';
+          snap.forEach(function(doc) {
+            var d    = doc.data();
+            var name = d.displayName || doc.id;
+            var item = document.createElement('div');
+            item.className = 'cos-dropdown-item';
+            item.innerHTML =
+              '<div class="cos-dropdown-avatar">'+escHtml(name.slice(0,2).toUpperCase())+'</div>'+
+              '<div style="min-width:0;flex:1;">'+
+                '<div class="cos-dropdown-name">'+escHtml(name)+'</div>'+
+                '<div class="cos-dropdown-id">'+escHtml(d.userId||doc.id)+'</div>'+
+              '</div>';
+            item.addEventListener('mousedown', function(e){
+              e.preventDefault();
+              input.value = d.userId || doc.id;
+              close(); doSearch();
+            });
+            dropdown.appendChild(item);
+          });
+          dropdown.classList.add('open');
+        })
+        .catch(function(){ close(); });
+    }, 250);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key==='Enter')  { close(); doSearch(); }
+    if (e.key==='Escape') close();
+  });
+  document.getElementById('cos-search-btn').addEventListener('click', doSearch);
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) close();
+  });
+})();
+
+/* ================================================================
+   AUTO-FILL from sessionStorage (forum stats embed link)
+================================================================ */
+(function() {
+  try {
+    var prefill = sessionStorage.getItem('ftoid_prefill');
+    if (prefill) { sessionStorage.removeItem('ftoid_prefill'); document.getElementById('cos-input').value=prefill; doSearch(); }
+  } catch(e) {}
+})();
+
+/* ================================================================
+   HAMBURGER
+================================================================ */
+(function() {
+  var btn  = document.getElementById('hamburger');
+  var menu = document.getElementById('mobile-menu');
+  btn.addEventListener('click', function() {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded','false');
+      menu.setAttribute('aria-hidden','true');
+    });
+  });
+})();
+</script>
+</body>
+</html>
