@@ -19,22 +19,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
   <style>
-    /* Tools (main) + Games (sidebar) side by side (desktop) */
-    .games-tools-wrap {
+    /* Tools grid — leads the page, 2 columns on mobile so nobody has to endlessly scroll/swipe */
+    .home-tools-grid {
       display: grid;
-      grid-template-columns: 1fr 300px;
-      gap: 2rem;
-      align-items: start;
-    }
-
-    /* ---- Tools grid (main content) ---- */
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 12px;
-    }
-    @media (min-width: 480px) {
-      .tools-grid { grid-template-columns: repeat(3, 1fr); }
     }
 
     .tool-list-btn {
@@ -57,26 +46,23 @@
       font-size: 28px; background: var(--blue-pale);
     }
 
-    /* ---- Games sidebar (desktop) ---- */
-    .games-sidebar { position: sticky; top: 58px; }
+    @media (max-width: 700px) {
+      .home-tools-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    }
 
-    .games-sidebar-title { margin-bottom: 10px; }
-
-    .games-sidebar-list {
-      display: flex; flex-direction: column; gap: 8px;
-      max-height: 640px; overflow-y: auto;
+    /* Games Directory — deliberately kept small/compact, not the star of the page */
+    .games-sidebar-wrap { max-width: 360px; }
+    .games-sidebar-wrap .dir-list {
+      max-height: 480px; overflow-y: auto;
       scrollbar-width: thin; scrollbar-color: var(--blue-light) transparent;
       padding-right: 4px;
     }
-    .games-sidebar-list::-webkit-scrollbar { width: 3px; }
-    .games-sidebar-list::-webkit-scrollbar-thumb { background: var(--blue-light); border-radius: 3px; }
+    .games-sidebar-wrap .dir-list::-webkit-scrollbar { width: 3px; }
+    .games-sidebar-wrap .dir-list::-webkit-scrollbar-thumb { background: var(--blue-light); border-radius: 3px; }
 
-    /* Compact the directory rows so they fit a narrow sidebar column */
-    .games-sidebar-list .dir-item { padding: 6px 12px 6px 6px; gap: 10px; }
-    .games-sidebar-list .dir-avatar { width: 36px; height: 36px; }
-    .games-sidebar-list .dir-name { font-size: 13px; }
-    .games-sidebar-list .dir-sub { font-size: 11px; }
-    .games-sidebar-list .game-links.open { max-height: 320px; }
+    @media (max-width: 700px) {
+      .games-sidebar-wrap { max-width: 100%; }
+    }
 
     /* Forum preview */
     .forum-preview {
@@ -135,26 +121,6 @@
     .fp-text { font-size: 12px; color: var(--gray-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .fp-empty { padding: 2rem; text-align: center; font-size: 13px; color: var(--gray-muted); }
     .fp-loading { padding: 1.5rem; text-align: center; font-size: 13px; color: var(--blue-muted); }
-
-    @media (max-width: 900px) {
-      .games-tools-wrap { grid-template-columns: 1fr; }
-
-      /* Games drop out of the sidebar and become a normal stacked
-         section below tools — no horizontal sidebar on mobile. */
-      .games-sidebar {
-        position: static;
-        order: 2;
-        margin-top: 1.5rem;
-      }
-      .games-sidebar-list {
-        max-height: none;
-        overflow-y: visible;
-        padding-right: 0;
-      }
-      .games-sidebar-list .game-links.open { max-height: 260px; }
-
-      .tools-grid { order: 1; }
-    }
   </style>
 </head>
 <body>
@@ -200,7 +166,7 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-earth-wrap">
-    <img src="ui/thumbnails/banners/earth.png" alt="" class="hero-earth" />
+    <img src="ui/earth.png" alt="" class="hero-earth" />
   </div>
   <div class="hero-fade"></div>
   <div class="hero-inner">
@@ -252,73 +218,76 @@
     </div>
   </div>
 
-  <!-- Tools + Games -->
-  <div id="games" class="section-head">
+  <!-- Tools & Apps (leads the page — most useful content first) -->
+  <div class="section-head">
     <img class="section-banner-img" src="ui/thumbnails/banners/tools.png" alt="Tools & Apps" />
     <a href="tools.html" class="see-all">See all →</a>
   </div>
 
-  <div class="games-tools-wrap">
-    <!-- Tools grid (main content) -->
-    <div class="tools-grid" id="tools-grid">
-      <a href="cosmetics.html" class="tool-list-btn" data-search-name="RBR View Cosmetics" data-search-sub="View anyone's full cosmetics inventory in rocket bot royale!">
-        <img src="ui/thumbnails/rbrcosmetics.png" alt="View anyone's full cosmetics inventory in rocket bot royale!" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">👗</div>
-        <div class="tool-list-btn-label">RBR View Cosmetics</div>
-      </a>
-      <a href="friends.html" class="tool-list-btn" data-search-name="RBR Friend Manager!" data-search-sub="The Best Stats Tracking site for Rocket Bot Royale">
-        <img src="ui/thumbnails/rbrmanagefriends.png" alt="The most powerful Rocket Bot Royale Friend Manager" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">🤝</div>
-        <div class="tool-list-btn-label">RBR Friend Manager</div>
-      </a>
-      <a href="https://orbitrbr.netlify.app/" class="tool-list-btn" data-search-name="Best RBR Analysis" data-search-sub="The Best Stats Tracking site for Rocket Bot Royale">
-        <img src="ui/thumbnails/HormaRBRanalysis.png" alt="Best Rocket Bot Royale Stats Tracking App" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">🤝</div>
-        <div class="tool-list-btn-label">Best RBR Analysis</div>
-      </a>
-      <a href="https://rbrtiers.onrender.com/" class="tool-list-btn" data-search-name="RBR Tiers" data-search-sub="Best Rocket Bot Royale players based on tier ranking">
-        <img src="ui/thumbnails/RBRTiers.png" alt="Rocket Bot Royale Tiers Ranking" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">📦</div>
-        <div class="tool-list-btn-label">RBR Tiers</div>
-      </a>
-      <a href="https://winterpixelcheats.netlify.app/acceptallfriends" class="tool-list-btn" data-search-name="Accept All Friends" data-search-sub="Accept all your friends in Rocket Bot Royale!">
-        <img src="ui/thumbnails/acceptallfriends.png" alt="Accept All Friends" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">🤝</div>
-        <div class="tool-list-btn-label">Accept All Friends</div>
-      </a>
-      <a href="https://winterpixelcheats.netlify.app/crateopening" class="tool-list-btn" data-search-name="RBR Crate Opener" data-search-sub="Rocket Bot Royale Crate Opener">
-        <img src="ui/thumbnails/rbrcrateopener.png" alt="RBR Crate Opener" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">📦</div>
-        <div class="tool-list-btn-label">RBR Crate Opener</div>
-      </a>
-      <a href="https://twhlynch.me/goober-dash-level-modding/?tab=tools" class="tool-list-btn" data-search-name="GD Modding" data-search-sub="Goober Dash Modding">
-        <img src="ui/thumbnails/gdmodding.png" alt="GD Modding" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">🔧</div>
-        <div class="tool-list-btn-label">GD Modding</div>
-      </a>
-      <a href="https://winterpixelthumbnails.netlify.app/" class="tool-list-btn" data-search-name="Winterpixel Thumbnails" data-search-sub="Free winterpixel thumbnails">
-        <img src="ui/thumbnails/pixelthumbnails.png" alt="Winterpixel Thumbnails" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">🖼️</div>
-        <div class="tool-list-btn-label">Winterpixel Thumbnails</div>
-      </a>
-      <a href="https://rbr.sebastian-105.com/stats" class="tool-list-btn" data-search-name="RBR User Stats" data-search-sub="Rocket Bot Royale User Stats">
-        <img src="ui/thumbnails/sebrbruserstats.png" alt="RBR User Stats" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">📊</div>
-        <div class="tool-list-btn-label">RBR User Stats</div>
-      </a>
-      <a href="https://wph.ambersys.app/acrv2/" class="tool-list-btn" data-search-name="RBR ACR" data-search-sub="Rocket Bot Royale Automatic Coin Redeemer">
-        <img src="ui/thumbnails/rbracr.png" alt="RBR ACR" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-list-btn-placeholder" style="display:none;">🪙</div>
-        <div class="tool-list-btn-label">RBR ACR</div>
-      </a>
-    </div>
+  <div class="home-tools-grid" id="tools-sidebar-list">
+    <a href="friends.html" class="tool-list-btn" data-search-name="RBR Friend Manager!" data-search-sub="The Best Stats Tracking site for Rocket Bot Royale">
+      <img src="ui/thumbnails/rbrmanagefriends.png" alt="The most powerful Rocket Bot Royale Friend Manager" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="tool-list-btn-placeholder" style="display:none;">🤝</div>
+      <div class="tool-list-btn-label">RBR Friend Manager</div>
+    </a>
 
-    <!-- Games sidebar -->
-    <aside class="games-sidebar">
-      <div class="games-sidebar-title">
-        <img class="section-banner-img" src="ui/thumbnails/banners/games.png" alt="Games Directory" />
-      </div>
-      <div class="dir-list games-sidebar-list" id="games-list">
+    <a href="https://orbitrbr.netlify.app/" class="tool-list-btn" data-search-name="Best RBR Analysis" data-search-sub="The Best Stats Tracking site for Rocket Bot Royale">
+      <img src="ui/thumbnails/HormaRBRanalysis.png" alt="Best Rocket Bot Royale Stats Tracking App" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="tool-list-btn-placeholder" style="display:none;">🤝</div>
+      <div class="tool-list-btn-label">Best RBR Analysis</div>
+    </a>
+
+    <a href="https://rbrtiers.onrender.com/" class="tool-list-btn" data-search-name="RBR Tiers" data-search-sub="Best Rocket Bot Royale players based on tier ranking">
+      <img src="ui/thumbnails/RBRTiers.png" alt="Rocket Bot Royale Tiers Ranking" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="tool-list-btn-placeholder" style="display:none;">📦</div>
+      <div class="tool-list-btn-label">RBR Tiers</div>
+    </a>
+
+    <a href="https://winterpixelcheats.netlify.app/acceptallfriends" class="tool-list-btn" data-search-name="Accept All Friends" data-search-sub="Accept all your friends in Rocket Bot Royale!">
+      <img src="ui/thumbnails/acceptallfriends.png" alt="Accept All Friends" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="tool-list-btn-placeholder" style="display:none;">🤝</div>
+      <div class="tool-list-btn-label">Accept All Friends</div>
+    </a>
+
+    <a href="https://winterpixelcheats.netlify.app/crateopening" class="tool-list-btn" data-search-name="RBR Crate Opener" data-search-sub="Rocket Bot Royale Crate Opener">
+      <img src="ui/thumbnails/rbrcrateopener.png" alt="RBR Crate Opener" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="tool-list-btn-placeholder" style="display:none;">📦</div>
+      <div class="tool-list-btn-label">RBR Crate Opener</div>
+    </a>
+
+    <a href="https://twhlynch.me/goober-dash-level-modding/?tab=tools" class="tool-list-btn" data-search-name="GD Modding" data-search-sub="Goober Dash Modding">
+      <img src="ui/thumbnails/gdmodding.png" alt="GD Modding" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="tool-list-btn-placeholder" style="display:none;">🔧</div>
+      <div class="tool-list-btn-label">GD Modding</div>
+    </a>
+
+    <a href="https://winterpixelthumbnails.netlify.app/" class="tool-list-btn" data-search-name="Winterpixel Thumbnails" data-search-sub="Free winterpixel thumbnails">
+      <img src="ui/thumbnails/pixelthumbnails.png" alt="Winterpixel Thumbnails" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="tool-list-btn-placeholder" style="display:none;">🖼️</div>
+      <div class="tool-list-btn-label">Winterpixel Thumbnails</div>
+    </a>
+
+    <a href="https://rbr.sebastian-105.com/stats" class="tool-list-btn" data-search-name="RBR User Stats" data-search-sub="Rocket Bot Royale User Stats">
+      <img src="ui/thumbnails/sebrbruserstats.png" alt="RBR User Stats" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="tool-list-btn-placeholder" style="display:none;">📊</div>
+      <div class="tool-list-btn-label">RBR User Stats</div>
+    </a>
+
+    <a href="https://wph.ambersys.app/acrv2/" class="tool-list-btn" data-search-name="RBR ACR" data-search-sub="Rocket Bot Royale Automatic Coin Redeemer">
+      <img src="ui/thumbnails/rbracr.png" alt="RBR ACR" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="tool-list-btn-placeholder" style="display:none;">🪙</div>
+      <div class="tool-list-btn-label">RBR ACR</div>
+    </a>
+  </div>
+
+  <!-- Games Directory -->
+  <div id="games" class="section-head" style="margin-top:2rem;">
+    <img class="section-banner-img" src="ui/thumbnails/banners/games.png" alt="Games Directory" />
+  </div>
+
+  <div class="games-sidebar-wrap">
+    <!-- Games list -->
+    <div class="dir-list" id="games-list">
 
       <!-- Rocket Bot Royale -->
       <div class="game-entry" data-search-name="Rocket Bot Royale" data-search-sub="Multiplayer tank battle royale">
@@ -471,13 +440,19 @@
         </div>
       </div>
 
-      </div>
-    </aside>
+    </div>
+
   </div>
 
   <!-- Guides & Tutorials -->
   <div class="section-head" id="guides">
-    <img class="section-banner-img" src="ui/thumbnails/banners/guides.png" alt="Guides and Tutorials made by the community for winterpixel games!" />
+    <div class="section-title">
+      <div class="section-icon" style="background:#7C3AED;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </div>
+      Guides &amp; Tutorials
       <a href="guides.html" class="see-all">See all →</a>
     </div>
   </div>
@@ -574,6 +549,7 @@
     <div class="footer-links">
       <a href="about.html">About</a>
       <a href="contact.html">Contact</a>
+      <a href="privacy.html">Privacy</a>
     </div>
     <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
   </div>
@@ -617,7 +593,7 @@
     document.querySelectorAll('#sites-list .community-row').forEach(function(el) {
       items.push({ name: el.dataset.searchName || el.querySelector('.community-row-name').textContent, sub: el.dataset.searchSub || el.querySelector('.community-row-desc').textContent, type: 'Site', href: el.href || '#', icon: el.querySelector('.community-row-icon img') ? el.querySelector('.community-row-icon img').src : null });
     });
-    document.querySelectorAll('#tools-grid .tool-list-btn').forEach(function(el) {
+    document.querySelectorAll('#tools-sidebar-list .tool-list-btn').forEach(function(el) {
       items.push({ name: el.dataset.searchName || '', sub: el.dataset.searchSub || '', type: 'Tool', href: el.href || 'tools.html', icon: el.querySelector('img') ? el.querySelector('img').src : null });
     });
     document.querySelectorAll('.discord-server-row').forEach(function(el) {
