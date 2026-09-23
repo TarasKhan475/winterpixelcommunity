@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thumbnail Gallery — Chaos Clan</title>
+  <meta name="description" content="Chaos Clan official site for the biggest rocket bot royale clan!" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Thumbnail Gallery — Chaos Clan" />
+  <meta property="og:description" content="Chaos Clan official site for the biggest rocket bot royale clan!" />
+  <meta property="og:image" id="meta-og-image" content="" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Thumbnail Gallery — Chaos Clan" />
+  <meta name="twitter:description" content="Chaos Clan official site for the biggest rocket bot royale clan!" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    .gallery-hero {
+      position: relative;
+      overflow: hidden;
+      background-image: url('ui/tile.png');
+      background-repeat: repeat;
+      animation: gallery-tile-pan 30s linear infinite;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      gap: 12px;
+      padding: 20px 1.5rem 24px;
+    }
+    .gallery-hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+    }
+    @keyframes gallery-tile-pan {
+      from { background-position: 0 0; }
+      to   { background-position: 400px 400px; }
+    }
+
+    .gallery-search-hero { position: relative; z-index: 1; max-width: 560px; width: 100%; }
+    .gallery-search-box {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255,255,255,0.8);
+      border-radius: var(--radius-sm);
+      padding: 9px 14px;
+      transition: background 0.15s;
+    }
+    .gallery-search-box:focus-within { background: rgba(255,255,255,0.3); }
+    .gallery-search-box svg { flex-shrink: 0; color: var(--blue-deep); }
+    .gallery-search-box input {
+      flex: 1; border: none; background: transparent;
+      font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 600;
+      color: var(--blue-deep); outline: none;
+    }
+    .gallery-search-box input::placeholder { color: rgba(17,17,17,0.45); }
+
+    .gallery-layout { max-width: 1200px; margin: 0 auto; padding: 1rem 1.25rem 3rem; }
+
+    /* Game filter — single scrollable row, never wraps */
+    .gallery-filters-wrap { position: relative; z-index: 1; max-width: 720px; width: 100%; }
+    .gallery-filters {
+      display: flex; flex-wrap: nowrap; overflow-x: auto;
+      gap: 2px; align-items: center;
+      scrollbar-width: none; -ms-overflow-style: none;
+      padding: 0 6px;
+    }
+    .gallery-filters::-webkit-scrollbar { display: none; }
+    .gallery-pill {
+      flex: 0 0 auto;
+      padding: 5px 14px; border-radius: 9999px; border: none;
+      background: white;
+      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 700;
+      color: var(--blue); cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .gallery-pill:hover  { background: var(--blue-pale); }
+    .gallery-pill.active { background: var(--blue); color: white; }
+    .gallery-pill-icon {
+      padding: 2px; background: transparent;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .gallery-pill-icon img {
+      width: 44px; height: 44px; object-fit: contain; display: block;
+      transition: transform 0.12s, opacity 0.12s; opacity: 0.6;
+    }
+    .gallery-pill-icon:hover img { opacity: 1; transform: scale(1.08); }
+    .gallery-pill-icon.active { background: transparent; }
+    .gallery-pill-icon.active img { opacity: 1; transform: scale(1.12); }
+
+    .filters-glow {
+      position: absolute; top: 0; bottom: 0; width: 36px;
+      pointer-events: none; opacity: 0; transition: opacity 0.15s;
+    }
+    .filters-glow.left  { left: 0;  background: linear-gradient(to right, rgba(255,255,255,0.95), transparent); }
+    .filters-glow.right { right: 0; background: linear-gradient(to left,  rgba(255,255,255,0.95), transparent); }
+    .filters-glow.visible { opacity: 1; }
+
+    .gallery-results-count { font-size: 12px; color: var(--gray-muted); margin: 12px 0 10px; text-align: center; }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .thumb-card {
+      border-radius: var(--radius-md); overflow: hidden;
+      border: none; background: var(--blue-pale);
+      cursor: pointer; padding: 0;
+      aspect-ratio: 16 / 9;
+      content-visibility: auto;
+      contain-intrinsic-size: 220px 124px;
+    }
+    .thumb-card img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform 0.25s ease;
+    }
+    .thumb-card:hover img { transform: scale(1.08); }
+
+    .gallery-empty {
+      display: none; padding: 3rem; text-align: center;
+      font-size: 14px; color: var(--gray-muted); grid-column: 1 / -1;
+    }
+
+    .lightbox-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.75);
+      align-items: center; justify-content: center; padding: 2rem;
+    }
+    .lightbox-overlay.open { display: flex; }
+    .lightbox-box { max-width: 720px; width: 100%; max-height: 90vh; overflow-y: auto; background: white; border-radius: var(--radius-lg); overflow-x: hidden; }
+    .lightbox-img-wrap { background: var(--blue-pale); display: flex; align-items: center; justify-content: center; }
+    .lightbox-img-wrap img { width: 100%; max-height: 55vh; object-fit: contain; display: block; }
+    .lightbox-footer { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .lightbox-name { font-size: 15px; font-weight: 800; color: var(--blue-deep); }
+    .lightbox-game { font-size: 11px; font-weight: 700; color: var(--gray-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .lightbox-actions { display: flex; gap: 8px; }
+    .lightbox-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 700;
+      padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer;
+      text-decoration: none; border: none; background: var(--blue-pale); color: var(--blue-deep);
+    }
+    .lightbox-btn.primary { background: var(--blue); color: white; }
+    .lightbox-btn.close-btn { background: #e0e0e0; color: var(--blue-deep); font-weight: 800; }
+    .lightbox-close {
+      position: absolute; top: 14px; right: 14px;
+      background: rgba(0,0,0,0.55); color: white; border: none;
+      width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .lightbox-close:hover { background: rgba(0,0,0,0.75); }
+    .lightbox-related-label {
+      padding: 0 18px; font-size: 11px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--gray-muted); margin-bottom: 8px;
+    }
+    .lightbox-related-row { display: flex; gap: 8px; overflow-x: auto; padding: 0 18px 18px; }
+    .lightbox-related-item {
+      flex: 0 0 auto; width: 96px; aspect-ratio: 16 / 9;
+      border-radius: 6px; overflow: hidden; padding: 0; border: none;
+      cursor: pointer; background: var(--blue-pale);
+    }
+    .lightbox-related-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    @media (max-width: 600px) {
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .lightbox-overlay { padding: 0.75rem; }
+      .lightbox-img-wrap img { max-height: 40vh; }
+      .lightbox-related-item { width: 76px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Chaos Clan" />
+      <span class="logo-name">Chaos Clan</span>
+    </a>
+
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="forum.html">Forum</a>
+      <a href="gallery.html" class="active">Gallery</a>
+    </nav>
+
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="forum.html">Forum</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<div class="gallery-hero">
+  <div class="gallery-search-hero">
+    <div class="gallery-search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" id="gallery-search" placeholder="Search thumbnails…" autocomplete="off" oninput="onGallerySearchInput()" />
+    </div>
+  </div>
+
+  <div class="gallery-filters-wrap">
+    <div class="gallery-filters" id="gallery-filters">
+      <button class="gallery-pill active" data-filter="all" onclick="setGamePill(this)">All</button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="rbr" onclick="setGamePill(this)">
+        <img src="ui/icons/rocketbotroyale.png" alt="Rocket Bot Royale" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="gd" onclick="setGamePill(this)">
+        <img src="ui/icons/gooberdash.png" alt="Goober Dash" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="projectgatherwood" onclick="setGamePill(this)">
+        <img src="ui/icons/projectgatherwood.png" alt="Project Gatherwood" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="broski" onclick="setGamePill(this)">
+        <img src="ui/icons/broski.png" alt="Broski" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="bigbattlemini" onclick="setGamePill(this)">
+        <img src="ui/icons/bigbattlemini.png" alt="Big Battle Mini" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="gooberroyale" onclick="setGamePill(this)">
+        <img src="ui/icons/gooberroyale.png" alt="Goober Royale" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="goobershot" onclick="setGamePill(this)">
+        <img src="ui/icons/goobershot.png" alt="Goober Shot" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="gooberworld" onclick="setGamePill(this)">
+        <img src="ui/icons/gooberworld.png" alt="Goober World" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="bobble" onclick="setGamePill(this)">
+        <img src="ui/icons/bobble.png" alt="Bobble" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="balloon" onclick="setGamePill(this)">
+        <img src="ui/icons/balloon.png" alt="Balloon" />
+      </button>
+      <button class="gallery-pill gallery-pill-icon" data-filter="moonrockminers" onclick="setGamePill(this)">
+        <img src="ui/icons/moonrockminers.png" alt="Moon Rock Miners" />
+      </button>
+      <button class="gallery-pill" data-filter="other" onclick="setGamePill(this)">Other</button>
+    </div>
+    <div class="filters-glow left" id="filters-glow-left"></div>
+    <div class="filters-glow right" id="filters-glow-right"></div>
+  </div>
+</div>
+
+<main class="gallery-layout">
+  <div class="gallery-results-count" id="gallery-count"></div>
+  <div class="gallery-grid" id="gallery-grid"></div>
+  <div id="gallery-sentinel" style="height:1px;"></div>
+  <div class="gallery-empty" id="gallery-empty">No thumbnails found.</div>
+</main>
+
+<div class="lightbox-overlay" id="lightbox-overlay" onclick="if(event.target===this) closeLightbox()">
+  <div class="lightbox-box" id="lightbox-box">
+    <div class="lightbox-img-wrap"><img id="lightbox-img" src="" alt="" /></div>
+    <div class="lightbox-footer">
+      <div>
+        <div class="lightbox-name" id="lightbox-name"></div>
+        <div class="lightbox-game" id="lightbox-game"></div>
+      </div>
+      <div class="lightbox-actions">
+        <a class="lightbox-btn primary" id="lightbox-download" download>Download</a>
+        <button class="lightbox-btn close-btn" onclick="closeLightbox()">Close</button>
+      </div>
+    </div>
+    <div id="lightbox-related"></div>
+  </div>
+  <button class="lightbox-close" id="lightbox-share" onclick="shareCurrentThumb()" aria-label="Copy share link">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+      <line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/>
+    </svg>
+  </button>
+</div>
+
+<script src="js/bottom-bar-loader.js"></script>
+<script src="ui/thumbnails/thumbs-data.js"></script>
+
+<script>
+(function() {
+  var btn  = document.getElementById('hamburger');
+  var menu = document.getElementById('mobile-menu');
+  btn.addEventListener('click', function() {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      menu.setAttribute('aria-hidden', 'true');
+    });
+  });
+})();
+
+var DATA = (typeof THUMBS !== 'undefined' && Array.isArray(THUMBS)) ? THUMBS : [];
+
+var GAME_NAMES = {
+  rbr: 'Rocket Bot Royale', gd: 'Goober Dash', projectgatherwood: 'Project Gatherwood',
+  broski: 'Broski', bigbattlemini: 'Big Battle Mini', gooberroyale: 'Goober Royale',
+  goobershot: 'Goober Shot', gooberworld: 'Goober World', bobble: 'Bobble',
+  balloon: 'Balloon', moonrockminers: 'Moon Rock Miners', other: 'Other'
+};
+
+// Every DATA entry's "file" points at the compressed lowres copy, e.g.
+// "lowres/rbr/epic_win.png". The full-resolution original lives at the
+// same path minus that prefix — used for the lightbox and downloads.
+function highResPath(lowResFile) {
+  return lowResFile.replace(/^lowres\//, '');
+}
+
+var _game = 'all';
+
+function setGamePill(btn) {
+  document.querySelectorAll('#gallery-filters .gallery-pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  _game = btn.dataset.filter;
+  filterGallery();
+}
+
+/* Fuzzy match: exact substrings rank best; otherwise falls back to an
+   in-order character match (so "epwn" still finds "Epic Win"). Returns
+   null when there's no match at all. */
+function fuzzyScore(text, query) {
+  if (!query) return 0;
+  text = text.toLowerCase();
+  var idx = text.indexOf(query);
+  if (idx !== -1) return idx;
+
+  var ti = 0, qi = 0, gaps = 0, firstMatch = -1;
+  while (ti < text.length && qi < query.length) {
+    if (text[ti] === query[qi]) {
+      if (firstMatch === -1) firstMatch = ti;
+      qi++;
+    } else if (qi > 0) {
+      gaps++;
+    }
+    ti++;
+  }
+  if (qi < query.length) return null;
+  return 1000 + gaps * 10 + firstMatch;
+}
+
+function searchableText(t) {
+  var bits = [t.name || '', GAME_NAMES[t.game] || t.game || ''];
+  if (Array.isArray(t.colors)) bits = bits.concat(t.colors);
+  return bits.join(' ').toLowerCase();
+}
+
+function cardHtml(t, i) {
+  return '<button class="thumb-card" onclick="openLightbox(' + i + ')">' +
+    '<img src="ui/thumbnails/' + t.file + '" alt="' + (t.name || '').replace(/"/g,'&quot;') + '" loading="lazy" decoding="async" />' +
+  '</button>';
+}
+
+var PAGE_SIZE = 30;
+var _currentMatches = [];
+var _renderedCount = 0;
+
+var _sentinelObserver = new IntersectionObserver(function(entries) {
+  if (entries[0].isIntersecting) renderNextBatch();
+}, { rootMargin: '400px' });
+
+function renderNextBatch() {
+  var grid = document.getElementById('gallery-grid');
+  var next = _currentMatches.slice(_renderedCount, _renderedCount + PAGE_SIZE);
+  next.forEach(function(o) { grid.insertAdjacentHTML('beforeend', cardHtml(DATA[o.i], o.i)); });
+  _renderedCount += next.length;
+
+  var sentinel = document.getElementById('gallery-sentinel');
+  if (_renderedCount < _currentMatches.length) {
+    _sentinelObserver.observe(sentinel);
+  } else {
+    _sentinelObserver.unobserve(sentinel);
+  }
+}
+
+function filterGallery() {
+  var q = (document.getElementById('gallery-search').value || '').toLowerCase().trim();
+  var grid = document.getElementById('gallery-grid');
+  var scored = [];
+
+  DATA.forEach(function(t, i) {
+    if (_game !== 'all' && t.game !== _game) return;
+    var s = fuzzyScore(searchableText(t), q);
+    if (s !== null) scored.push({ i: i, s: s });
+  });
+  scored.sort(function(a, b) { return a.s - b.s; });
+
+  _currentMatches = scored;
+  _renderedCount = 0;
+  grid.innerHTML = '';
+  renderNextBatch();
+
+  document.getElementById('gallery-empty').style.display = scored.length === 0 ? 'block' : 'none';
+  document.getElementById('gallery-count').textContent =
+    DATA.length === 0 ? '' : (scored.length + ' of ' + DATA.length + ' thumbnails');
+}
+
+var _searchDebounce;
+function onGallerySearchInput() {
+  clearTimeout(_searchDebounce);
+  _searchDebounce = setTimeout(filterGallery, 150);
+}
+
+/* Filter row scroll glow */
+(function() {
+  var el = document.getElementById('gallery-filters');
+  var left = document.getElementById('filters-glow-left');
+  var right = document.getElementById('filters-glow-right');
+  function update() {
+    left.classList.toggle('visible', el.scrollLeft > 4);
+    right.classList.toggle('visible', el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  }
+  el.addEventListener('scroll', update);
+  window.addEventListener('resize', update);
+  setTimeout(update, 50);
+})();
+
+var DEFAULT_TITLE = document.title;
+var DEFAULT_OG_IMAGE = '';
+var _urlOwnedByUs = false;
+
+function hexToRgb(hex) {
+  if (!hex) return null;
+  var h = hex.replace('#', '');
+  return [parseInt(h.substring(0,2),16), parseInt(h.substring(2,4),16), parseInt(h.substring(4,6),16)];
+}
+
+function colorDistance(hexA, hexB) {
+  var a = hexToRgb(hexA), b = hexToRgb(hexB);
+  if (!a || !b) return 999;
+  return Math.sqrt(Math.pow(a[0]-b[0],2) + Math.pow(a[1]-b[1],2) + Math.pow(a[2]-b[2],2));
+}
+
+/* Higher score = more similar. Same game counts most, but color
+   closeness and shared name words can still pull in a good match
+   from a different game rather than always being same-game-only. */
+function similarityScore(current, candidate) {
+  var score = 0;
+  if (candidate.game === current.game) score += 50;
+
+  var curColors = current.colors || [];
+  var candColors = candidate.colors || [];
+  curColors.forEach(function(c) { if (candColors.indexOf(c) !== -1) score += 20; });
+
+  score += Math.max(0, 40 - colorDistance(current.hex, candidate.hex) / 6);
+
+  var curWords = (current.name || '').toLowerCase().split(/\s+/).filter(Boolean);
+  var candWords = (candidate.name || '').toLowerCase().split(/\s+/).filter(Boolean);
+  curWords.forEach(function(w) { if (candWords.indexOf(w) !== -1) score += 8; });
+
+  return score;
+}
+
+function relatedHtml(current, currentIndex) {
+  var scored = [];
+  DATA.forEach(function(t, i) {
+    if (i === currentIndex) return;
+    scored.push({ i: i, score: similarityScore(current, t) });
+  });
+  scored.sort(function(a, b) { return b.score - a.score; });
+  var related = scored.slice(0, 8).map(function(o) { return o.i; });
+
+  if (!related.length) return '';
+  return '<div class="lightbox-related-label">Related thumbnails</div>' +
+    '<div class="lightbox-related-row">' +
+    related.map(function(i) {
+      var t = DATA[i];
+      return '<button class="lightbox-related-item" onclick="openLightbox(' + i + ')"><img src="ui/thumbnails/' + t.file + '" alt="' + (t.name||'').replace(/"/g,'&quot;') + '" loading="lazy" decoding="async" /></button>';
+    }).join('') +
+    '</div>';
+}
+
+
+function openLightbox(i, opts) {
+  var t = DATA[i];
+  if (!t) return;
+  var highres = highResPath(t.file);
+
+  document.getElementById('lightbox-img').src = 'ui/thumbnails/' + highres;
+  document.getElementById('lightbox-img').alt = t.name || '';
+  document.getElementById('lightbox-name').textContent = t.name || '';
+  document.getElementById('lightbox-game').textContent = GAME_NAMES[t.game] || t.game || '';
+  var dl = document.getElementById('lightbox-download');
+  dl.href = 'ui/thumbnails/' + highres;
+  dl.download = highres.split('/').pop();
+  document.getElementById('lightbox-related').innerHTML = relatedHtml(t, i);
+  document.getElementById('lightbox-overlay').classList.add('open');
+  document.getElementById('lightbox-box').scrollTop = 0;
+
+  document.title = t.name + ' — Chaos Clan Gallery';
+  var ogImg = document.getElementById('meta-og-image');
+  if (ogImg) ogImg.setAttribute('content', location.origin + '/ui/thumbnails/' + highres);
+
+  var fromUrl = opts && opts.fromUrl;
+  if (!fromUrl) {
+    try {
+      history.pushState({ lightbox: true }, '', '?t=' + encodeURIComponent(highres));
+      _urlOwnedByUs = true;
+    } catch (e) {
+      console.warn('Could not update the URL for this thumbnail:', e);
+    }
+  }
+}
+
+function closeLightboxUI() {
+  document.getElementById('lightbox-overlay').classList.remove('open');
+  document.title = DEFAULT_TITLE;
+  var ogImg = document.getElementById('meta-og-image');
+  if (ogImg) ogImg.setAttribute('content', DEFAULT_OG_IMAGE);
+}
+
+function closeLightbox() {
+  closeLightboxUI();
+  try {
+    if (_urlOwnedByUs && history.state && history.state.lightbox) {
+      history.back();
+    } else {
+      history.replaceState(null, '', location.pathname);
+    }
+  } catch (e) {
+    console.warn('Could not reset the URL after closing:', e);
+  }
+  _urlOwnedByUs = false;
+}
+
+function shareCurrentThumb() {
+  var btn = document.getElementById('lightbox-share');
+  navigator.clipboard.writeText(location.href).then(function() {
+    var original = btn.innerHTML;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    setTimeout(function() { btn.innerHTML = original; }, 1300);
+  });
+}
+
+window.addEventListener('popstate', function(e) {
+  if (e.state && e.state.lightbox) return; // handled by the pushState that created it
+  closeLightboxUI();
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+filterGallery();
+
+/* Deep link support: ?t=<path> opens straight to that thumbnail's modal
+   on load — this is also how index.html's mini gallery links here. */
+(function openFromUrlIfPresent() {
+  var params = new URLSearchParams(location.search);
+  var target = params.get('t');
+  if (!target) return;
+  var idx = DATA.findIndex(function(t) { return highResPath(t.file) === target; });
+  if (idx !== -1) openLightbox(idx, { fromUrl: true });
+})();
+</script>
+
+</body>
+</html>

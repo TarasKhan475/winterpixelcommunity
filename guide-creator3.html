@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guide Creator — Pixel Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/main.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  #bottom-bar, .bottom-bar, .bb-bar { display: none !important; }
+  :root {
+    --blue:#00c6ff; --blue-dark:#0099cc; --blue-deep:#003d52; --blue-mid:#00aadd;
+    --blue-light:#cff4ff; --blue-pale:#e8faff; --gray-muted:#64748b; --gray-mid:#475569;
+    --red:#e0464f; --red-bg:#fff1f2; --red-border:#fca5a5;
+    --amber:#c98a12; --amber-bg:#fffbeb; --amber-border:#fcd34d;
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px;
+  }
+  html, body { height:100%; }
+  body { margin:0; font-family:'Baloo 2',cursive; background:var(--blue-pale); color:var(--blue-deep); display:flex; flex-direction:column; overflow:hidden; }
+  button { font-family:'Baloo 2',cursive; }
+  svg { display:block; }
+
+  /* ── App shell ── */
+  .app { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  /* ── Top bar ── */
+  .topbar { background:white; border-bottom:1.5px solid var(--blue-light); padding:0 16px; display:flex; align-items:center; justify-content:space-between; min-height:52px; flex-shrink:0; }
+  .brand { display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; color:var(--blue-deep); }
+  .brand img { height:24px; width:auto; display:block; }
+
+  .icon-btn { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); border:1.5px solid var(--blue-light); background:white; color:var(--blue-deep); cursor:pointer; transition:all .12s; flex-shrink:0; }
+  .icon-btn svg { width:16px; height:16px; }
+  .icon-btn:hover { background:var(--blue-pale); border-color:var(--blue); }
+  .icon-btn.subtle { border-color:transparent; background:none; }
+  .icon-btn.subtle:hover { background:var(--blue-pale); border-color:var(--blue-light); }
+
+  .btn { padding:8px 16px; border-radius:var(--radius-sm); font-size:13px; font-weight:700; cursor:pointer; border:1.5px solid var(--blue-light); background:white; color:var(--blue-deep); transition:all .12s; display:inline-flex; align-items:center; gap:7px; }
+  .btn svg { width:15px; height:15px; }
+  .btn:hover { background:var(--blue-pale); border-color:var(--blue); }
+  .btn.primary { background:var(--blue); color:white; border-color:var(--blue); }
+  .btn.primary:hover { background:var(--blue-dark); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+
+  /* ── Formatting toolbar ── */
+  .toolbar { background:white; border-bottom:1.5px solid var(--blue-light); padding:6px 12px; display:flex; align-items:center; gap:3px; flex-wrap:wrap; flex-shrink:0; }
+  .tb { width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:none; border:1.5px solid transparent; color:var(--blue-deep); cursor:pointer; transition:all .1s; font-size:13px; font-weight:800; }
+  .tb svg { width:16px; height:16px; }
+  .tb:hover { background:var(--blue-pale); border-color:var(--blue-light); }
+  .tb-sep { width:1px; height:20px; background:var(--blue-light); margin:0 4px; flex-shrink:0; }
+
+  /* ── Canvas ── */
+  .workspace { flex:1; overflow-y:auto; background:#f8fafc; padding:28px 20px 80px; }
+  .canvas { background:white; border-radius:var(--radius-lg); border:1.5px solid var(--blue-light); max-width:800px; margin:0 auto; overflow:hidden; }
+  .canvas-pad { padding:30px 34px 40px; }
+
+  /* Banner */
+  .banner-drop { position:relative; width:100%; aspect-ratio:16/7; background:var(--blue-pale); cursor:pointer; overflow:hidden; }
+  .banner-drop input[type=file] { display:none; }
+  .banner-img { width:100%; height:100%; object-fit:cover; display:none; }
+  .banner-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:var(--blue-mid); text-align:center; padding:16px; }
+  .banner-empty svg { width:34px; height:34px; }
+  .banner-empty .l1 { font-size:13px; font-weight:700; color:var(--blue-deep); }
+  .banner-empty .l2 { font-size:11px; font-weight:600; color:var(--gray-muted); }
+  .banner-overlay { position:absolute; inset:0; background:rgba(0,26,38,0.5); color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; opacity:0; transition:opacity .15s; text-align:center; }
+  .banner-overlay svg { width:24px; height:24px; }
+  .banner-overlay .l1 { font-size:13px; font-weight:700; }
+  .banner-overlay .l2 { font-size:11px; font-weight:600; opacity:.85; }
+  .banner-drop.has-image:hover .banner-overlay { opacity:1; }
+
+  /* Editable fields */
+  [contenteditable]:focus { outline:none; }
+  .edit-field { border-radius:6px; transition:background .12s; padding:1px 4px; margin:-1px -4px; }
+  .edit-field:hover { background:var(--blue-pale); }
+  .edit-field:focus { background:var(--blue-pale); box-shadow:0 0 0 2px var(--blue-light); }
+
+  .guide-game-select { appearance:none; -webkit-appearance:none; border:none; background:none; cursor:pointer; font-family:'Baloo 2',cursive; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--blue); padding:2px 18px 2px 4px; margin:16px 0 8px -4px; border-radius:6px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300c6ff' stroke-width='3'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 2px center; background-size:12px; }
+  .guide-game-select:hover { background-color:var(--blue-pale); }
+  .guide-game-select:focus { outline:none; background-color:var(--blue-pale); }
+
+  .guide-title { font-size:clamp(24px,4vw,32px); font-weight:800; color:var(--blue-deep); margin:0 0 10px; line-height:1.2; }
+  .guide-title:empty::before { content:attr(data-placeholder); color:#aac4cf; }
+
+  .guide-meta { font-size:13px; color:var(--gray-muted); margin-bottom:20px; font-weight:600; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .guide-meta .author:empty::before { content:attr(data-placeholder); color:#aac4cf; }
+  .guide-meta input[type=date] { border:none; background:none; font-family:'Baloo 2',cursive; font-size:13px; font-weight:600; color:var(--gray-muted); cursor:pointer; padding:1px 2px; border-radius:6px; }
+  .guide-meta input[type=date]:hover, .guide-meta input[type=date]:focus { background:var(--blue-pale); outline:none; }
+  .guide-meta .dot { color:var(--blue-light); font-weight:800; }
+
+  .editor-body { font-size:14.5px; line-height:1.85; color:#1e293b; min-height:400px; outline:none; }
+  .editor-body:empty::before { content:attr(placeholder); color:#aac4cf; pointer-events:none; display:block; }
+  .editor-body h2 { font-size:20px; font-weight:800; color:var(--blue-deep); margin:26px 0 8px; padding-bottom:6px; border-bottom:2px solid var(--blue-light); }
+  .editor-body h3 { font-size:16px; font-weight:700; color:var(--blue-deep); margin:18px 0 5px; }
+  .editor-body p  { margin:0 0 12px; }
+  .editor-body ul, .editor-body ol { margin:0 0 12px; padding-left:22px; }
+  .editor-body li { margin-bottom:5px; }
+  .editor-body blockquote { border-left:4px solid var(--blue); background:var(--blue-pale); padding:12px 16px; margin:14px 0; border-radius:0 8px 8px 0; font-style:italic; color:var(--blue-deep); }
+  .editor-body img { max-width:100%; border-radius:8px; margin:10px 0; display:block; }
+  .editor-body a { color:var(--blue); font-weight:700; }
+  .editor-body hr { border:none; border-top:2px solid var(--blue-light); margin:18px 0; }
+  .editor-body .tip-box  { background:var(--amber-bg); border:1.5px solid var(--amber-border); border-radius:8px; padding:12px 16px; margin:12px 0; }
+  .editor-body .warn-box { background:var(--red-bg); border:1.5px solid var(--red-border); border-radius:8px; padding:12px 16px; margin:12px 0; }
+  .editor-body .info-box { background:var(--blue-pale); border:1.5px solid var(--blue-light); border-radius:8px; padding:12px 16px; margin:12px 0; }
+  .editor-body .tip-box strong  { color:#92650a; }
+  .editor-body .warn-box strong { color:#a3232c; }
+
+  .format-hint { max-width:800px; margin:12px auto 0; font-size:11px; color:var(--gray-muted); background:white; border:1px solid var(--blue-light); border-radius:var(--radius-sm); padding:8px 12px; line-height:1.5; }
+  .format-hint strong { color:var(--blue-deep); }
+
+  /* ── Modal ── */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,26,38,0.45); z-index:999; display:none; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:white; border-radius:var(--radius-lg); border:1.5px solid var(--blue-light); width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,25,40,0.25); max-height:90vh; display:flex; flex-direction:column; }
+  .modal.modal-lg { max-width:640px; }
+  .modal-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1.5px solid var(--blue-light); flex-shrink:0; }
+  .modal-head h3 { font-size:15px; font-weight:800; color:var(--blue-deep); margin:0; display:flex; align-items:center; gap:8px; }
+  .modal-head h3 svg { width:17px; height:17px; color:var(--blue); }
+  .modal-body { padding:18px 20px; overflow-y:auto; }
+  .modal-actions { display:flex; gap:8px; justify-content:flex-end; padding:14px 20px; border-top:1.5px solid var(--blue-light); flex-shrink:0; }
+
+  .field { display:flex; flex-direction:column; gap:4px; }
+  .field label { font-size:11.5px; font-weight:700; color:var(--blue-deep); }
+  .field input { padding:8px 10px; border:1.5px solid var(--blue-light); border-radius:var(--radius-sm); font-family:'Baloo 2',cursive; font-size:13px; font-weight:600; color:var(--blue-deep); background:var(--blue-pale); outline:none; transition:border-color .15s; width:100%; }
+  .field input:focus { border-color:var(--blue); background:white; }
+
+  /* ── Image library modal ── */
+  .img-drop { border:2px dashed var(--blue-light); border-radius:var(--radius-md); padding:22px; text-align:center; cursor:pointer; transition:border-color .15s,background .15s; background:var(--blue-pale); display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .img-drop:hover, .img-drop.drag { border-color:var(--blue); background:white; }
+  .img-drop input { display:none; }
+  .img-drop svg { width:26px; height:26px; color:var(--blue-mid); }
+  .img-drop-label { font-size:12.5px; color:var(--gray-mid); font-weight:700; }
+  .img-drop-hint { font-size:10.5px; color:var(--gray-muted); }
+
+  .img-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:10px; margin-top:14px; }
+  .img-card { border:1.5px solid var(--blue-light); border-radius:var(--radius-sm); overflow:hidden; background:var(--blue-pale); cursor:pointer; transition:border-color .12s; position:relative; }
+  .img-card:hover { border-color:var(--blue); }
+  .img-card .thumb { width:100%; height:80px; object-fit:cover; display:block; background:white; }
+  .img-card .name { font-size:10px; font-weight:700; color:var(--blue-deep); padding:5px 7px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .img-card .del { position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:6px; background:rgba(3,20,30,0.55); color:white; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity .12s; }
+  .img-card .del svg { width:11px; height:11px; }
+  .img-card:hover .del { opacity:1; }
+  .img-card .del:hover { background:var(--red); }
+  .img-empty { text-align:center; padding:22px 10px; color:var(--gray-muted); font-size:12px; font-weight:600; }
+
+  /* ── Export modal ── */
+  .export-notice { display:flex; gap:10px; align-items:flex-start; background:var(--amber-bg); border:1.5px solid var(--amber-border); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:14px; font-size:12px; line-height:1.5; color:#7a5205; }
+  .export-notice svg { width:16px; height:16px; flex-shrink:0; margin-top:1px; color:var(--amber); }
+  .export-notice strong { color:#7a5205; }
+  .export-steps { display:flex; flex-direction:column; gap:12px; }
+  .export-step { display:flex; gap:12px; align-items:flex-start; }
+  .export-step .num { width:22px; height:22px; border-radius:50%; background:var(--blue-pale); color:var(--blue-deep); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .export-step .txt { font-size:13px; line-height:1.5; color:var(--blue-deep); padding-top:1px; }
+  .export-summary { background:var(--blue-pale); border-radius:var(--radius-sm); padding:10px 12px; font-size:12px; font-weight:700; color:var(--blue-deep); margin-bottom:14px; }
+  .discord-link { display:inline-flex; align-items:center; gap:7px; color:#5865F2; font-weight:700; font-size:13px; text-decoration:none; margin-top:2px; }
+  .discord-link svg { width:15px; height:15px; }
+  .discord-link:hover { text-decoration:underline; }
+
+  /* ── Toast ── */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--blue-deep); color:white; padding:9px 16px; border-radius:var(--radius-sm); font-size:13px; font-weight:700; border-left:4px solid var(--blue); opacity:0; transform:translateY(8px); transition:all .2s; pointer-events:none; z-index:9999; display:flex; align-items:center; gap:8px; }
+  .toast.show { opacity:1; transform:translateY(0); }
+  .toast.ok { border-left-color:#16a34a; }
+  .toast.err { border-left-color:var(--red); }
+  .toast svg { width:14px; height:14px; flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="ui/logo.png" alt="" onerror="this.style.display='none'" />
+      Guide Creator
+    </div>
+    <button class="btn primary" onclick="openExportModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+  </header>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <button class="tb" onclick="fmt('bold')" title="Bold"><b>B</b></button>
+    <button class="tb" onclick="fmt('italic')" title="Italic"><i>I</i></button>
+    <button class="tb" onclick="fmt('underline')" title="Underline"><u>U</u></button>
+    <div class="tb-sep"></div>
+    <button class="tb" onclick="ins('h2')" title="Heading 2" style="font-size:11px;">H2</button>
+    <button class="tb" onclick="ins('h3')" title="Heading 3" style="font-size:11px;">H3</button>
+    <div class="tb-sep"></div>
+    <button class="tb" onclick="ins('ul')" title="Bulleted list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/></svg></button>
+    <button class="tb" onclick="ins('ol')" title="Numbered list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8.5" font-size="6.5" fill="currentColor" stroke="none" font-family="sans-serif">1</text><text x="2" y="14.5" font-size="6.5" fill="currentColor" stroke="none" font-family="sans-serif">2</text><text x="2" y="20.5" font-size="6.5" fill="currentColor" stroke="none" font-family="sans-serif">3</text></svg></button>
+    <button class="tb" onclick="ins('quote')" title="Quote"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 7.5c-2.2 0-4 1.8-4 4.5S4.8 16.5 7 16.5c.3 0 .6 0 .9-.1-.4 2-2 3.6-4.4 3.6v2c3.8 0 7-2.7 7-7.5 0-3.4-1.4-5.5-3.5-5.5zm10 0c-2.2 0-4 1.8-4 4.5s1.8 4.5 4 4.5c.3 0 .6 0 .9-.1-.4 2-2 3.6-4.4 3.6v2c3.8 0 7-2.7 7-7.5 0-3.4-1.4-5.5-3.5-5.5z"/></svg></button>
+    <div class="tb-sep"></div>
+    <button class="tb" onclick="ins('tip')" title="Tip callout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.4 1 1.2 1 2.3h6c0-1.1.4-1.9 1-2.3A7 7 0 0 0 12 2z"/></svg></button>
+    <button class="tb" onclick="ins('warn')" title="Warning callout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
+    <button class="tb" onclick="ins('info')" title="Info callout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="11"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
+    <div class="tb-sep"></div>
+    <button class="tb" onclick="openLinkModal()" title="Insert link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7a5 5 0 0 1 0-10h2"/><path d="M15 7h2a5 5 0 0 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>
+    <button class="tb" onclick="openModal('image-modal')" title="Insert image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+    <button class="tb" onclick="ins('hr')" title="Divider"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="12" x2="20" y2="12"/></svg></button>
+  </div>
+
+  <!-- CANVAS (this IS the editor and the preview) -->
+  <div class="workspace">
+    <div class="canvas">
+
+      <div class="banner-drop" id="banner-drop">
+        <input type="file" id="banner-file-input" accept="image/*" onchange="handleBannerUpload(this.files)" />
+        <img class="banner-img" id="banner-img" alt="" />
+        <div class="banner-empty" id="banner-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span class="l1">Click to upload a banner</span>
+          <span class="l2">1600 × 700px recommended</span>
+        </div>
+        <div class="banner-overlay" id="banner-overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span class="l1">Click to change banner</span>
+          <span class="l2">1600 × 700px recommended</span>
+        </div>
+      </div>
+
+      <div class="canvas-pad">
+        <select class="guide-game-select edit-field" id="gc-game" title="Click to change game">
+          <option value="Rocket Bot Royale">Rocket Bot Royale</option>
+          <option value="Goober Dash">Goober Dash</option>
+          <option value="General" selected>General</option>
+        </select>
+
+        <h1 class="guide-title edit-field" id="gc-title" contenteditable="true" data-placeholder="Untitled Guide" title="Click to edit title"></h1>
+
+        <div class="guide-meta">
+          <span class="author edit-field" id="gc-author" contenteditable="true" data-placeholder="Pixel Community" title="Click to edit author"></span>
+          <span class="dot">·</span>
+          <input type="date" id="gc-date" title="Click to change date" />
+        </div>
+
+        <div id="editor-body" class="editor-body" contenteditable="true" spellcheck="true"
+             placeholder="Start writing your guide here…"></div>
+      </div>
+    </div>
+
+    <div class="format-hint">
+      <strong>Tip:</strong> click the banner, title, author or date to edit them directly. Press <strong>Enter</strong> inside a heading, quote, or callout to continue with normal text right after it — use <strong>Shift+Enter</strong> if you want a line break inside one instead.
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE LIBRARY MODAL -->
+<div class="modal-overlay" id="image-modal">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Images</h3>
+      <button class="icon-btn subtle" onclick="closeModal('image-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <label class="img-drop" id="img-drop" for="img-file-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span class="img-drop-label">Drop images here, or click to upload</span>
+        <span class="img-drop-hint">Uploaded images preview instantly here and get bundled into your export</span>
+        <input type="file" id="img-file-input" accept="image/*" multiple onchange="handleImageUpload(this.files)" />
+      </label>
+      <div class="img-grid" id="img-grid">
+        <div class="img-empty" id="img-empty">No images uploaded yet</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn primary" onclick="closeModal('image-modal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- LINK MODAL -->
+<div class="modal-overlay" id="link-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7a5 5 0 0 1 0-10h2"/><path d="M15 7h2a5 5 0 0 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Insert link</h3>
+      <button class="icon-btn subtle" onclick="closeModal('link-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+      <div class="field"><label>Link text</label><input type="text" id="link-text" placeholder="e.g. Official Wiki" /></div>
+      <div class="field"><label>URL</label><input type="url" id="link-url" placeholder="https://…" /></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('link-modal')">Cancel</button>
+      <button class="btn primary" onclick="insertLink()">Insert</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export guide</h3>
+      <button class="icon-btn subtle" onclick="closeModal('export-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="export-notice" id="export-notice" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span id="export-notice-text"></span>
+      </div>
+      <div class="export-summary" id="export-summary">guide.zip</div>
+      <div class="export-steps">
+        <div class="export-step">
+          <span class="num">1</span>
+          <span class="txt">Download the zip below.</span>
+        </div>
+        <div class="export-step">
+          <span class="num">2</span>
+          <span class="txt">Join the Discord server. <a class="discord-link" href="https://discord.gg/rU92jZcX4S" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>Join Discord</a></span>
+        </div>
+        <div class="export-step">
+          <span class="num">3</span>
+          <span class="txt">Send the zip file to us there and we'll get it published.</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('export-modal')">Keep editing</button>
+      <button class="btn primary" onclick="exportZip()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download ZIP
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+var uploadedImages = {};    // filename → { dataUrl, mimeType }
+var bannerImage = null;     // { dataUrl, mimeType }
+var _savedRange = null;
+
+// ── Init ──
+document.getElementById('gc-date').value = new Date().toISOString().slice(0,10);
+
+// Make title/author single-line plain-text editable (no rich formatting, no newlines)
+function makePlainEditable(el){
+  el.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); el.blur(); } });
+  el.addEventListener('paste', function(e){
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+  });
+}
+makePlainEditable(document.getElementById('gc-title'));
+makePlainEditable(document.getElementById('gc-author'));
+
+// ── Modals ──
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); if(id==='link-modal') _savedRange = null; }
+document.querySelectorAll('.modal-overlay').forEach(function(ov){
+  ov.addEventListener('click', function(e){ if (e.target === this) closeModal(this.id); });
+});
+
+// ── Slug ──
+function toSlug(s){ return s.toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-'); }
+
+// ── Toolbar ──
+function fmt(cmd){ document.getElementById('editor-body').focus(); document.execCommand(cmd); }
+
+var BLOCKS = {
+  h2:    '<h2>Section Heading</h2><p><br></p>',
+  h3:    '<h3>Sub Heading</h3><p><br></p>',
+  ul:    '<ul><li>Item one</li><li>Item two</li></ul><p><br></p>',
+  ol:    '<ol><li>First step</li><li>Second step</li></ol><p><br></p>',
+  quote: '<blockquote>Your quote here.</blockquote><p><br></p>',
+  tip:   '<div class="tip-box"><strong>Tip:</strong> Your tip here.</div><p><br></p>',
+  warn:  '<div class="warn-box"><strong>Warning:</strong> Your warning here.</div><p><br></p>',
+  info:  '<div class="info-box"><strong>Note:</strong> Your note here.</div><p><br></p>',
+  hr:    '<hr /><p><br></p>',
+};
+
+// Elements that must never contain another one of themselves/each other,
+// and that Enter should always exit rather than split or nest.
+var SELF_CONTAINED_SELECTOR = 'h2, h3, blockquote, .tip-box, .warn-box, .info-box';
+
+function getSelfContainedAncestor(node, root){
+  while (node && node !== root){
+    if (node.nodeType === 1 && node.matches && node.matches(SELF_CONTAINED_SELECTOR)) return node;
+    node = node.parentNode;
+  }
+  return null;
+}
+
+function placeCaretAtStart(el){
+  var range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(true);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+function placeCaretAfter(el){
+  var range = document.createRange();
+  range.setStartAfter(el);
+  range.collapse(true);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+function selectAllText(el){
+  var range = document.createRange();
+  range.selectNodeContents(el);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+// Inserts an HTML string into a Range using real DOM nodes (not execCommand,
+// which is unreliable inside custom block elements and can leave stale paint).
+// Returns the first and last top-level nodes that were inserted.
+function insertHtmlAtRange(range, html){
+  range.deleteContents();
+  var temp = document.createElement('div');
+  temp.innerHTML = html;
+  var frag = document.createDocumentFragment();
+  var first = null, last = null;
+  while (temp.firstChild){
+    last = temp.firstChild;
+    if (!first) first = last;
+    frag.appendChild(last);
+  }
+  range.insertNode(frag);
+  return { first: first, last: last };
+}
+
+function currentEditorRange(){
+  var editor = document.getElementById('editor-body');
+  var sel = window.getSelection();
+  if (sel.rangeCount){
+    var r = sel.getRangeAt(0);
+    if (editor.contains(r.commonAncestorContainer)) return r;
+  }
+  var r2 = document.createRange();
+  r2.selectNodeContents(editor);
+  r2.collapse(false);
+  return r2;
+}
+
+function ins(type){
+  var editor = document.getElementById('editor-body');
+  editor.focus();
+  var range = currentEditorRange();
+
+  // Never nest a heading/quote/callout inside another one — insert after it instead.
+  var container = getSelfContainedAncestor(range.startContainer, editor);
+  if (container){
+    range = document.createRange();
+    range.setStartAfter(container);
+    range.collapse(true);
+  }
+
+  var result = insertHtmlAtRange(range, BLOCKS[type]);
+  window.getSelection().removeAllRanges();
+
+  if (!result.first) return;
+  if (result.first.tagName === 'UL' || result.first.tagName === 'OL'){
+    var li = result.first.querySelector('li');
+    if (li) selectAllText(li);
+  } else if (result.first.tagName === 'HR'){
+    if (result.last) placeCaretAtStart(result.last);
+  } else {
+    selectAllText(result.first);
+  }
+}
+
+// Pressing Enter inside a heading/quote/callout always continues as a normal
+// paragraph right after it, instead of splitting or duplicating the block.
+// Shift+Enter still inserts a plain line break inside it (native behavior).
+document.getElementById('editor-body').addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' || e.shiftKey) return;
+  var sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  var range = sel.getRangeAt(0);
+  var container = getSelfContainedAncestor(range.startContainer, this);
+  if (!container) return;
+  e.preventDefault();
+  var p = document.createElement('p');
+  p.innerHTML = '<br>';
+  container.parentNode.insertBefore(p, container.nextSibling);
+  placeCaretAtStart(p);
+});
+
+// ── Banner upload ──
+document.getElementById('banner-drop').addEventListener('click', function(){
+  document.getElementById('banner-file-input').click();
+});
+function handleBannerUpload(files){
+  var file = files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    bannerImage = { dataUrl: e.target.result, mimeType: file.type };
+    var img = document.getElementById('banner-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('banner-empty').style.display = 'none';
+    document.getElementById('banner-drop').classList.add('has-image');
+    toast('Banner updated', 'ok');
+  };
+  reader.readAsDataURL(file);
+  document.getElementById('banner-file-input').value = '';
+}
+// Converts any image dataURL to a real PNG dataURL/base64 so it matches the
+// exported <id>.png filename regardless of the source file's original format.
+function toPngBase64(dataUrl){
+  return new Promise(function(resolve, reject){
+    var img = new Image();
+    img.onload = function(){
+      var canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png').split(',')[1]);
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+// ── Body image library ──
+var dropZone = document.getElementById('img-drop');
+['dragenter','dragover'].forEach(function(ev){
+  dropZone.addEventListener(ev, function(e){ e.preventDefault(); dropZone.classList.add('drag'); });
+});
+['dragleave','drop'].forEach(function(ev){
+  dropZone.addEventListener(ev, function(e){ e.preventDefault(); dropZone.classList.remove('drag'); });
+});
+dropZone.addEventListener('drop', function(e){
+  if (e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files);
+});
+
+function uniqueFileName(base){
+  if (!uploadedImages[base]) return base;
+  var dot = base.lastIndexOf('.');
+  var stem = dot === -1 ? base : base.slice(0, dot);
+  var ext  = dot === -1 ? '' : base.slice(dot);
+  var i = 2;
+  while (uploadedImages[stem + '-' + i + ext]) i++;
+  return stem + '-' + i + ext;
+}
+
+function handleImageUpload(files){
+  Array.from(files).forEach(function(file){
+    if (!file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var fname = uniqueFileName(file.name.replace(/[^a-zA-Z0-9._-]/g,'_'));
+      uploadedImages[fname] = { dataUrl: e.target.result, mimeType: file.type };
+      renderImageGrid();
+      toast('Uploaded ' + fname, 'ok');
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('img-file-input').value = '';
+}
+
+function renderImageGrid(){
+  var grid = document.getElementById('img-grid');
+  var names = Object.keys(uploadedImages);
+  grid.innerHTML = '';
+  if (!names.length){
+    grid.innerHTML = '<div class="img-empty">No images uploaded yet</div>';
+    return;
+  }
+  names.forEach(function(fname){
+    var card = document.createElement('div');
+    card.className = 'img-card';
+    card.title = 'Click to insert into the guide';
+    card.innerHTML =
+      '<img class="thumb" src="' + uploadedImages[fname].dataUrl + '" alt="' + esc(fname) + '" />' +
+      '<div class="name">' + esc(fname) + '</div>' +
+      '<button class="del" title="Remove from library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+    card.addEventListener('click', function(e){
+      if (e.target.closest('.del')) return;
+      insertImageAtCursor(fname, uploadedImages[fname].dataUrl);
+      closeModal('image-modal');
+    });
+    card.querySelector('.del').addEventListener('click', function(e){
+      e.stopPropagation();
+      delete uploadedImages[fname];
+      renderImageGrid();
+    });
+    grid.appendChild(card);
+  });
+}
+
+function insertImageAtCursor(fname, dataUrl){
+  var id = currentSlug();
+  // In the editor we show the dataUrl so it renders live; export swaps it for the real file path.
+  var html = '<img src="' + esc(dataUrl) + '" data-export-src="/ui/guide/' + esc(id) + '/' + esc(fname) + '" alt="' + esc(fname) + '" /><p><br></p>';
+  var editor = document.getElementById('editor-body');
+  editor.focus();
+  var range = _savedRange || currentEditorRange();
+  var result = insertHtmlAtRange(range, html);
+  window.getSelection().removeAllRanges();
+  if (result.last) placeCaretAtStart(result.last);
+}
+
+// ── Link modal ──
+function openLinkModal(){
+  var sel = window.getSelection();
+  if (sel.rangeCount) _savedRange = sel.getRangeAt(0).cloneRange();
+  document.getElementById('link-text').value = sel.toString() || '';
+  document.getElementById('link-url').value  = '';
+  openModal('link-modal');
+  setTimeout(function(){ document.getElementById('link-text').focus(); }, 50);
+}
+function insertLink(){
+  var text = document.getElementById('link-text').value.trim();
+  var url  = document.getElementById('link-url').value.trim();
+  if (!url){ toast('Enter a URL first', 'err'); return; }
+  if (!text) text = url;
+  var html = '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(text) + '</a>';
+  var editor = document.getElementById('editor-body');
+  editor.focus();
+  var range = _savedRange || currentEditorRange();
+  var result = insertHtmlAtRange(range, html);
+  window.getSelection().removeAllRanges();
+  if (result.last) placeCaretAfter(result.last);
+  closeModal('link-modal');
+}
+
+// ── Field readers with fallback defaults ──
+function titleValue(){ return document.getElementById('gc-title').textContent.trim(); }
+function authorValue(){ return document.getElementById('gc-author').textContent.trim(); }
+function currentSlug(){ return toSlug(titleValue()) || 'guide'; }
+function autoSummary(){
+  var text = document.getElementById('editor-body').textContent.replace(/\s+/g,' ').trim();
+  if (!text) return '';
+  return text.length > 155 ? text.slice(0,155).trim() + '…' : text;
+}
+
+// ── Generate HTML ──
+function getExportBody(){
+  var clone = document.getElementById('editor-body').cloneNode(true);
+  clone.querySelectorAll('img[data-export-src]').forEach(function(img){
+    img.setAttribute('src', img.getAttribute('data-export-src'));
+    img.removeAttribute('data-export-src');
+  });
+  return clone.innerHTML;
+}
+
+function generateHtml(){
+  var id      = currentSlug();
+  var title   = titleValue() || 'Guide';
+  var summary = autoSummary();
+  var author  = authorValue() || 'Pixel Community';
+  var dateV   = document.getElementById('gc-date').value;
+  var game    = document.getElementById('gc-game').value || '';
+  var body    = getExportBody();
+  var dateStr = dateV ? new Date(dateV+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '';
+
+  return [
+'<!DOCTYPE html>',
+'<html lang="en">',
+'<head>',
+'  <meta charset="UTF-8" />',
+'  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+'  <title>'+esc(title)+' — Pixel Community</title>',
+'  <meta name="description" content="'+escAttr(summary)+'" />',
+'  <meta name="author" content="'+escAttr(author)+'" />',
+'  <meta property="og:type" content="article" />',
+'  <meta property="og:title" content="'+escAttr(title)+'" />',
+'  <meta property="og:description" content="'+escAttr(summary)+'" />',
+(dateV ? '  <meta property="article:published_time" content="'+dateV+'" />' : ''),
+'  <link rel="preconnect" href="https://fonts.googleapis.com" />',
+'  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />',
+'  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />',
+'  <link rel="stylesheet" href="../css/main.css" />',
+'  <style>',
+'    body { background: var(--blue-pale, #e8faff); }',
+'    .guide-wrap { max-width:780px; margin:0 auto; padding:2rem 1.25rem 4rem; }',
+'    .guide-back { display:inline-flex;align-items:center;gap:6px;color:var(--blue,#00c6ff);font-size:13px;font-weight:700;text-decoration:none;margin-bottom:1.5rem;transition:opacity .15s; }',
+'    .guide-back:hover { opacity:.75; }',
+'    .guide-game { font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--blue,#00c6ff);margin-bottom:8px; }',
+'    .guide-title { font-size:clamp(22px,4vw,34px);font-weight:800;color:var(--blue-deep,#003d52);margin:0 0 10px;line-height:1.2; }',
+'    .guide-meta { font-size:13px;color:var(--gray-muted,#64748b);margin-bottom:1.5rem;font-weight:500; }',
+'    .guide-banner { width:100%;aspect-ratio:16/7;object-fit:cover;border-radius:12px;margin-bottom:2rem;display:block; }',
+'    .guide-banner-ph { width:100%;aspect-ratio:16/7;background:var(--blue-light,#cff4ff);border-radius:12px;margin-bottom:2rem;display:flex;align-items:center;justify-content:center;color:var(--blue-mid,#00aadd); }',
+'    .guide-banner-ph svg { width:56px;height:56px; }',
+'    .guide-body { font-size:15px;line-height:1.85;color:#1e293b; }',
+'    .guide-body h2 { font-size:22px;font-weight:800;color:var(--blue-deep,#003d52);margin:2rem 0 .75rem;padding-bottom:8px;border-bottom:2px solid var(--blue-light,#cff4ff); }',
+'    .guide-body h3 { font-size:17px;font-weight:700;color:var(--blue-deep,#003d52);margin:1.5rem 0 .5rem; }',
+'    .guide-body p  { margin:0 0 1rem; }',
+'    .guide-body ul,.guide-body ol { margin:0 0 1rem;padding-left:1.5rem; }',
+'    .guide-body li { margin-bottom:.4rem; }',
+'    .guide-body blockquote { border-left:4px solid var(--blue,#00c6ff);background:var(--blue-pale,#e8faff);padding:14px 18px;margin:1.5rem 0;border-radius:0 8px 8px 0;font-style:italic;color:var(--blue-deep,#003d52); }',
+'    .guide-body img { max-width:100%;border-radius:8px;margin:1rem 0;display:block; }',
+'    .guide-body a { color:var(--blue,#00c6ff);font-weight:700;text-decoration:none; }',
+'    .guide-body a:hover { text-decoration:underline; }',
+'    .guide-body hr { border:none;border-top:2px solid var(--blue-light,#cff4ff);margin:2rem 0; }',
+'    .guide-body .tip-box  { background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:12px 16px;margin:1rem 0; }',
+'    .guide-body .warn-box { background:#fff1f2;border:1.5px solid #fca5a5;border-radius:8px;padding:12px 16px;margin:1rem 0; }',
+'    .guide-body .info-box { background:var(--blue-pale,#e8faff);border:1.5px solid var(--blue-light,#cff4ff);border-radius:8px;padding:12px 16px;margin:1rem 0; }',
+'    .guide-footer { margin-top:3rem;padding-top:1.5rem;border-top:2px solid var(--blue-light,#cff4ff);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px; }',
+'    .guide-footer-author { font-size:13px;font-weight:700;color:var(--gray-muted,#64748b); }',
+'    .share-btn { padding:6px 14px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--blue-light,#cff4ff);background:white;color:var(--blue,#00c6ff);text-decoration:none;transition:all .12s; }',
+'    .share-btn:hover { background:var(--blue,#00c6ff);color:white; }',
+'    @media(max-width:600px){.guide-wrap{padding:1rem 1rem 3rem;}}',
+'  </style>',
+'</head>',
+'<body>',
+'<header class="hub-header">',
+'  <div class="header-inner">',
+'    <a href="../index.html" class="logo"><img src="../ui/logo.png" alt="Pixel Community" onerror="this.style.display=\'none\'" /><span class="logo-name">Pixel<span>Community</span></span></a>',
+'    <nav class="header-nav"><a href="../index.html">Home</a><a href="../news.html">News</a><a href="../forum.html">Forum</a><a href="../tools.html">Tools</a><a href="../guides.html" class="active">Guides</a></nav>',
+'    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>Join Discord</a>',
+'    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>',
+'  </div>',
+'  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true"><a href="../index.html">Home</a><a href="../news.html">News</a><a href="../forum.html">Forum</a><a href="../tools.html">Tools</a><a href="../guides.html">Guides</a></nav>',
+'</header>',
+'<main class="guide-wrap">',
+'  <a href="../guides.html" class="guide-back">← Back to Guides</a>',
+(game ? '  <div class="guide-game">'+esc(game)+'</div>' : ''),
+'  <h1 class="guide-title">'+esc(title)+'</h1>',
+'  <div class="guide-meta">'+esc([dateStr,'by '+author].filter(Boolean).join(' · '))+'</div>',
+'  <img src="../ui/guides/'+escAttr(id)+'.png" alt="'+escAttr(title)+'" class="guide-banner" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';" />',
+'  <div class="guide-banner-ph" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>',
+'  <div class="guide-body">',
+body,
+'  </div>',
+'  <div class="guide-footer">',
+'    <div class="guide-footer-author">Written by '+esc(author)+'</div>',
+'    <div style="display:flex;gap:8px;"><a class="share-btn" href="../guides.html">← More Guides</a><button class="share-btn" onclick="navigator.clipboard.writeText(window.location.href).then(function(){this.textContent=\'Copied!\';var b=this;setTimeout(function(){b.textContent=\'Share\';},1500);}.bind(this))">Share</button></div>',
+'  </div>',
+'</main>',
+'<footer class="hub-footer"><div class="footer-inner"><div class="footer-links"><a href="../index.html">Home</a></div><p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p></div></footer>',
+'<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"><\/script>',
+'<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"><\/script>',
+'<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"><\/script>',
+'<script src="../js/bottom-bar-loader.js"><\/script>',
+'<script>(function(){var b=document.getElementById("hamburger"),m=document.getElementById("mobile-menu");if(!b)return;b.addEventListener("click",function(){var o=m.classList.toggle("open");b.setAttribute("aria-expanded",o);m.setAttribute("aria-hidden",!o);});m.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){m.classList.remove("open");b.setAttribute("aria-expanded","false");m.setAttribute("aria-hidden","true");});});})();<\/script>',
+'</body>',
+'</html>'
+  ].filter(function(l){ return l !== ''; }).join('\n');
+}
+
+// ── Export ──
+function openExportModal(){
+  var missing = [];
+  if (!titleValue())  missing.push('title ("Guide")');
+  if (!authorValue()) missing.push('author ("Pixel Community")');
+  if (!bannerImage)   missing.push('banner image');
+
+  var notice = document.getElementById('export-notice');
+  if (missing.length){
+    document.getElementById('export-notice-text').innerHTML =
+      'Using default <strong>' + missing.join('</strong>, <strong>') + '</strong> since it hasn\'t been set. You can still export, or go back and fill it in first.';
+    notice.style.display = 'flex';
+  } else {
+    notice.style.display = 'none';
+  }
+
+  var id = currentSlug();
+  var n = Object.keys(uploadedImages).length;
+  document.getElementById('export-summary').textContent = id + '.zip' + (n ? '  ·  ' + n + ' image' + (n>1?'s':'') + ' included' : '');
+  openModal('export-modal');
+}
+
+async function exportZip(){
+  var id = currentSlug();
+  var html = generateHtml();
+  var zip = new JSZip();
+
+  zip.file('guides/' + id + '.html', html);
+
+  if (bannerImage){
+    try {
+      var bannerB64 = await toPngBase64(bannerImage.dataUrl);
+      zip.file('ui/guides/' + id + '.png', bannerB64, { base64: true });
+    } catch(err){ /* if conversion fails, export still proceeds without the banner */ }
+  }
+
+  var imgKeys = Object.keys(uploadedImages);
+  imgKeys.forEach(function(fname){
+    var img = uploadedImages[fname];
+    var b64 = img.dataUrl.split(',')[1];
+    zip.file('ui/guide/' + id + '/' + fname, b64, { base64: true });
+  });
+
+  var blob = await zip.generateAsync({ type: 'blob' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href = url; a.download = id + '.zip'; a.click();
+  URL.revokeObjectURL(url);
+  toast('Downloaded ' + id + '.zip — join Discord to send it over', 'ok');
+}
+
+// ── Helpers ──
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function toast(msg, type){
+  var el=document.getElementById('toast');
+  var icon = type==='err'
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  el.innerHTML = icon + '<span>' + esc(msg) + '</span>';
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(el._t); el._t = setTimeout(function(){ el.className = 'toast'; }, 2200);
+}
+</script>
+</body>
+</html>
