@@ -12,79 +12,75 @@
   <style>
     /* ── Hero ── */
     .tools-hero {
-      background: linear-gradient(135deg, var(--blue-deep) 0%, #0a2a3f 100%);
-      padding: 0.5rem 1.5rem 1rem;
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      position: relative; overflow: hidden;
+      background-image: url('ui/tile.png'); background-repeat: repeat;
+      animation: tools-tile-pan 30s linear infinite;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      gap: 12px; padding: 20px 1.5rem 24px;
     }
-    .tools-hero-banner-img {
-      height: 72px; width: auto; display: block;
+    .tools-hero::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
     }
-    .tools-search-hero {
-      max-width: 640px; width: 100%;
-      display: flex; gap: 0; align-items: stretch;
+    @keyframes tools-tile-pan {
+      from { background-position: 0 0; }
+      to   { background-position: 400px 400px; }
     }
+    .tools-hero-banner-img { position: relative; z-index: 1; height: 72px; width: auto; display: block; }
+
+    .tools-search-hero { position: relative; z-index: 1; max-width: 560px; width: 100%; }
     .tools-search-hero-box {
-      flex: 1; display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.1);
-      border: 1.5px solid rgba(255,255,255,0.2);
-      border-right: none;
-      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-      padding: 9px 14px;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .tools-search-hero-box:focus-within {
+      display: flex; align-items: center; gap: 8px;
       background: rgba(255,255,255,0.18);
-      border-color: rgba(255,255,255,0.45);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255,255,255,0.8);
+      border-radius: var(--radius-sm);
+      padding: 9px 14px; transition: background 0.15s;
     }
-    .tools-search-hero-box svg { flex-shrink: 0; }
+    .tools-search-hero-box:focus-within { background: rgba(255,255,255,0.3); }
+    .tools-search-hero-box svg { flex-shrink: 0; color: var(--blue-deep); }
     .tools-search-hero-box input {
       flex: 1; border: none; background: transparent;
       font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 600;
-      color: white; outline: none;
+      color: var(--blue-deep); outline: none;
     }
-    .tools-search-hero-box input::placeholder { color: rgba(255,255,255,0.4); }
-    .tools-search-hero-btn {
-      padding: 9px 18px;
-      background: #00c6ff; color: var(--blue-deep); border: none;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 800;
-      cursor: pointer; white-space: nowrap; transition: background 0.15s;
-    }
-    .tools-search-hero-btn:hover { background: #33d4ff; }
+    .tools-search-hero-box input::placeholder { color: rgba(17,17,17,0.45); }
 
     /* ── Layout ── */
-    .tools-layout {
-      max-width: 1200px; margin: 0 auto; padding: 0.5rem 1.25rem 3rem;
-    }
+    .tools-layout { max-width: 1200px; margin: 0 auto; padding: 1rem 1.25rem 3rem; }
 
-    /* ── Filter pills ── */
+    /* ── Game filter: single scrollable row, never wraps ── */
+    .tools-filters-wrap { position: relative; z-index: 1; max-width: 720px; width: 100%; }
     .tools-filters {
-      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem;
-      align-items: center;
+      display: flex; flex-wrap: nowrap; overflow-x: auto;
+      gap: 2px; align-items: center; padding: 0 6px;
+      scrollbar-width: none; -ms-overflow-style: none;
     }
+    .tools-filters::-webkit-scrollbar { display: none; }
     .tool-pill {
-      padding: 5px 16px; border-radius: 9999px;
-      border: 1.5px solid var(--blue-light); background: white;
-      font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 700;
-      color: var(--blue); cursor: pointer;
-      transition: background 0.12s, color 0.12s, border-color 0.12s, box-shadow 0.12s;
+      flex: 0 0 auto; padding: 5px 14px; border-radius: 9999px; border: none;
+      background: white; font-family: 'Baloo 2', cursive; font-size: 13px; font-weight: 700;
+      color: var(--blue); cursor: pointer; transition: background 0.12s, color 0.12s;
     }
     .tool-pill:hover  { background: var(--blue-pale); }
-    .tool-pill.active { background: var(--blue); color: white; border-color: var(--blue); }
-    /* Icon pills — just the image, no text, no background, no rounding */
-    .tool-pill-icon {
-      padding: 3px; background: transparent; border-color: transparent;
-      display: flex; align-items: center; justify-content: center;
-    }
+    .tool-pill.active { background: var(--blue); color: white; }
+    .tool-pill-icon { padding: 2px; background: transparent; display: flex; align-items: center; justify-content: center; }
+    .tool-pill-icon:hover { background: transparent; }
+    .tool-pill-icon.active { background: transparent; }
     .tool-pill-icon img {
-      width: 36px; height: 36px; object-fit: contain; display: block;
-      transition: transform 0.12s, opacity 0.12s;
-      opacity: 0.7;
+      width: 44px; height: 44px; object-fit: contain; display: block;
+      transition: transform 0.12s, opacity 0.12s; opacity: 0.6;
     }
-    .tool-pill-icon:hover { background: transparent; border-color: transparent; }
-    .tool-pill-icon:hover img { opacity: 1; transform: scale(1.1); }
-    .tool-pill-icon.active { background: transparent; border-color: transparent; box-shadow: none; }
-    .tool-pill-icon.active img { opacity: 1; transform: scale(1.15); }
+    .tool-pill-icon:hover img { opacity: 1; transform: scale(1.08); }
+    .tool-pill-icon.active img { opacity: 1; transform: scale(1.12); }
+
+    .filters-glow {
+      position: absolute; top: 0; bottom: 0; width: 36px;
+      pointer-events: none; opacity: 0; transition: opacity 0.15s;
+    }
+    .filters-glow.left  { left: 0;  background: linear-gradient(to right, rgba(255,255,255,0.95), transparent); }
+    .filters-glow.right { right: 0; background: linear-gradient(to left,  rgba(255,255,255,0.95), transparent); }
+    .filters-glow.visible { opacity: 1; }
 
     /* ── Tool grid ── */
     .tools-full-grid {
@@ -94,7 +90,7 @@
     }
     .tool-card {
       border-radius: var(--radius-md); overflow: hidden;
-      border: 1.5px solid var(--blue-light); background: white;
+      border: 3px solid var(--blue-light); background: white;
       text-decoration: none; color: inherit;
       display: flex; flex-direction: column;
       transition: border-color 0.15s, transform 0.15s;
@@ -105,10 +101,6 @@
       background: var(--blue-pale); flex-shrink: 0;
     }
     .tool-card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .tool-card-thumb-placeholder {
-      width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center; font-size: 38px;
-    }
     .tool-card-thumb .tool-badge {
       position: absolute; top: 8px; right: 8px;
       font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
@@ -123,6 +115,21 @@
     }
     .tool-card-name { font-size: 14px; font-weight: 800; color: var(--blue-deep); margin-bottom: 4px; }
     .tool-card-desc { font-size: 12px; color: var(--gray-mid); line-height: 1.4; }
+
+    /* ── Sections ── */
+    .tools-section { margin-bottom: 2rem; }
+    .tools-section-head { margin-bottom: 0.75rem; }
+    .tools-section-title { font-size: 20px; font-weight: 800; color: var(--blue-deep); }
+    .tools-section-sub { font-size: 12px; color: var(--gray-mid); }
+    .tools-section.outdated .tools-section-title { color: #92400E; }
+    .tools-section.offline .tools-section-title { color: var(--red); }
+
+    /* ── Status borders ── */
+    .tool-card { border-color: var(--gray-border); }
+    .outdated .tool-card { border-color: #F59E0B; }
+    .outdated .tool-card:hover { border-color: #D97706; }
+    .offline .tool-card { border-color: #DC2626; }
+    .offline .tool-card:hover { border-color: #B91C1C; }
     .tools-no-results {
       display: none; padding: 3rem; text-align: center;
       font-size: 14px; color: var(--gray-muted); grid-column: 1 / -1;
@@ -132,8 +139,6 @@
 
     @media (max-width: 600px) {
       .tools-full-grid { grid-template-columns: 1fr; }
-      .tools-hero-overlay { padding: 0 1rem 1rem; }
-      .tools-hero-img { max-height: 160px; }
     }
   </style>
 </head>
@@ -182,203 +187,226 @@
        onerror="this.style.display='none'" />
   <div class="tools-search-hero">
     <div class="tools-search-hero-box">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.5">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
-      <input type="text" id="tools-search" placeholder="Search tools…"
-             autocomplete="off" oninput="filterTools()" />
+      <input type="text" id="tools-search" placeholder="Search tools…" autocomplete="off" oninput="filterTools()" />
     </div>
-    <button class="tools-search-hero-btn" onclick="filterTools()">Search</button>
+  </div>
+
+  <div class="tools-filters-wrap">
+    <div class="tools-filters" id="tools-filters">
+      <button class="tool-pill active" data-filter="all" onclick="setPill(this)">All</button>
+      <button class="tool-pill tool-pill-icon" data-filter="rbr" onclick="setPill(this)">
+        <img src="ui/icons/rocketbotroyale.png" alt="Rocket Bot Royale" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="gd" onclick="setPill(this)">
+        <img src="ui/icons/gooberdash.png" alt="Goober Dash" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="projectgatherwood" onclick="setPill(this)">
+        <img src="ui/icons/projectgatherwood.png" alt="Project Gatherwood" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="broski" onclick="setPill(this)">
+        <img src="ui/icons/broski.png" alt="Broski" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="bigbattlemini" onclick="setPill(this)">
+        <img src="ui/icons/bigbattlemini.png" alt="Big Battle Mini" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="gooberroyale" onclick="setPill(this)">
+        <img src="ui/icons/gooberroyale.png" alt="Goober Royale" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="goobershot" onclick="setPill(this)">
+        <img src="ui/icons/goobershot.png" alt="Goober Shot" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="gooberworld" onclick="setPill(this)">
+        <img src="ui/icons/gooberworld.png" alt="Goober World" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="bobble" onclick="setPill(this)">
+        <img src="ui/icons/bobble.png" alt="Bobble" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="balloon" onclick="setPill(this)">
+        <img src="ui/icons/balloon.png" alt="Balloon" />
+      </button>
+      <button class="tool-pill tool-pill-icon" data-filter="moonrockminers" onclick="setPill(this)">
+        <img src="ui/icons/moonrockminers.png" alt="Moon Rock Miners" />
+      </button>
+      <button class="tool-pill" data-filter="other" onclick="setPill(this)">Other</button>
+    </div>
+    <div class="filters-glow left" id="filters-glow-left"></div>
+    <div class="filters-glow right" id="filters-glow-right"></div>
   </div>
 </div>
 
 <!-- ===================== MAIN ===================== -->
 <main class="tools-layout">
 
-  <div class="tools-filters">
-    <button class="tool-pill active" data-filter="all" onclick="setPill(this)">All</button>
-    <button class="tool-pill tool-pill-icon" data-filter="rbr" onclick="setPill(this)">
-      <img src="ui/icons/rocketbotroyale.png" alt="Rocket Bot Royale" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="gd" onclick="setPill(this)">
-      <img src="ui/icons/gooberdash.png" alt="Goober Dash" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="projectgatherwood" onclick="setPill(this)">
-      <img src="ui/icons/projectgatherwood.png" alt="Project Gatherwood" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="broski" onclick="setPill(this)">
-      <img src="ui/icons/broski.png" alt="Broski" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="bigbattlemini" onclick="setPill(this)">
-      <img src="ui/icons/bigbattlemini.png" alt="Big Battle Mini" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="gooberroyale" onclick="setPill(this)">
-      <img src="ui/icons/gooberroyale.png" alt="Goober Royale" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="goobershot" onclick="setPill(this)">
-      <img src="ui/icons/goobershot.png" alt="Goober Shot" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="gooberworld" onclick="setPill(this)">
-      <img src="ui/icons/gooberworld.png" alt="Goober World" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="bobble" onclick="setPill(this)">
-      <img src="ui/icons/bobble.png" alt="Bobble" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="balloon" onclick="setPill(this)">
-      <img src="ui/icons/balloon.png" alt="Balloon" />
-    </button>
-    <button class="tool-pill tool-pill-icon" data-filter="moonrockminers" onclick="setPill(this)">
-      <img src="ui/icons/moonrockminers.png" alt="Moon Rock Miners" />
-    </button>
-    <button class="tool-pill" data-filter="other" onclick="setPill(this)">Other</button>
-  </div>
+    <section class="tools-section active" data-section="active">
+    <div class="tools-full-grid">
 
-  <div class="tools-full-grid" id="tools-grid">
-
-    <a href="stats.html" class="tool-card" data-game="rbr"
-       data-name="Player Stats Tracker" data-desc="look up any player stats history kdr winrate">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/rbruserstats.png" alt="Player Stats Tracker"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">📊</div>
-        <span class="tool-badge new">Updated</span>
-      </div>
+    <a href="stats.html" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/rbruserstats.png" alt=""><span class="tool-badge new">Updated</span></div>
       <div class="tool-card-body">
-        <div class="tool-card-game">Rocket Bot Royale</div>
         <div class="tool-card-name">Player Stats Tracker</div>
         <div class="tool-card-desc">Look up any player by username, User ID, or friend code. Tracks stats over time with history graphs.</div>
       </div>
     </a>
 
-    <a href="cosmetics.html" class="tool-card" data-game="rbr"
-       data-name="Player Cosmetics Tracker" data-desc="cosmetics tanks badges trails parachutes collection history">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/rbrcosmetics.png" alt="Player Cosmetics Tracker"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">🎨</div>
-        <span class="tool-badge new">New</span>
-      </div>
+    <a href="cosmetics.html" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/rbrcosmetics.png" alt=""><span class="tool-badge new">New</span></div>
       <div class="tool-card-body">
-        <div class="tool-card-game">Rocket Bot Royale</div>
         <div class="tool-card-name">Player Cosmetics Tracker</div>
         <div class="tool-card-desc">View all cosmetics at once from any player! Also has history!</div>
       </div>
     </a>
 
-    <a href="friends.html" class="tool-card" data-game="rbr"
-       data-name="Friend Manager" data-desc="manage friends accept decline remove activity">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/rbrmanagefriends.png" alt="Friend Manager"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">🤝</div>
-      </div>
+    <a href="friends.html" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/rbrmanagefriends.png" alt=""></div>
       <div class="tool-card-body">
-        <div class="tool-card-game">Rocket Bot Royale</div>
         <div class="tool-card-name">Friend Manager</div>
         <div class="tool-card-desc">View, sort, and manage your friends list. Accept or decline requests, remove inactive players in bulk.</div>
       </div>
     </a>
 
-    <a href="https://orbitrbr.netlify.app/" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
-       data-name="Best RBR Analysis" data-desc="analysis stats leaderboard">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/HormaRBRanalysis.png" alt="Best RBR Analysis"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">📈</div>
-      </div>
+    <a href="moddedrbr.html" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/rbrmodded.png" alt=""></div>
       <div class="tool-card-body">
-        <div class="tool-card-game">Rocket Bot Royale</div>
-        <div class="tool-card-name">Best RBR Analysis</div>
-        <div class="tool-card-desc">Probably the best stats site and leaderboards tracking, also has custom lobby controller!</div>
+        <div class="tool-card-name">Play Modded RBR</div>
+        <div class="tool-card-desc">Play modded versions of Rocket Bot Royale, made by SPG_Adrien.</div>
       </div>
     </a>
 
-    <a href="https://rbr.sebastian-105.com/stats" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
-       data-name="RBR Stats and Leaderboards by Sebastian" data-desc="RBR Stats and Leaderboards by Sebastian">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/sebrbruserstats.png" alt="RBR Stats and Leaderboards"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">📈</div>
-      </div>
+    <a href="https://matrixical.github.io/gather/" class="tool-card" data-game="projectgatherwood">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/gatherwoodinfo.png" alt=""></div>
       <div class="tool-card-body">
-        <div class="tool-card-game">Rocket Bot Royale</div>
+        <div class="tool-card-name">Project Gatherwood Info</div>
+        <div class="tool-card-desc">Enemy and item info for Project Gatherwood, all in one place.</div>
+      </div>
+    </a>
+
+    <a href="https://gooberstats.netlify.app/" class="tool-card" data-game="gd">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/gdstats.png" alt=""></div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">Goober Dash User Stats</div>
+        <div class="tool-card-desc">Goober Dash stats and leaderboards, made by Matrixical.</div>
+      </div>
+    </a>
+
+    <a href="https://rbr.sebastian-105.com/stats" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/sebrbruserstats.png" alt=""></div>
+      <div class="tool-card-body">
         <div class="tool-card-name">RBR Stats &amp; Leaderboards</div>
         <div class="tool-card-desc">Individual stats and leaderboards for every season.</div>
       </div>
     </a>
 
-    <a href="https://rbrtiers.onrender.com/" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
-       data-name="RBR Tiers" data-desc="tier list rankings players leaderboard">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/RBRTiers.png" alt="RBR Tiers"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">🏆</div>
-      </div>
+    <a href="https://orbitrbr.netlify.app/" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/HormaRBRanalysis.png" alt=""></div>
       <div class="tool-card-body">
-        <div class="tool-card-game">Rocket Bot Royale</div>
-        <div class="tool-card-name">RBR Tiers</div>
-        <div class="tool-card-desc">Community player tier list and rankings for Rocket Bot Royale.</div>
+        <div class="tool-card-name">Best RBR Analysis</div>
+        <div class="tool-card-desc">Probably the best stats site and leaderboards tracking, also has custom lobby controller!</div>
       </div>
     </a>
 
-    <a href="https://winterpixelcheats.netlify.app/crateopening" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
-       data-name="RBR Crate Opener" data-desc="open crates automatic bulk">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/rbrcrateopener.png" alt="RBR Crate Opener"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">📦</div>
-      </div>
+    <a href="https://twhlynch.me/goober-dash-level-modding/?tab=tools" class="tool-card" data-game="gd">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/gdmodding.png" alt=""></div>
       <div class="tool-card-body">
-        <div class="tool-card-game">Rocket Bot Royale</div>
-        <div class="tool-card-name">RBR Crate Opener</div>
-        <div class="tool-card-desc">Opens all your crates at once so you never have to click one by one.</div>
-      </div>
-    </a>
-
-    <a href="https://wph.ambersys.app/acrv2/" class="tool-card" data-game="rbr" target="_blank" rel="noopener"
-       data-name="RBR ACR" data-desc="automatic coin redeemer daily coins">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/rbracr.png" alt="RBR ACR"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">🪙</div>
-      </div>
-      <div class="tool-card-body">
-        <div class="tool-card-game">Rocket Bot Royale</div>
-        <div class="tool-card-name">RBR ACR</div>
-        <div class="tool-card-desc">Automatic Coin Redeemer — claims your daily coins without manual effort.</div>
-      </div>
-    </a>
-
-    <a href="https://twhlynch.me/goober-dash-level-modding/?tab=tools" class="tool-card" data-game="gd" target="_blank" rel="noopener"
-       data-name="GD Modding" data-desc="goober dash mods modding tools resources">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/gdmodding.png" alt="GD Modding"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">🔧</div>
-      </div>
-      <div class="tool-card-body">
-        <div class="tool-card-game">Goober Dash</div>
         <div class="tool-card-name">GD Modding</div>
         <div class="tool-card-desc">Tools and resources for creating and applying Goober Dash mods.</div>
       </div>
     </a>
 
-    <a href="https://winterpixelthumbnails.netlify.app/" class="tool-card" data-game="other" target="_blank" rel="noopener"
-       data-name="Winterpixel Thumbnails" data-desc="thumbnails images free graphics">
-      <div class="tool-card-thumb">
-        <img src="ui/thumbnails/pixelthumbnails.png" alt="Winterpixel Thumbnails"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-        <div class="tool-card-thumb-placeholder" style="display:none;">🖼️</div>
-      </div>
+    <a href="https://winterpixelthumbnails.netlify.app/" class="tool-card" data-game="other">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/pixelthumbnails.png" alt=""></div>
       <div class="tool-card-body">
-        <div class="tool-card-game">All Games</div>
         <div class="tool-card-name">Winterpixel Thumbnails</div>
         <div class="tool-card-desc">Free high-quality thumbnails for all Winterpixel games.</div>
       </div>
     </a>
 
-    <div class="tools-no-results" id="tools-no-results">No tools found.</div>
-  </div>
+    </div>
+  </section>
+
+  <section class="tools-section outdated" data-section="outdated">
+    <div class="tools-section-head">
+      <h2 class="tools-section-title">Outdated</h2>
+      <p class="tools-section-sub">Still online, but may be broken or no longer fully working. Use with caution.</p>
+    </div>
+    <div class="tools-full-grid">
+
+    <a href="https://wph.ambersys.app/acrv2/" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/rbracr.png" alt=""></div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">RBR ACR</div>
+        <div class="tool-card-desc">Automatic Coin Redeemer, automatically claims 100 coins every 30 min</div>
+      </div>
+    </a>
+    
+    <a href="https://winterpixelcheats.netlify.app/gooberdashacr" class="tool-card" data-game="gd">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/gdallinoneacr.png" alt=""></div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">GD automatic Collector</div>
+        <div class="tool-card-desc">Collects coins, spins, and gems</div>
+      </div>
+    </a>
+
+    <a href="https://winterpixelcheats.netlify.app/crateopening" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/rbrcrateopener.png" alt=""></div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">RBR Crate Opener</div>
+        <div class="tool-card-desc">Opens all your crates at once so you never have to click one by one.</div>
+      </div>
+    </a>
+    <a href="https://winterpixelcheats.netlify.app/acceptallfriends" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/acceptallfriends.png" alt="Accept all friends in Rocket Bot Royale"></div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">RBR Accept All Friends</div>
+        <div class="tool-card-desc">Easily accepts all of your rbr friend requests if you have too many</div>
+      </div>
+    </a>
+    <a href="https://winterpixelcheats.netlify.app/declineallfriends" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/declineallfriends.png" alt="Declines all friends in Rocket Bot Royale"></div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">RBR Decline All Friends</div>
+        <div class="tool-card-desc">Easily decline all of your rbr friend requests if you have too many</div>
+      </div>
+    </a>
+    <a href="https://winterpixelcheats.netlify.app/randomizetanks" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/tankrandomizer.png" alt="Randomize your rocket bot royale cosmetics/skin easily!"></div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">RBR Tank Randomizer</div>
+        <div class="tool-card-desc">Randomize your skin every round!</div>
+      </div>
+    </a>
+
+    </div>
+  </section>
+
+  <section class="tools-section offline" data-section="offline">
+    <div class="tools-section-head">
+      <h2 class="tools-section-title">Offline</h2>
+      <p class="tools-section-sub">These sites are currently down and can’t be used.</p>
+    </div>
+    <div class="tools-full-grid">
+
+    <a href="https://rbrtiers.onrender.com/" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/RBRTiers.png" alt=""></div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">RBR Tiers</div>
+        <div class="tool-card-desc">Community player tier list and rankings for Rocket Bot Royale.</div>
+      </div>
+    </a>
+    <a href="https://winterpixelgames.com" class="tool-card" data-game="rbr">
+      <div class="tool-card-thumb"><img src="ui/thumbnails/gduserstats.png" alt=""></div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">Goober Dash User Stats</div>
+        <div class="tool-card-desc">TaNk8k site for goober dash leaderboard and other tools</div>
+      </div>
+    </a>
+
+    </div>
+  </section>
+
+  <div class="tools-no-results" id="tools-no-results">No tools found.</div>
 
 </main>
 
@@ -415,6 +443,19 @@
   });
 })();
 
+(function() {
+  var el = document.getElementById('tools-filters');
+  var left = document.getElementById('filters-glow-left');
+  var right = document.getElementById('filters-glow-right');
+  function update() {
+    left.classList.toggle('visible', el.scrollLeft > 4);
+    right.classList.toggle('visible', el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  }
+  el.addEventListener('scroll', update);
+  window.addEventListener('resize', update);
+  setTimeout(update, 50);
+})();
+
 /* ── Filter / search ── */
 var _activeFilter = 'all';
 
@@ -427,20 +468,34 @@ function setPill(btn) {
 
 function filterTools() {
   var q = (document.getElementById('tools-search').value || '').toLowerCase();
-  var cards = document.querySelectorAll('.tool-card');
-  var visible = 0;
-  cards.forEach(function(card) {
-    var gameMatch = _activeFilter === 'all' || card.dataset.game === _activeFilter;
-    var name      = (card.dataset.name || '').toLowerCase();
-    var desc      = (card.dataset.desc || '').toLowerCase();
-    var textMatch = !q || name.includes(q) || desc.includes(q);
-    var show      = gameMatch && textMatch;
-    card.style.display = show ? '' : 'none';
-    if (show) visible++;
+  var total = 0;
+  document.querySelectorAll('.tools-section').forEach(function(section) {
+    var shown = 0;
+    section.querySelectorAll('.tool-card').forEach(function(card) {
+      var gameMatch = _activeFilter === 'all' || card.dataset.game === _activeFilter;
+      var textMatch = !q || card.querySelector('.tool-card-body').textContent.toLowerCase().includes(q);
+      var show = gameMatch && textMatch;
+      card.style.display = show ? '' : 'none';
+      if (show) shown++;
+    });
+    section.style.display = shown ? '' : 'none';
+    total += shown;
   });
-  document.getElementById('tools-no-results').style.display = visible === 0 ? 'block' : 'none';
+  document.getElementById('tools-no-results').style.display = total === 0 ? 'block' : 'none';
 }
 
+/* ── Card setup: game label from the filter icons, external links open in a new tab ── */
+document.querySelectorAll('.tool-card').forEach(function(card) {
+  var pill  = document.querySelector('.tool-pill[data-filter="' + card.dataset.game + '"] img');
+  var label = document.createElement('div');
+  label.className = 'tool-card-game';
+  label.textContent = pill ? pill.alt : 'All Games';
+  card.querySelector('.tool-card-body').prepend(label);
+  if (/^https?:/.test(card.getAttribute('href'))) {
+    card.target = '_blank';
+    card.rel = 'noopener';
+  }
+});
 
 </script>
 
