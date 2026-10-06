@@ -5,10 +5,12 @@
   var base = loaderSrc.substring(0, loaderSrc.lastIndexOf('/js/'));
   var barUrl = base + '/bottom-bar.html';
 
-  function loadScript(src) {
+  var FIREBASE_SDK = 'https://www.gstatic.com/firebasejs/9.23.0/';
+
+  // isLoaded: skip the download when the page already loaded that part
+  function loadScript(src, isLoaded) {
     return new Promise(function(resolve, reject) {
-      // Don't load twice if already present
-      if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+      if ((isLoaded && isLoaded()) || document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
       var s = document.createElement('script');
       s.src = src;
       s.onload  = resolve;
@@ -18,9 +20,9 @@
   }
 
   // 1. Load Firebase SDK scripts in order (they must be sequential, not parallel)
-  loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
-    .then(function() { return loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js'); })
-    .then(function() { return loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js'); })
+  loadScript(FIREBASE_SDK + 'firebase-app-compat.js', function() { return !!window.firebase; })
+    .then(function() { return loadScript(FIREBASE_SDK + 'firebase-auth-compat.js', function() { return !!firebase.auth; }); })
+    .then(function() { return loadScript(FIREBASE_SDK + 'firebase-firestore-compat.js', function() { return !!firebase.firestore; }); })
     .then(function() {
       // 2. Now fetch bottom-bar.html
       return fetch(barUrl);

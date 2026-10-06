@@ -1,0 +1,440 @@
+<!-- Player hub · Skins tab. Loaded into player.html by RBRHub; not a standalone page. -->
+<style>
+  .sk-title { font-size: 30px; font-weight: 800; color: var(--blue-deep); letter-spacing: 0.5px; text-transform: uppercase; margin: 0 0 8px; line-height: 1; }
+  .sk-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sk-subtabs { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .sk-subtab {
+    padding: 5px 18px; border-radius: var(--radius-full);
+    border: 2px solid var(--blue-light); background: white;
+    font-size: 14px; font-weight: 800; color: var(--gray-mid);
+    transition: border-color var(--transition), color var(--transition), background var(--transition);
+  }
+  .sk-subtab:hover { border-color: var(--blue); color: var(--blue-deep); }
+  .sk-subtab.active { background: var(--blue-deep); border-color: var(--blue-deep); color: white; }
+  .sk-counts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sk-count {
+    font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: var(--radius-full);
+    background: white; border: 1.5px solid var(--blue-light); color: var(--blue-deep);
+  }
+
+  .sk-card-box { background: white; border: 1.5px solid var(--blue-light); border-radius: var(--radius-md); overflow: hidden; }
+  .sk-gallery { padding: 14px; }
+
+  .cos-section { margin-bottom: 22px; }
+  .cos-section:last-child { margin-bottom: 0; }
+  .cos-section-title {
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.7px; color: var(--gray-muted);
+    padding: 4px 0 6px; margin-bottom: 10px; border-bottom: 1.5px solid var(--blue-light);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .cos-section-count { background: var(--blue-light); color: var(--blue-mid); font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 99px; }
+  .cos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .cos-card {
+    background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-sm);
+    padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    cursor: pointer; position: relative; transition: border-color 0.12s, background 0.12s, transform 0.1s;
+  }
+  .cos-card:hover { border-color: var(--blue); background: white; transform: translateY(-1px); }
+  .cos-card.is-equipped { border-color: var(--blue); background: white; }
+  .cos-card.is-equipped::after {
+    content: 'equipped'; position: absolute; top: -1px; right: -1px;
+    font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
+    background: var(--blue); color: var(--blue-deep); padding: 1px 5px; border-radius: 0 var(--radius-sm) 0 4px;
+  }
+  .cos-card-img { width: 76px; height: 57px; object-fit: contain; transform: scale(1.5);}
+  .cos-card-name { font-size: 10px; font-weight: 700; color: var(--blue-deep); text-align: center; line-height: 1.25; word-break: break-word; }
+  .cos-card-sub { font-size: 8px; color: var(--gray-muted); font-weight: 600; text-align: center; }
+  .cos-color-badge {
+    position: absolute; top: 4px; left: 4px; background: var(--blue-deep); color: white;
+    font-size: 9px; font-weight: 800; padding: 0 6px; border-radius: 99px; line-height: 1.5;
+  }
+
+  .sk-popup-overlay {
+    display: none; position: fixed; inset: 0; z-index: 700;
+    background: rgba(10,26,36,0.55); align-items: center; justify-content: center; padding: 1rem;
+  }
+  .sk-popup-overlay.open { display: flex; }
+  .sk-popup {
+    background: white; border-radius: var(--radius-md); border: 1.5px solid var(--blue-light);
+    padding: 12px; max-width: 480px; width: 100%; max-height: 80vh; overflow-y: auto;
+    box-shadow: 0 16px 48px rgba(10,26,36,0.3);
+  }
+  .sk-popup-title { display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 800; color: var(--blue-deep); margin-bottom: 10px; }
+  .sk-popup-close { background: none; border: none; font-size: 20px; color: var(--gray-muted); padding: 0 6px; line-height: 1; }
+  .sk-popup-close:hover { color: var(--blue-deep); }
+  .sk-popup-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; }
+  .sk-popup-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 6px; border: 1.5px solid var(--blue-light); background: var(--blue-pale); }
+  .sk-popup-item img { width: 64px; height: 48px; object-fit: contain; }
+  .sk-popup-item span { font-size: 10px; font-weight: 700; color: var(--blue-deep); text-align: center; }
+
+  .sk-toolbar {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 10px 14px;
+    background: var(--blue-pale); border-bottom: 1.5px solid var(--blue-light);
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-muted);
+  }
+  .sk-toolbar .spacer { flex: 1; }
+  .sk-pill {
+    padding: 2px 11px; border-radius: var(--radius-full); border: 1.5px solid var(--blue-light); background: white;
+    font-size: 11px; font-weight: 700; color: var(--blue-mid); text-transform: none; letter-spacing: 0;
+  }
+  .sk-pill.active { background: var(--blue); border-color: var(--blue); color: white; }
+
+  .sk-timeline { padding: 14px; max-height: 560px; overflow-y: auto; }
+  .cos-timeline-group { margin-bottom: 18px; }
+  .cos-timeline-group-label {
+    font-size: 12px; font-weight: 800; color: var(--blue-deep); margin-bottom: 6px; padding-bottom: 4px;
+    border-bottom: 1.5px solid var(--blue-light); display: flex; align-items: center; gap: 8px;
+  }
+  .cos-timeline-group-label span { font-size: 10px; font-weight: 700; color: var(--gray-muted); }
+  .cos-tl-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--blue-light); }
+  .cos-tl-row:last-child { border-bottom: none; }
+  .cos-tl-date { font-size: 11px; font-weight: 700; color: var(--gray-muted); min-width: 76px; flex-shrink: 0; padding-top: 3px; }
+  .cos-tl-items { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+  .cos-tl-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px; border-radius: 5px; border: 1px solid var(--blue-light); background: var(--blue-pale); width: 56px; }
+  .cos-tl-item img { width: 44px; height: 33px; object-fit: contain; }
+  .cos-tl-item span { font-size: 8px; font-weight: 700; color: var(--blue-deep); text-align: center; word-break: break-word; line-height: 1.2; }
+  .cos-tl-overflow {
+    display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 5px;
+    border: 1.5px dashed var(--blue-muted); background: var(--blue-pale); font-size: 12px; font-weight: 800; color: var(--blue-mid); cursor: pointer;
+  }
+  .cos-tl-username-change { width: 100%; padding: 5px 8px; border-radius: 5px; background: #fefce8; border: 1px solid #fde047; font-size: 12px; font-weight: 600; color: #713f12; }
+  .cos-tl-goal { padding: 4px 8px; border-radius: 5px; background: #f0fdf4; border: 1px solid #86efac; font-size: 11px; font-weight: 700; color: #14532d; white-space: nowrap; }
+  .sk-cmp { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 14px; }
+  .sk-cmp-head, .sk-cmp-row { display: grid; grid-template-columns: minmax(0, 1fr) 92px 92px; gap: 6px; align-items: center; padding: 7px 12px; }
+  .sk-cmp-head { background: var(--blue-deep); color: white; font-size: 12px; font-weight: 800; }
+  .sk-cmp-head span { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sk-cmp-row { border-bottom: 1px solid var(--blue-pale); }
+  .sk-cmp-row:last-child { border-bottom: none; }
+  .sk-cmp-row .l { font-size: 13px; font-weight: 600; color: var(--gray-mid); }
+  .sk-cmp-row .v { text-align: center; font-size: 15px; font-weight: 800; color: var(--blue-deep); border-radius: var(--radius-sm); padding: 1px 4px; }
+  .sk-cmp-row .v.win { background: #dcfce7; color: #15803d; }
+  @media (max-width: 600px) { .sk-cmp-head, .sk-cmp-row { grid-template-columns: minmax(0, 1fr) 70px 70px; padding: 7px 8px; gap: 4px; } }
+  .sk-empty { padding: 2.5rem 1rem; text-align: center; font-size: 13px; color: var(--gray-muted); }
+  .sk-raw { margin: 0; padding: 14px; max-height: 560px; overflow: auto; font-size: 11px; line-height: 1.6; background: #f8fafc; }
+
+  @media (max-width: 600px) {
+    .sk-title { font-size: 24px; }
+    .cos-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+    .cos-card-img { width: 62px; height: 47px; }
+  }
+</style>
+
+<div data-view-root>
+  <h2 class="sk-title" id="sk-title">Skins</h2>
+  <div id="sk-compare" hidden></div>
+  <div class="sk-head" id="sk-head">
+    <div class="sk-subtabs" role="tablist">
+      <button class="sk-subtab active" data-sub="gallery">Collection</button>
+      <button class="sk-subtab" data-sub="history">History</button>
+      <button class="sk-subtab" data-sub="raw">Raw</button>
+    </div>
+    <div class="sk-counts" id="sk-counts"></div>
+  </div>
+
+  <div class="sk-card-box" id="sk-panel-gallery"><div class="sk-gallery" id="sk-gallery"></div></div>
+
+  <div class="sk-card-box" id="sk-panel-history" hidden>
+    <div class="sk-toolbar">
+      <span>Group by</span>
+      <button class="sk-pill active" data-zoom="week">Week</button>
+      <button class="sk-pill" data-zoom="month">Month</button>
+      <button class="sk-pill" data-zoom="year">Year</button>
+      <span class="spacer"></span>
+      <button class="sk-pill" id="sk-export" type="button" title="Every saved snapshot, complete, as one JSON file">Export full history (JSON)</button>
+    </div>
+    <div class="sk-timeline" id="sk-timeline"></div>
+  </div>
+
+  <div class="sk-card-box" id="sk-panel-raw" hidden>
+    <div class="sk-toolbar"><span>Raw cosmetics JSON</span><span class="spacer"></span>
+      <button class="sk-pill" id="sk-dl" type="button">Download</button>
+    </div>
+    <pre class="sk-raw" id="sk-raw"></pre>
+  </div>
+
+  <div class="sk-popup-overlay" id="sk-popup-overlay">
+    <div class="sk-popup" role="dialog" aria-modal="true" aria-labelledby="sk-popup-title">
+      <div class="sk-popup-title"><span id="sk-popup-title">Tank Colors</span><button class="sk-popup-close" id="sk-popup-close" aria-label="Close">✕</button></div>
+      <div class="sk-popup-grid" id="sk-popup-grid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var PFP = RBR.PATH_PFP, BADGE = RBR.PATH_BADGE, P404 = RBR.PATH_404, esc = RBR.escHtml, nice = RBR.niceName;
+  var TL_MAX_INLINE = 10;
+  var COLORS = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'mint', 'gold', 'white', 'black', 'brown', 'olive', 'grey', 'gray'];
+  var cur = { userId: null, profile: null, snaps: [], zoom: 'week', sub: 'gallery' };
+  function $(id) { return document.getElementById(id); }
+
+  function classify(id) {
+    if (id.indexOf('trail_') === 0) return { type: 'trail' };
+    if (id.indexOf('parachute_') === 0) return { type: 'parachute' };
+    var parts = id.split('_');
+    if (parts.length >= 2 && COLORS.indexOf(parts[0]) !== -1) return { type: 'tank', base: parts.slice(1).join('_'), color: parts[0] };
+    return { type: 'badge' }; // moved to "Unknown" if no badge image exists
+  }
+  function srcFor(id) { return (classify(id).type === 'tank' ? PFP : BADGE) + id + '.png'; }
+
+  /* ---- History: read from the full profiles in the archive (old cosmeticHistory is converted automatically) ---- */
+  async function loadSnapshots(userId) {
+    var all = await RBRArchive.snapshots(userId);   // full profiles (old split logs already converted)
+    return all.filter(function(e) { return Array.isArray((e.profile.metadata || {}).awards); })   // days that recorded cosmetics
+      .map(function(e) {
+        var m = e.profile.metadata || {};
+        return { date: e.date, display_name: e.profile.display_name || '', skin: m.skin, badge: m.badge, awards: m.awards, goals: m.goals || [] };
+      });
+  }
+
+  /* ---- Collection ---- */
+  function section(title, count) {
+    var sec = document.createElement('div');
+    sec.className = 'cos-section';
+    sec.innerHTML = '<div class="cos-section-title">' + esc(title) + '<span class="cos-section-count">' + count + '</span></div><div class="cos-grid"></div>';
+    return sec;
+  }
+  function card(src, name, equipped) {
+    var c = document.createElement('div');
+    c.className = 'cos-card' + (equipped ? ' is-equipped' : '');
+    c.innerHTML = '<img class="cos-card-img" alt="" loading="lazy" src="' + esc(src) + '" />' +
+      '<div class="cos-card-name">' + esc(name) + '</div>';
+    return c;
+  }
+
+  function renderGallery() {
+    var meta = cur.profile.metadata || {};
+    var tanks = {}, badges = [], trails = [], paras = [];
+    (meta.awards || []).forEach(function(id) {
+      var cl = classify(id);
+      if (cl.type === 'tank') (tanks[cl.base] = tanks[cl.base] || []).push({ color: cl.color, id: id });
+      else if (cl.type === 'trail') trails.push(id);
+      else if (cl.type === 'parachute') paras.push(id);
+      else badges.push(id);
+    });
+
+    var g = $('sk-gallery');
+    g.innerHTML = '';
+
+    var bases = Object.keys(tanks).sort();
+    var tankSec = section('Tanks', bases.length), tankGrid = tankSec.lastChild;
+    bases.forEach(function(base) {
+      var variants = tanks[base];
+      var display = null;
+      ['gold', 'black', 'white', 'brown'].some(function(c) { display = variants.find(function(v) { return v.color === c; }); return display; });
+      display = display || variants[0];
+      var c = card(PFP + display.id + '.png', nice(base), variants.some(function(v) { return v.id === meta.skin; }));
+      c.insertAdjacentHTML('afterbegin', '<span class="cos-color-badge">' + variants.length + '</span>');
+      c.insertAdjacentHTML('beforeend', '<div class="cos-card-sub">' + esc(variants.map(function(v) { return v.color; }).join(', ')) + '</div>');
+      c.querySelector('img').onerror = function() { this.onerror = null; this.src = P404; };
+      c.addEventListener('click', function() {
+        openPopup(nice(base) + ' — all colors', variants.map(function(v) { return { src: PFP + v.id + '.png', label: v.color }; }));
+      });
+      tankGrid.appendChild(c);
+    });
+    g.appendChild(tankSec);
+
+    // Badges: an award with no badge image is moved into "Unknown"
+    if (badges.length) {
+      var badgeSec = section('Badges', 0), unknownSec = section('Unknown', 0);
+      unknownSec.hidden = true;
+      var badgeCount = 0, unknownCount = 0;
+      badges.forEach(function(id) {
+        var c = card(BADGE + id + '.png', nice(id), id === meta.badge);
+        var img = c.querySelector('img');
+        img.onload = function() { badgeCount++; badgeSec.querySelector('.cos-section-count').textContent = badgeCount; };
+        img.onerror = function() {
+          img.onerror = null; img.onload = null; img.src = P404;
+          unknownSec.lastChild.appendChild(c);
+          unknownSec.hidden = false;
+          unknownSec.querySelector('.cos-section-count').textContent = ++unknownCount;
+        };
+        badgeSec.lastChild.appendChild(c);
+      });
+      g.appendChild(badgeSec);
+      g.appendChild(unknownSec);
+    }
+
+    [['Trails', trails, meta.trail], ['Parachutes', paras, meta.parachute]].forEach(function(s) {
+      if (!s[1].length) return;
+      var sec = section(s[0], s[1].length);
+      s[1].forEach(function(id) {
+        var c = card(BADGE + id + '.png', nice(id), id === s[2]);
+        c.querySelector('img').onerror = function() { this.onerror = null; this.src = P404; };
+        sec.lastChild.appendChild(c);
+      });
+      g.appendChild(sec);
+    });
+
+    $('sk-counts').innerHTML = [[bases.length, 'Tanks'], [badges.length, 'Badges'], [trails.length, 'Trails'], [paras.length, 'Parachutes']]
+      .filter(function(x) { return x[0]; })
+      .map(function(x) { return '<span class="sk-count">' + x[0] + ' ' + x[1] + '</span>'; }).join('');
+  }
+
+  /* ---- Compare: tank-skin totals, gold, black, and only the skins both have ---- */
+  function skinInfo(profile) {
+    var tanks = ((profile.metadata || {}).awards || []).filter(function(id) { return classify(id).type === 'tank'; });
+    function n(color) { return tanks.filter(function(id) { return classify(id).color === color; }).length; }
+    return { tanks: tanks, total: tanks.length, gold: n('gold'), black: n('black') };
+  }
+  function setCompare(on) {
+    $('sk-compare').hidden = !on;
+    $('sk-title').hidden = on;
+    $('sk-head').hidden = on;
+    if (on) ['gallery', 'history', 'raw'].forEach(function(x) { $('sk-panel-' + x).hidden = true; });
+  }
+  function renderCompare(players) {
+    var a = skinInfo(players[0].profile), b = skinInfo(players[1].profile);
+    var nameA = players[0].profile.display_name || 'Player 1', nameB = players[1].profile.display_name || 'Player 2';
+    function row(label, x, y) {
+      return '<div class="sk-cmp-row"><span class="l">' + label + '</span><span class="v' + (x > y ? ' win' : '') + '">' + x + '</span><span class="v' + (y > x ? ' win' : '') + '">' + y + '</span></div>';
+    }
+    var html = '<div class="sk-cmp"><div class="sk-cmp-head"><span></span><span>' + esc(nameA) + '</span><span>' + esc(nameB) + '</span></div>' +
+      row('Total skins', a.total, b.total) + row('Gold skins', a.gold, b.gold) + row('Black skins', a.black, b.black) + '</div>';
+    $('sk-compare').innerHTML = html;
+
+    var mine = {}; a.tanks.forEach(function(id) { mine[id] = 1; });
+    var shared = b.tanks.filter(function(id) { return mine[id]; }).sort();
+    var sec = section('Skins both have', shared.length), grid = sec.lastChild;
+    if (!shared.length) grid.outerHTML = '<div class="sk-empty">No skins in common.</div>';
+    shared.forEach(function(id) {
+      var c = card(PFP + id + '.png', nice(id), false);
+      c.style.cursor = 'default';
+      c.querySelector('img').onerror = function() { this.onerror = null; this.src = P404; };
+      grid.appendChild(c);
+    });
+    $('sk-compare').appendChild(sec);
+  }
+
+  /* ---- Popup ---- */
+  function openPopup(title, items) {
+    $('sk-popup-title').textContent = title;
+    $('sk-popup-grid').innerHTML = items.map(function(it) {
+      return '<div class="sk-popup-item"><img alt="" loading="lazy" src="' + esc(it.src) + '" onerror="this.onerror=null;this.src=\'' + P404 + '\'" /><span>' + esc(it.label) + '</span></div>';
+    }).join('');
+    $('sk-popup-overlay').classList.add('open');
+  }
+  function closePopup() { $('sk-popup-overlay').classList.remove('open'); }
+  $('sk-popup-close').addEventListener('click', closePopup);
+  $('sk-popup-overlay').addEventListener('click', function(e) { if (e.target === this) closePopup(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closePopup(); });
+
+  /* ---- Timeline ---- */
+  function renderTimeline() {
+    var zoom = cur.zoom, snaps = cur.snaps, box = $('sk-timeline');
+    document.querySelectorAll('[data-zoom]').forEach(function(b) { b.classList.toggle('active', b.dataset.zoom === zoom); });
+
+    if (snaps.length < 2) {
+      box.innerHTML = '<div class="sk-empty">📅<br>No history yet — look this player up again tomorrow to start a timeline.</div>';
+      return;
+    }
+    var entries = [];
+    for (var i = 1; i < snaps.length; i++) {
+      var prev = snaps[i - 1], curr = snaps[i], had = {};
+      (prev.awards || []).forEach(function(a) { had[a] = 1; });
+      var added = (curr.awards || []).filter(function(a) { return !had[a]; });
+      var goals = (curr.goals || []).filter(function(gl) {
+        return gl.unlocked_time && !(prev.goals || []).some(function(p) { return p.goal_id === gl.goal_id; });
+      });
+      var renamed = prev.display_name && curr.display_name && prev.display_name !== curr.display_name;
+      if (added.length || goals.length || renamed) {
+        entries.push({ date: curr.date, added: added, goals: goals, from: renamed ? prev.display_name : null, to: curr.display_name });
+      }
+    }
+    if (!entries.length) { box.innerHTML = '<div class="sk-empty">✓<br>No changes detected between snapshots yet.</div>'; return; }
+
+    function groupKey(date) {
+      if (zoom === 'month') return date.slice(0, 7);
+      if (zoom === 'year') return date.slice(0, 4);
+      var d = new Date(date), jan4 = new Date(d.getFullYear(), 0, 4);
+      return d.getFullYear() + '-W' + String(Math.ceil(((d - jan4) / 86400000 + jan4.getDay() + 1) / 7)).padStart(2, '0');
+    }
+    function groupLabel(k) {
+      if (zoom === 'month') return new Date(k + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+      if (zoom === 'year') return k;
+      var p = k.split('-W'); return 'Week ' + p[1] + ', ' + p[0];
+    }
+
+    var groups = {}, order = [];
+    entries.forEach(function(e) { var k = groupKey(e.date); if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(e); });
+
+    box.innerHTML = '';
+    order.reverse().forEach(function(k) {
+      var list = groups[k].slice().reverse();
+      var total = list.reduce(function(s, e) { return s + e.added.length + e.goals.length + (e.from ? 1 : 0); }, 0);
+      var block = document.createElement('div');
+      block.className = 'cos-timeline-group';
+      block.innerHTML = '<div class="cos-timeline-group-label">' + esc(groupLabel(k)) + '<span>' + total + ' change' + (total !== 1 ? 's' : '') + '</span></div>';
+      list.forEach(function(e) {
+        var html = '';
+        if (e.from) html += '<div class="cos-tl-username-change">Name changed from <strong>' + esc(e.from) + '</strong> to <strong>' + esc(e.to) + '</strong></div>';
+        html += e.added.slice(0, TL_MAX_INLINE).map(function(id) {
+          return '<div class="cos-tl-item" title="' + esc(nice(id)) + '"><img alt="" loading="lazy" src="' + esc(srcFor(id)) + '" onerror="this.onerror=null;this.src=\'' + P404 + '\'"><span>' + esc(nice(id)) + '</span></div>';
+        }).join('');
+        var extra = e.added.length - TL_MAX_INLINE;
+        if (extra > 0) html += '<button type="button" class="cos-tl-overflow" data-more="' + esc(e.added.slice(TL_MAX_INLINE).join(',')) + '">+' + extra + '</button>';
+        html += e.goals.map(function(gl) { return '<div class="cos-tl-goal">Goal: ' + esc(nice(gl.goal_id)) + '</div>'; }).join('');
+        block.insertAdjacentHTML('beforeend', '<div class="cos-tl-row"><div class="cos-tl-date">' + esc(e.date) + '</div><div class="cos-tl-items">' + html + '</div></div>');
+      });
+      box.appendChild(block);
+    });
+  }
+
+  $('sk-timeline').addEventListener('click', function(e) {
+    var b = e.target.closest('[data-more]'); if (!b) return;
+    openPopup('More unlocks', b.dataset.more.split(',').map(function(id) { return { src: srcFor(id), label: nice(id) }; }));
+  });
+  document.querySelectorAll('[data-zoom]').forEach(function(b) {
+    b.addEventListener('click', function() { cur.zoom = b.dataset.zoom; renderTimeline(); });
+  });
+
+  /* ---- Sub-tabs ---- */
+  function showSub(sub) {
+    cur.sub = sub;
+    document.querySelectorAll('.sk-subtab').forEach(function(b) { b.classList.toggle('active', b.dataset.sub === sub); });
+    ['gallery', 'history', 'raw'].forEach(function(s) { $('sk-panel-' + s).hidden = s !== sub; });
+    if (sub === 'history') renderTimeline();
+  }
+  document.querySelectorAll('.sk-subtab').forEach(function(b) { b.addEventListener('click', function() { showSub(b.dataset.sub); }); });
+
+  $('sk-export').addEventListener('click', async function() {
+    var btn = this, was = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Exporting…';
+    try { await RBRArchive.downloadExport(cur.userId, cur.profile && cur.profile.display_name); btn.textContent = 'Exported ✓'; }
+    catch (e) { btn.textContent = 'Failed: ' + e.message; }
+    setTimeout(function() { btn.textContent = was; btn.disabled = false; }, 2500);
+  });
+  $('sk-dl').addEventListener('click', function() {
+    var url = URL.createObjectURL(new Blob([$('sk-raw').textContent], { type: 'application/json' }));
+    var a = document.createElement('a');
+    a.href = url; a.download = ((cur.profile && cur.profile.display_name) || 'player') + '-cosmetics.json'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  RBRHub.registerView('skins', {
+    needsPlayer: true,
+    showCompare: function(players) {
+      cur.userId = null;
+      renderCompare(players);
+      setCompare(true);
+    },
+    showPlayer: function(profile, userId) {
+      setCompare(false);
+      var meta = profile.metadata || {};
+      cur.profile = profile; cur.userId = userId; cur.snaps = [];
+      $('sk-raw').textContent = JSON.stringify({
+        skin: meta.skin, badge: meta.badge, trail: meta.trail, parachute: meta.parachute,
+        awards_seen: meta.awards_seen, awards: meta.awards || [], goals: meta.goals || [],
+      }, null, 2);
+      renderGallery();
+      showSub(cur.sub);
+
+      loadSnapshots(userId).then(function(s) {
+        if (cur.userId !== userId) return;
+        cur.snaps = s;
+        if (cur.sub === 'history') renderTimeline();
+      }).catch(function(e) { console.warn('Cosmetic history load failed:', e.message); });
+    },
+  });
+})();
+</script>

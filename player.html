@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Hub – Winterpixel Community</title>
+  <meta name="description" content="Look up any Rocket Bot Royale player's stats, skins and season leaderboards in one place." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script defer src="js/rbr-api.js"></script>
+
+  <style>
+    /* ── Background ── */
+    .hub-page { position: relative; min-height: calc(100vh - 55px - 52px); }
+    .hub-tile-bg {
+      position: absolute; inset: 0;
+      background-image: url('ui/tile.png'); background-repeat: repeat;
+      animation: tile-scroll 20s linear infinite;
+      pointer-events: none; z-index: 0;
+    }
+    .hub-tile-fade {
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.75) 30%, rgba(255,255,255,0.96) 60%, #fff 100%);
+    }
+    @keyframes tile-scroll { from { background-position: 0 0; } to { background-position: 120px 120px; } }
+
+    .hub-wrap { max-width: 1240px; margin: 0 auto; padding: 1.25rem 1.25rem 3rem; position: relative; z-index: 1; }
+
+    /* ── Top: tabs on top, search below, both centred ── */
+    .hub-top { display: flex; flex-direction: column-reverse; align-items: center; gap: 12px; margin-bottom: 30px; }
+    .hub-tabs { align-self: center; }
+
+    .hub-search { position: relative; width: 100%; max-width: 560px; }
+    .hub-search-row { display: flex; align-items: center; gap: 8px; }
+    .hub-search-input {
+      flex: 1; min-width: 0; height: 46px; padding: 0 20px;
+      border: 2.5px solid var(--blue); border-radius: var(--radius-full); background: white;
+      font-family: 'Baloo 2', cursive; font-size: 15px; font-weight: 600; color: var(--blue-deep);
+      outline: none; transition: box-shadow var(--transition);
+    }
+    .hub-search-input::placeholder { color: var(--blue-muted); }
+    .hub-search-input:focus { box-shadow: 0 0 0 4px rgba(0,198,255,0.2); }
+    .hub-search-btn {
+      width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%;
+      border: 2.5px solid var(--blue); background: white; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .hub-search-btn { font: 800 32px/1 'Baloo 2', cursive; color: var(--blue); padding-bottom: 4px; }
+    .hub-search-btn:hover { transform: scale(1.06); box-shadow: 0 4px 14px rgba(0,198,255,0.35); }
+    .hub-search-btn:active { transform: scale(0.96); }
+    .hub-search-btn:disabled { opacity: 0.6; transform: none; }
+    .hub-status { font-size: 12px; font-weight: 700; color: var(--gray-mid); min-height: 18px; margin: 4px 0 0 20px; }
+    .hub-status.err { color: #dc2626; }
+
+    .hub-players { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .hub-players:empty { display: none; }
+    .hub-player {
+      display: flex; align-items: center; gap: 6px; background: white;
+      border: 2px solid var(--gray-border); border-radius: var(--radius-full); padding: 4px 6px 4px 16px;
+    }
+    .hub-player-info { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+    .hub-player-name { font-size: 14px; font-weight: 800; color: var(--blue-deep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hub-player-id { font-family: ui-monospace, Consolas, monospace; font-size: 10px; color: var(--gray-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hp-btn {
+      width: 30px; height: 30px; flex-shrink: 0; padding: 0; border: none; border-radius: 50%;
+      background: var(--blue-pale); color: var(--blue-mid);
+      display: flex; align-items: center; justify-content: center; font: 800 20px/1 'Baloo 2', cursive;
+    }
+    .hp-btn:hover { background: var(--blue-soft); }
+    .hp-btn.del:hover { background: #fee2e2; color: #b91c1c; }
+    .hp-btn.copied { color: #16a34a; }
+    .hp-btn svg { width: 14px; height: 14px; }
+    .hp-btn.txt { width: auto; padding: 0 11px; border-radius: var(--radius-full); font-size: 13px; }
+    .hub-player-tag { margin-left: 6px; padding: 0 7px; border-radius: var(--radius-full); background: #FEF3C7; color: #92400E; font-size: 10px; font-style: normal; font-weight: 800; vertical-align: middle; }
+
+    .hub-dropdown {
+      display: none; position: absolute; top: 52px; left: 0; right: 60px; z-index: 300;
+      background: white; border: 1.5px solid var(--blue-light); border-radius: var(--radius-md);
+      box-shadow: 0 10px 28px rgba(30,58,138,0.14); overflow: hidden;
+    }
+    .hub-dropdown.open { display: block; }
+    .hub-dd-item { display: block; width: 100%; text-align: left; padding: 9px 16px; background: white; border: none; border-bottom: 1px solid var(--blue-light); }
+    .hub-dd-item:last-child { border-bottom: none; }
+    .hub-dd-item:hover, .hub-dd-item:focus { background: var(--blue-pale); outline: none; }
+    .hub-dd-name { display: block; font-size: 14px; font-weight: 700; color: var(--blue-deep); }
+    .hub-dd-id { display: block; font-size: 10px; color: var(--gray-muted); }
+    .hub-dd-empty { padding: 10px 16px; font-size: 12px; color: var(--gray-muted); }
+
+    /* Tabs — the active tab hangs below the strip as a shield */
+    .hub-tabs {
+      display: flex; align-items: flex-start; gap: 2px; padding: 4px;
+      background: white; border: 2.5px solid var(--blue); border-radius: var(--radius-full);
+      height: 46px; position: relative;
+    }
+    .hub-tab {
+      position: relative; height: 34px; padding: 0 20px;
+      background: none; border: none; border-radius: var(--radius-full);
+      font-size: 15px; font-weight: 800; color: var(--gray-mid);
+      transition: color var(--transition), background var(--transition);
+    }
+    .hub-tab:hover { color: var(--blue-deep); background: var(--blue-pale); }
+    /* Full strip height (46px) as a rectangle, then a 16px point below it */
+    .hub-tab.active {
+      height: 62px; margin-top: -6.5px; padding: 0 22px 16px;
+      background: var(--blue); color: white; border-radius: 12px 12px 0 0;
+      clip-path: polygon(0 0, 100% 0, 100% 74.2%, 50% 100%, 0 74.2%);
+      filter: drop-shadow(0 3px 0 var(--blue-dark));
+      z-index: 2;
+    }
+
+    /* ── Body: sidebar + view ── */
+    .hub-body { --side-w: 184px; display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); gap: 24px; align-items: start; }
+    .hub-body.no-side { grid-template-columns: minmax(0, 1fr); }
+    .hub-body.no-side .hub-side { display: none; }
+    .hub-side { position: sticky; top: 70px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* Ribbons are drawn as SVG (see drawRibbon): one black outline wraps the face and the lip */
+    .ribbon { position: relative; margin-bottom: 6px; }
+    .ribbon-svg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+    .r-line { fill: #000; stroke: #000; stroke-width: 6; stroke-linejoin: round; }
+    .r-ext { fill: var(--lip); }
+    .r-face { fill: var(--face); }
+
+    /* Player ribbon: tank bursting out of the top */
+    .pc { --face: #0093FF; --lip: #0048A0; position: relative; padding-top: 96px; }
+    .pc-tank {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 220px;
+      height: 165px;
+      object-fit: contain;
+      z-index: 2;
+      filter: drop-shadow(0 5px 6px rgba(0,0,0,0.3));
+      transform: translateX(-50%) scale(1.5);
+    }
+    .pc-face { position: relative; z-index: 1; color: #fff; text-align: center; padding: 72px 8px 22px; }
+    .pc-name-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .pc-name { font-size: 18px; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+    .pc-badge { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
+    .pc-level { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .pc-rows { display: flex; flex-direction: column; gap: 3px; font-size: 12px; font-weight: 600; }
+    .pc-row { display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; }
+    .pc-row strong { font-weight: 800; }
+    .pc-online { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; }
+    .pc-online::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 2px #fff; }
+    .pc-code { font-weight: 800; letter-spacing: 0.5px; background: rgba(0,0,0,0.22); border-radius: var(--radius-full); padding: 0 10px; }
+    .copy-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; padding: 0; border-radius: 6px;
+      background: none; border: none; color: #fff; opacity: 0.8;
+    }
+    .copy-btn:hover { opacity: 1; background: rgba(255,255,255,0.2); }
+    .copy-btn.copied { color: #bbf7d0; opacity: 1; }
+    .copy-btn svg { width: 14px; height: 14px; }
+
+    /* Daily deal: flat purple button, no animation, timer straddling the top-right edge */
+    .deal {
+      --face: #A36FFF; --lip: #643CA4;
+      position: relative; display: block; margin-top: 8px;
+      text-decoration: none; color: #fff;
+    }
+    .deal:hover { --face: #9666EB; --lip: #5C3797; }
+    .deal-face { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 16px 8px 12px; }
+    .deal-img { width: 160px; max-width: 100%; height: 112px; object-fit: contain; transform: rotate(-10deg); margin-bottom: 2px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+    .deal-title { font-size: 21px; font-weight: 800; line-height: 1; }
+    .deal-name { font-size: 13px; font-weight: 800; opacity: 0.9; }
+    .deal-timer {
+      position: absolute; top: 0; right: 10px; z-index: 1; transform: translateY(-50%);
+      font-size: 11px; font-weight: 800; line-height: 1.6; color: #fff; white-space: nowrap;
+      background: #643CA4; border: 2.5px solid #000; border-radius: var(--radius-full); padding: 0 9px;
+    }
+
+    /* Compare mode: both ribbons side by side above the stats */
+    .hub-cmp { display: flex; justify-content: center; align-items: flex-end; gap: 16px; max-width: 520px; margin: 0 auto 22px; }
+    .hub-cmp .pc { flex: 1 1 0; min-width: 0; max-width: 230px; padding-top: 66px; }
+    .hub-cmp .pc-tank { width: 150px; height: 112px; }
+    .hub-cmp .pc-face { padding: 50px 6px 22px; }
+    .hub-cmp .pc-name { font-size: 15px; }
+    .hub-cmp .pc-row { flex-wrap: nowrap; }
+
+    /* ── Views ── */
+    .hub-view { display: none; min-width: 0; }
+    .hub-view.active { display: block; }
+    .hub-empty {
+      background: white; border: 1.5px dashed var(--blue-muted); border-radius: var(--radius-lg);
+      padding: 3rem 1.5rem; text-align: center; color: var(--gray-mid);
+    }
+    .hub-empty img { width: 64px; height: 64px; margin: 0 auto 10px; }
+    .hub-empty h2 { font-size: 20px; font-weight: 800; color: var(--blue-deep); }
+    .hub-empty p { font-size: 14px; }
+    .hub-loading { padding: 3rem; text-align: center; color: var(--gray-muted); font-weight: 700; }
+
+    [hidden] { display: none !important; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .hub-body { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+      .hub-side { position: static; flex-direction: row; align-items: flex-end; gap: 14px; }
+      .pc { flex: 1.35 1 0; min-width: 0; padding-top: 86px; }
+      .pc-tank { width: 190px; height: 142px; }
+      .pc-face { padding-top: 62px; }
+      .deal { flex: 1 1 0; min-width: 0; }
+      .deal-img { width: 130px; height: 92px; }
+    }
+    @media (max-width: 640px) {
+      .hub-tab { padding: 0 14px; font-size: 14px; }
+      .hub-tab.active { padding: 0 16px 16px; }
+    }
+    @media (max-width: 420px) {
+      .hub-side { gap: 10px; }
+      .pc { padding-top: 66px; }
+      .pc-tank { width: 150px; height: 112px; }
+      .pc-face { padding: 50px 6px 22px; }
+      .pc-row { flex-wrap: nowrap; }
+      .deal-img { width: 100px; height: 72px; }
+      .deal-title { font-size: 17px; }
+      .deal-name { font-size: 12px; }
+    }
+  </style>
+  <!-- seo:start -->
+  <link rel="canonical" href="https://winterpixelcommunity.netlify.app/player.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Winterpixel Community" />
+  <meta property="og:title" content="Player Hub – Winterpixel Community" />
+  <meta property="og:description" content="Look up any Rocket Bot Royale player's stats, skins and season leaderboards in one place." />
+  <meta property="og:url" content="https://winterpixelcommunity.netlify.app/player.html" />
+  <meta property="og:image" content="https://winterpixelcommunity.netlify.app/ui/banner.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Player Hub – Winterpixel Community" />
+  <meta name="twitter:description" content="Look up any Rocket Bot Royale player's stats, skins and season leaderboards in one place." />
+  <meta name="twitter:image" content="https://winterpixelcommunity.netlify.app/ui/banner.png" />
+  <!-- seo:end -->
+</head>
+<body>
+
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community Logo" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html" class="active">Tools</a>
+      <a href="gallery.html">Gallery</a>
+    </nav>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="news.html">News</a>
+    <a href="forum.html">Forum</a>
+    <a href="tools.html" class="active">Tools</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<div class="hub-page">
+  <div class="hub-tile-bg"></div>
+  <div class="hub-tile-fade"></div>
+
+  <div class="hub-wrap">
+    <div class="hub-top">
+      <form class="hub-search" id="hub-search" autocomplete="off">
+        <div class="hub-search-row">
+          <input class="hub-search-input" id="hub-input" type="text" spellcheck="false"
+                 placeholder="Username, ID, or Friend Code…" aria-label="Find a player" />
+          <button class="hub-search-btn" id="hub-search-btn" type="submit" aria-label="Add player">+</button>
+        </div>
+        <div class="hub-players" id="hub-players"></div>
+        <div class="hub-dropdown" id="hub-dropdown" role="listbox"></div>
+        <div class="hub-status" id="hub-status" role="status"></div>
+      </form>
+
+      <nav class="hub-tabs" role="tablist" aria-label="Player hub sections">
+        <button class="hub-tab active" role="tab" data-tab="stats">Stats</button>
+        <button class="hub-tab" role="tab" data-tab="leaderboard">Leaderboard</button>
+        <button class="hub-tab" role="tab" data-tab="skins">Skins</button>
+      </nav>
+    </div>
+
+    <div class="hub-cmp" id="hub-cmp" hidden></div>
+
+    <div class="hub-body" id="hub-body">
+      <aside class="hub-side" id="hub-side" hidden>
+        <div id="side-pc"></div>
+
+        <a class="deal" id="deal" href="https://store.epicgames.com/web-shop-all/rocket-bot-royale-727105"
+           target="_blank" rel="noopener" hidden>
+          <div class="deal-shape ribbon" data-kind="deal">
+            <svg class="ribbon-svg" aria-hidden="true"></svg>
+            <div class="deal-face">
+              <img class="deal-img" id="deal-img" alt="" />
+              <span class="deal-title">Daily Deal</span>
+              <span class="deal-name" id="deal-name"></span>
+            </div>
+          </div>
+          <span class="deal-timer" id="deal-timer" hidden></span>
+        </a>
+      </aside>
+
+      <main class="hub-main">
+        <section class="hub-view active" id="view-stats" data-view="stats" role="tabpanel"></section>
+        <section class="hub-view" id="view-leaderboard" data-view="leaderboard" role="tabpanel"></section>
+        <section class="hub-view" id="view-skins" data-view="skins" role="tabpanel"></section>
+      </main>
+    </div>
+  </div>
+</div>
+
+<template id="pc-tpl">
+  <div class="pc">
+    <img class="pc-tank" src="ui/icons/pfp/default_tank.png" alt="" />
+    <div class="pc-shape ribbon" data-kind="pc">
+      <svg class="ribbon-svg" aria-hidden="true"></svg>
+      <div class="pc-face">
+        <div class="pc-name-row">
+          <div class="pc-name">—</div>
+          <img class="pc-badge" alt="" hidden />
+        </div>
+        <div class="pc-level"></div>
+        <div class="pc-rows">
+          <div class="pc-row pc-code-row" hidden>
+            <span class="pc-code" title="Friend code"></span>
+            <button class="copy-btn" type="button" title="Copy friend code" aria-label="Copy friend code">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+          <div class="pc-row pc-status"></div>
+          <div class="pc-row pc-joined"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="tools.html">Tools</a>
+      <a href="guides.html">Guides</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<script src="js/bottom-bar-loader.js"></script>
+<script>
+/* ================================================================
+   PLAYER HUB SHELL
+
+   Owns the search bar, tabs, player sidebar and the single profile
+   fetch. Each tab is a separate file in partials/ that's downloaded the
+   first time its tab opens and registers itself with:
+
+     RBRHub.registerView(name, {
+       showPlayer(profile, userId) — render the looked-up player
+       onShow()                    — tab became visible (optional)
+     })
+
+   Views that set needsPlayer get the sidebar and an empty state until
+   a player is looked up.
+================================================================ */
+var RBRHub = (function() {
+  var TABS = ['stats', 'leaderboard', 'skins'];
+  // Tabs that need a looked-up player aren't downloaded until there is one
+  var NEEDS_PLAYER = { stats: true, skins: true, leaderboard: false };
+  var COMPARE = { stats: true, skins: true };   // tabs that have a side-by-side view
+  var MAX_PLAYERS = 2;
+  var views = {}, loading = {};
+  var state = { tab: 'stats', players: [] };   // players: [{ userId, profile }]
+  var busy = false, dealTimer = null;
+  var COPY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+
+  function $(id) { return document.getElementById(id); }
+  function primary() { return state.players[0] || null; }
+
+  function setStatus(msg, isErr) {
+    $('hub-status').textContent = msg || '';
+    $('hub-status').className = 'hub-status' + (isErr ? ' err' : '');
+  }
+
+  /* ---- Lazy view loading ---- */
+  function loadView(name) {
+    if (views[name]) return Promise.resolve(views[name]);
+    if (loading[name]) return loading[name];
+    var el = $('view-' + name);
+    el.innerHTML = '<div class="hub-loading">Loading…</div>';
+    loading[name] = fetch('partials/' + name + '.html')
+      .then(function(res) {
+        if (!res.ok) throw new Error('Could not load the ' + name + ' tab (' + res.status + ')');
+        return res.text();
+      })
+      .then(function(html) {
+        var tpl = document.createElement('template');
+        tpl.innerHTML = html;
+        var scripts = Array.from(tpl.content.querySelectorAll('script'));
+        scripts.forEach(function(s) { s.remove(); });
+        tpl.content.querySelectorAll('style').forEach(function(s) { document.head.appendChild(s); });
+        el.innerHTML = '';
+        el.appendChild(tpl.content);
+        // Scripts inserted via innerHTML don't run — re-create them
+        scripts.forEach(function(old) {
+          var s = document.createElement('script');
+          s.textContent = old.textContent;
+          el.appendChild(s);
+        });
+        if (!views[name]) throw new Error('The ' + name + ' tab did not register');
+        return views[name];
+      })
+      .catch(function(e) {
+        delete loading[name];
+        el.innerHTML = '<div class="hub-empty"><h2>Couldn\'t load this tab</h2><p>' + RBR.escHtml(e.message) + '</p></div>';
+        throw e;
+      });
+    return loading[name];
+  }
+
+  function emptyState() {
+    return '<div class="hub-empty"><img src="ui/icons/insight.png" alt="" />' +
+      '<h2>Look up a player</h2><p>Search by username, User ID or friend code to see their stats and skins.</p></div>';
+  }
+  function showEmpty(name) {
+    var v = views[name];
+    if (!v) { $('view-' + name).innerHTML = emptyState(); return; }
+    v.root.hidden = true;
+    if (!v._empty) {
+      var d = document.createElement('div');
+      d.innerHTML = emptyState();
+      v._empty = d.firstChild;
+      v.root.parentNode.insertBefore(v._empty, v.root);
+    }
+  }
+
+  /* ---- Ribbons: SVG so one black outline wraps the face and the 3D lip ---- */
+  var LIP = 6;
+  function ribbonPath(kind, w, h) {
+    var r, d;
+    if (kind === 'deal') {
+      r = 18;
+      return 'M' + r + ' 0H' + (w - r) + 'Q' + w + ' 0 ' + w + ' ' + r + 'V' + (h - r) + 'Q' + w + ' ' + h + ' ' + (w - r) + ' ' + h +
+        'H' + r + 'Q0 ' + h + ' 0 ' + (h - r) + 'V' + r + 'Q0 0 ' + r + ' 0Z';
+    }
+    // Player ribbon: rounded top corners, bottom is a point with a rounded tip
+    r = 14; d = 30;
+    var ax = w / 2, ay = h, cy = h - d, dx = w - ax, dy = cy - ay, len = Math.sqrt(dx * dx + dy * dy), t = 30;
+    var x1 = ax + dx / len * t, y1 = ay + dy / len * t, x0 = ax - dx / len * t;
+    return 'M0 ' + r + 'Q0 0 ' + r + ' 0H' + (w - r) + 'Q' + w + ' 0 ' + w + ' ' + r + 'V' + cy +
+      'L' + x1 + ' ' + y1 + 'Q' + ax + ' ' + ay + ' ' + x0 + ' ' + y1 + 'L0 ' + cy + 'Z';
+  }
+  function drawRibbon(shape) {
+    var svg = shape.querySelector('.ribbon-svg');
+    var w = shape.offsetWidth, h = shape.offsetHeight;
+    if (!svg || !w || !h) return;
+    var d = ribbonPath(shape.dataset.kind, w, h), lip = ' transform="translate(0 ' + LIP + ')"';
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h + LIP);
+    svg.innerHTML = '<path class="r-line"' + lip + ' d="' + d + '"/><path class="r-line" d="' + d + '"/>' +
+      '<path class="r-ext"' + lip + ' d="' + d + '"/><path class="r-face" d="' + d + '"/>';
+  }
+  var ribbonObserver = window.ResizeObserver ? new ResizeObserver(function(entries) {
+    entries.forEach(function(e) { drawRibbon(e.target); });
+  }) : null;
+  function watchRibbon(shape) { if (ribbonObserver) ribbonObserver.observe(shape); drawRibbon(shape); }
+
+  /* ---- Player card (cloned from the template) ---- */
+  function buildCard(p) {
+    var card = $('pc-tpl').content.firstElementChild.cloneNode(true);
+    var prof = p.profile, meta = prof.metadata || {};
+    function q(c) { return card.querySelector('.' + c); }
+
+    var tank = q('pc-tank');
+    tank.onerror = function() { this.onerror = null; this.src = RBR.DEFAULT_TANK; };
+    tank.src = RBR.tankSrc(meta.skin || 'default_tank');
+    tank.alt = RBR.niceName(meta.skin || 'default tank');
+
+    q('pc-name').textContent = prof.display_name || 'Unknown';
+    var badge = q('pc-badge');
+    badge.hidden = !meta.badge;
+    if (meta.badge) {
+      badge.onerror = function() { this.hidden = true; };
+      badge.src = RBR.PATH_BADGE + meta.badge + '.png';
+      badge.title = RBR.niceName(meta.badge);
+    }
+    q('pc-level').textContent = 'Level ' + (meta.progress ? meta.progress.level : '?');
+
+    q('pc-code-row').hidden = !meta.friend_code;
+    q('pc-code').textContent = meta.friend_code || '';
+    q('copy-btn').onclick = function() { RBR.copyText(meta.friend_code, this); };
+
+    var lastSeen = meta.timed_bonus_last_collect || meta.results_rewarded_video_last_collect;
+    var arch = prof._archived;
+    q('pc-status').innerHTML = arch ? 'Saved copy from <strong>' + RBR.escHtml(arch.date) + '</strong>'
+      : prof.online ? '<span class="pc-online">Online</span>'
+      : 'Last online: <strong>' + (lastSeen ? RBR.timeAgo(lastSeen) : 'unknown') + '</strong>';
+    q('pc-joined').innerHTML = prof.create_time
+      ? 'Joined <strong>' + new Date(prof.create_time * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) + '</strong>' : '';
+
+    watchRibbon(q('pc-shape'));
+    return card;
+  }
+
+  function renderDeal(meta) {
+    clearInterval(dealTimer);
+    var dealId = meta.dailydeal && Array.isArray(meta.dailydeal.awards) && meta.dailydeal.awards[0];
+    var deal = $('deal');
+    deal.hidden = !dealId;
+    if (!dealId) return;
+
+    var img = $('deal-img');
+    img.onerror = function() { this.onerror = null; this.src = RBR.PATH_404; };
+    img.onload = fitSidebar;
+    img.src = RBR.tankSrc(dealId);
+    $('deal-name').textContent = RBR.niceName(dealId);
+    deal.setAttribute('aria-label', 'Daily Deal: ' + RBR.niceName(dealId) + ' — open the Rocket Bot Royale store');
+
+    var expiry = meta.deal_expiry_times && meta.deal_expiry_times.dailydeal;
+    var timer = $('deal-timer');
+    function tick() {
+      var left = expiry ? Math.floor(expiry - Date.now() / 1000) : 0;
+      if (left <= 0) { timer.hidden = true; clearInterval(dealTimer); return; }
+      var h = Math.floor(left / 3600), m = Math.floor((left % 3600) / 60);
+      timer.textContent = 'Ends in ' + (h ? h + 'h ' : '') + m + 'm';
+      timer.hidden = false;
+    }
+    tick();
+    dealTimer = setInterval(tick, 30000);
+  }
+
+  /* ---- Players list under the search bar ---- */
+  function updateInputState() {
+    var full = state.players.length >= MAX_PLAYERS;
+    $('hub-input').disabled = busy || full;
+    $('hub-search-btn').disabled = busy || full;
+    $('hub-input').placeholder = !state.players.length ? 'Username, ID, or Friend Code…'
+      : full ? 'Remove a player to add another' : 'Add another player to compare stats';
+  }
+  function renderPlayerList() {
+    $('hub-players').innerHTML = state.players.map(function(p, i) {
+      var arch = p.profile._archived;
+      return '<div class="hub-player"><div class="hub-player-info">' +
+        '<span class="hub-player-name">' + RBR.escHtml(p.profile.display_name || 'Unknown') +
+          (arch ? '<em class="hub-player-tag">Saved · ' + RBR.escHtml(arch.date) + '</em>' : '') + '</span>' +
+        '<span class="hub-player-id">' + RBR.escHtml(p.userId) + '</span></div>' +
+        '<button type="button" class="hp-btn txt" data-act="mode" data-i="' + i + '" title="' + (arch ? 'Try the live game data again' : 'Show the copy saved in the database') + '">' + (arch ? 'Live' : 'Saved') + '</button>' +
+        '<button type="button" class="hp-btn" data-act="copy" data-i="' + i + '" title="Copy User ID" aria-label="Copy User ID">' + COPY_SVG + '</button>' +
+        '<button type="button" class="hp-btn del" data-act="del" data-i="' + i + '" title="Remove player" aria-label="Remove player">×</button></div>';
+    }).join('');
+  }
+
+  /* ---- Tabs ---- */
+  function switchTab(name, opts) {
+    if (TABS.indexOf(name) === -1) name = 'stats';
+    state.tab = name;
+    document.querySelectorAll('.hub-tab').forEach(function(t) {
+      var on = t.dataset.tab === name;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', on);
+    });
+    document.querySelectorAll('.hub-view').forEach(function(v) { v.classList.toggle('active', v.dataset.view === name); });
+    if (!(opts && opts.keepUrl)) writeUrl();
+
+    var n = state.players.length, cmp = !!COMPARE[name] && n === 2;
+    $('hub-search').hidden = name === 'leaderboard';   // the leaderboard has its own filter
+    $('hub-cmp').hidden = !cmp;
+
+    if (NEEDS_PLAYER[name] && !n) {
+      $('hub-body').classList.add('no-side');
+      $('hub-side').hidden = true;
+      showEmpty(name);
+      return Promise.resolve();
+    }
+
+    return loadView(name).then(function(view) {
+      var hasSide = view.needsPlayer && n > 0 && !cmp;
+      $('hub-body').classList.toggle('no-side', !hasSide);
+      $('hub-side').hidden = !hasSide;
+      fitSidebar();
+      if (view.needsPlayer) {
+        if (view._empty) { view._empty.remove(); view._empty = null; }
+        view.root.hidden = false;
+        // Render lazily: only when this tab is shown and the players changed
+        var key = cmp ? state.players.map(function(p) { return p.userId; }).join('+') : primary().userId;
+        if (view._renderedFor !== key) {
+          view._renderedFor = key;
+          if (cmp && view.showCompare) view.showCompare(state.players);
+          else view.showPlayer(primary().profile, primary().userId);
+        }
+      }
+      if (view.onShow) view.onShow();
+    }).catch(function(e) { console.warn(e); });
+  }
+
+  /* ---- URL: ?tab=skins&id=<uuid>&vs=<uuid> ---- */
+  function writeUrl() {
+    var p = new URLSearchParams(location.search);
+    ['tab', 'id', 'vs'].forEach(function(k) { p.delete(k); });
+    if (state.tab !== 'stats') p.set('tab', state.tab);
+    if (state.players[0]) p.set('id', state.players[0].userId);
+    if (state.players[1]) p.set('vs', state.players[1].userId);
+    var qs = p.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+
+  /* ---- Adding / removing players ---- */
+  function afterChange() {
+    var n = state.players.length;
+    renderPlayerList();
+    updateInputState();
+    var cmp = $('hub-cmp');
+    cmp.innerHTML = '';
+    if (n) {
+      $('side-pc').replaceChildren(buildCard(primary()));
+      renderDeal(primary().profile.metadata || {});
+    }
+    if (n === 2) state.players.forEach(function(p) { cmp.appendChild(buildCard(p)); });
+    Object.keys(views).forEach(function(k) { views[k]._renderedFor = null; });
+    writeUrl();
+    // The leaderboard has no player view — jump to Stats once there is a player
+    switchTab(n && state.tab === 'leaderboard' ? 'stats' : state.tab, { keepUrl: true });
+  }
+
+  async function addPlayer(input, opts) {
+    input = (input || '').trim();
+    if (!input) return;
+    var replace = opts && opts.replace;
+    if (!replace && state.players.length >= MAX_PLAYERS) return;
+    busy = true; updateInputState();
+    setStatus('Looking up…');
+    try {
+      var userId = await RBR.resolveInput(input, setStatus);
+      if (!userId) { setStatus('No player found for "' + input + '". Try their User ID or friend code.', true); return; }
+      if (!replace && state.players.some(function(p) { return p.userId === userId; })) { setStatus('That player is already added.', true); return; }
+      var profile = await RBR.fetchProfile(userId);
+      if (replace) state.players = [];
+      state.players.push({ userId: userId, profile: profile });
+      $('hub-input').value = '';
+      afterChange();
+      noteSaved(profile);
+      if (window.RBRArchive && !profile._archived) RBRArchive.save(userId, profile);   // live data only — a saved copy is never written back
+    } catch (e) {
+      setStatus(e.message, true);
+    } finally {
+      busy = false; updateInputState();
+    }
+  }
+
+  function noteSaved(profile) {
+    var a = profile._archived;
+    setStatus(a ? 'Showing the saved copy from ' + a.date + (a.reason && a.reason !== 'requested' ? ' — the game server couldn\'t provide this player.' : '.') : '');
+  }
+
+  // Switch one player between the live game data and the copy saved in Firestore
+  async function togglePlayer(i) {
+    var pl = state.players[i];
+    if (!pl || busy) return;
+    busy = true; updateInputState();
+    setStatus(pl.profile._archived ? 'Asking the game server…' : 'Reading the saved copy…');
+    try {
+      var profile = pl.profile._archived ? await RBR.fetchLive(pl.userId) : await RBRArchive.loadSaved(pl.userId);
+      if (!profile) throw new Error('There is no saved copy of this player yet.');
+      pl.profile = profile;
+      afterChange();
+      noteSaved(profile);
+      if (window.RBRArchive && !profile._archived) RBRArchive.save(pl.userId, profile);
+    } catch (e) {
+      setStatus(e.message, true);
+    } finally {
+      busy = false; updateInputState();
+    }
+  }
+
+  function removePlayer(i) {
+    state.players.splice(i, 1);
+    setStatus('');
+    afterChange();
+  }
+
+  /* ---- Autocomplete ---- */
+  function initSearch() {
+    var input = $('hub-input'), dd = $('hub-dropdown'), timer = null;
+    function close() { dd.classList.remove('open'); dd.innerHTML = ''; }
+
+    input.addEventListener('input', function() {
+      clearTimeout(timer);
+      var val = input.value.trim();
+      if (val.length < 2 || RBR.UUID_RE.test(val)) { close(); return; }
+      timer = setTimeout(function() {
+        RBR.suggestPlayers(val, 6).then(function(list) {
+          if (input.value.trim() !== val) return;
+          dd.innerHTML = list.length ? list.map(function(p) {
+            return '<button type="button" class="hub-dd-item" role="option" data-id="' + RBR.escHtml(p.id) + '">' +
+              '<span class="hub-dd-name">' + RBR.escHtml(p.name) + '</span><span class="hub-dd-id">' + RBR.escHtml(p.id) + '</span></button>';
+          }).join('') : '<div class="hub-dd-empty">No tracked players found — try their User ID or friend code</div>';
+          dd.classList.add('open');
+        });
+      }, 250);
+    });
+    dd.addEventListener('mousedown', function(e) {
+      var item = e.target.closest('.hub-dd-item');
+      if (!item) return;
+      e.preventDefault();
+      close();
+      addPlayer(item.dataset.id);
+    });
+    input.addEventListener('keydown', function(e) { if (e.key === 'Escape') close(); });
+    document.addEventListener('click', function(e) { if (!$('hub-search').contains(e.target)) close(); });
+    $('hub-search').addEventListener('submit', function(e) { e.preventDefault(); close(); addPlayer(input.value); });
+    $('hub-players').addEventListener('click', function(e) {
+      var b = e.target.closest('[data-act]');
+      if (!b) return;
+      var i = parseInt(b.dataset.i, 10);
+      if (b.dataset.act === 'copy') RBR.copyText(state.players[i].userId, b);
+      else if (b.dataset.act === 'mode') togglePlayer(i);
+      else removePlayer(i);
+    });
+  }
+
+  /* ---- Sticky sidebar that never traps content ----
+     Pinned 70px from the top when it fits; when it's taller than the
+     window, it scrolls with the page until its bottom (the Daily Deal)
+     is in view, then sticks there. */
+  function fitSidebar() {
+    var side = $('hub-side');
+    if (side.hidden || getComputedStyle(side).position !== 'sticky') { side.style.top = ''; return; }
+    var bottomGap = 64; // clears the fixed bottom bar
+    side.style.top = Math.min(70, window.innerHeight - side.offsetHeight - bottomGap) + 'px';
+  }
+  window.addEventListener('resize', fitSidebar);
+  if (window.ResizeObserver) new ResizeObserver(fitSidebar).observe($('hub-side'));
+
+  /* ---- Public API for views ---- */
+  var api = {
+    registerView: function(name, impl) {
+      impl.root = $('view-' + name).querySelector('[data-view-root]') || $('view-' + name);
+      views[name] = impl;
+    },
+    // From the leaderboard: open one player on their own (replaces anyone already added)
+    openPlayer: function(userId) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      addPlayer(userId, { replace: true });
+    },
+    get profile() { return primary() && primary().profile; },
+    get userId() { return primary() && primary().userId; },
+  };
+
+  /* ---- Boot ---- */
+  document.addEventListener('DOMContentLoaded', function() {
+    initSearch();
+    document.querySelectorAll('.hub-tab').forEach(function(t) {
+      t.addEventListener('click', function() { switchTab(t.dataset.tab); });
+    });
+    document.querySelectorAll('.ribbon').forEach(watchRibbon);
+
+    var params = new URLSearchParams(location.search);
+    var ids = [params.get('id'), params.get('vs')].filter(Boolean);
+    try {
+      var prefill = sessionStorage.getItem('ftoid_prefill');
+      if (prefill && !ids.length) { ids = [prefill]; sessionStorage.removeItem('ftoid_prefill'); }
+    } catch (e) {}
+
+    updateInputState();
+    switchTab(params.get('tab') || 'stats', { keepUrl: true });
+    (async function() { for (var i = 0; i < ids.length; i++) await addPlayer(ids[i]); })();
+  });
+
+  return api;
+})();
+
+/* Hamburger */
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('hamburger'), menu = document.getElementById('mobile-menu');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function() {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+  });
+});
+</script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
+Sitemap: https://winterpixelcommunity.netlify.app/sitemap.xml
 Sitemap: https://winterpixelcommunity.netlify.app/sitemap-images.xml

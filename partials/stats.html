@@ -1,0 +1,510 @@
+<!-- Player hub · Stats tab. Loaded into player.html by RBRHub; not a standalone page. -->
+<style>
+  .sv-top { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sv-subtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sv-subtab {
+    padding: 5px 16px; border-radius: var(--radius-full); border: 2px solid var(--gray-border); background: white;
+    font-size: 14px; font-weight: 800; color: var(--gray-mid);
+    transition: border-color var(--transition), color var(--transition), background var(--transition);
+  }
+  .sv-subtab:hover { border-color: var(--blue); color: var(--blue-deep); }
+  .sv-subtab.active { background: var(--blue-deep); border-color: var(--blue-deep); color: white; }
+
+  .sv-since { font-size: 12px; font-weight: 600; color: var(--gray-muted); margin: 0 0 10px; }
+  .sv-stack { display: flex; flex-direction: column; gap: 14px; }
+
+  .sv-delta { display: inline-block; margin-left: 5px; font-size: 11px; font-weight: 800; padding: 0 7px; border-radius: var(--radius-full); line-height: 1.6; vertical-align: middle; }
+  .sv-delta.up { background: #dcfce7; color: #15803d; }
+  .sv-delta.down { background: #fee2e2; color: #b91c1c; }
+
+  /* Headline numbers */
+  .sv-heads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .sv-head { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); padding: 14px 16px; min-width: 0; }
+  .sv-head-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-muted); }
+  .sv-head-val { font-size: 34px; font-weight: 800; line-height: 1.1; color: var(--blue-deep); }
+  .sv-head-sub { font-size: 12px; font-weight: 600; color: var(--gray-mid); }
+  .sv-head-sub strong { color: var(--blue-deep); }
+
+  /* Sections */
+  .sv-panel { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); padding: 14px 16px; min-width: 0; }
+  .sv-panel h3 { font-size: 15px; font-weight: 800; color: var(--blue-deep); margin-bottom: 10px; }
+  .sv-panel h3 span { font-size: 11px; font-weight: 700; color: var(--gray-muted); margin-left: 6px; }
+
+  /* Plain value tiles */
+  .sv-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+  .sv-tile { background: var(--blue-pale); border-radius: var(--radius-sm); padding: 8px 10px; min-width: 0; }
+  .sv-tile-val { font-size: 18px; font-weight: 800; color: var(--blue-deep); line-height: 1.15; }
+  .sv-tile-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--gray-muted); }
+
+  /* Bar rows (modes + weapons) */
+  .sv-bars { display: flex; flex-direction: column; gap: 9px; }
+  .sv-bar-row { display: grid; grid-template-columns: 130px minmax(0, 1fr) 96px; align-items: center; gap: 10px; }
+  .sv-bar-name { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 13px; font-weight: 700; color: var(--blue-deep); }
+  .sv-bar-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sv-bar-name img { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; }
+  .sv-bar-track { height: 10px; background: var(--blue-pale); border-radius: 99px; overflow: hidden; }
+  .sv-bar-fill { height: 100%; border-radius: 99px; background: var(--blue); }
+  .sv-bar-meta { font-size: 13px; font-weight: 800; color: var(--blue-deep); text-align: right; white-space: nowrap; }
+  .sv-bar-sub { display: block; font-size: 10px; font-weight: 700; color: var(--gray-muted); }
+
+  /* All stats */
+  .sv-filter {
+    width: 100%; height: 38px; padding: 0 14px; margin-bottom: 12px; background: white;
+    border: 2px solid var(--gray-border); border-radius: var(--radius-full);
+    font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 600; color: var(--blue-deep); outline: none;
+  }
+  .sv-filter:focus { border-color: var(--blue); }
+  .sv-list { columns: 2 260px; column-gap: 32px; }
+  .sv-row { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--blue-pale); break-inside: avoid; }
+  .sv-row-l { font-size: 13px; font-weight: 600; color: var(--gray-mid); }
+  .sv-row-v { font-size: 14px; font-weight: 800; color: var(--blue-deep); white-space: nowrap; }
+  .sv-empty { padding: 1.5rem; text-align: center; font-size: 13px; color: var(--gray-muted); }
+
+  /* History / raw */
+  .sv-card { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 14px; }
+  .sv-card-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+    padding: 9px 14px; background: var(--blue-pale); border-bottom: 1.5px solid var(--gray-border);
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-muted);
+  }
+  .sv-pills { display: flex; gap: 5px; flex-wrap: wrap; padding: 12px 14px 0; }
+  .sv-card-head .sv-pills { padding: 0; }
+  .sv-pill { padding: 2px 11px; border-radius: var(--radius-full); border: 1.5px solid var(--gray-border); background: white; font-size: 11px; font-weight: 700; color: var(--blue-mid); }
+  .sv-pill.active { background: var(--blue); border-color: var(--blue); color: white; }
+  .sv-chart { position: relative; height: 260px; padding: 12px 14px; }
+  .sv-chart-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; font-size: 13px; color: var(--gray-muted); }
+  .sv-raw { margin: 0; padding: 14px; max-height: 560px; overflow: auto; font-size: 11px; line-height: 1.6; background: #f8fafc; }
+
+  /* Compare: every stat, both players side by side */
+  .sv-cmp-head, .sv-cmp-row { display: grid; grid-template-columns: minmax(0, 1fr) 92px 92px; gap: 6px; align-items: center; padding: 0 12px; }
+  .sv-cmp-head {
+    position: sticky; top: 62px; z-index: 2; padding-top: 8px; padding-bottom: 8px;
+    background: var(--blue-deep); color: white; font-size: 12px; font-weight: 800; border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+  .sv-cmp-head span { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sv-cmp-group { padding: 6px 12px; background: var(--blue-pale); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-muted); }
+  .sv-cmp-row { padding-top: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--blue-pale); }
+  .sv-cmp-row .l { font-size: 13px; font-weight: 600; color: var(--gray-mid); }
+  .sv-cmp-row .v { text-align: center; font-size: 14px; font-weight: 800; color: var(--blue-deep); border-radius: var(--radius-sm); padding: 1px 4px; }
+  .sv-cmp-row .v.win { background: #dcfce7; color: #15803d; }
+  .sv-cmp { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); }
+
+  @media (max-width: 600px) {
+    .sv-cmp-head, .sv-cmp-row { grid-template-columns: minmax(0, 1fr) 70px 70px; padding: 0 8px; gap: 4px; }
+    .sv-heads { gap: 8px; }
+    .sv-head { padding: 10px; }
+    .sv-head-val { font-size: 24px; }
+    .sv-bar-row { grid-template-columns: 96px minmax(0, 1fr) 80px; gap: 8px; }
+    .sv-panel { padding: 12px; }
+  }
+</style>
+
+<div data-view-root>
+  <div class="sv-top" id="sv-top">
+    <div class="sv-subtabs" role="tablist">
+      <button class="sv-subtab active" data-sub="overview">Overview</button>
+      <button class="sv-subtab" data-sub="weapons">Weapons</button>
+      <button class="sv-subtab" data-sub="all">All stats</button>
+      <button class="sv-subtab" data-sub="history">History</button>
+      <button class="sv-subtab" data-sub="raw">Raw</button>
+    </div>
+  </div>
+  <div class="sv-since" id="sv-since" hidden></div>
+  <div id="sv-compare" hidden></div>
+
+  <div id="sv-panel-overview" class="sv-stack"></div>
+  <div id="sv-panel-weapons" class="sv-stack" hidden></div>
+  <div id="sv-panel-all" hidden>
+    <input class="sv-filter" id="sv-filter" type="text" placeholder="Filter stats…" autocomplete="off" aria-label="Filter stats" />
+    <div class="sv-stack" id="sv-all"></div>
+  </div>
+
+  <div id="sv-panel-history" hidden>
+    <div class="sv-card">
+      <div class="sv-card-head"><span>Stat history (daily snapshots)</span>
+        <div class="sv-pills"><button class="sv-pill" id="sv-hist-export" type="button" title="Every saved snapshot, complete, as one JSON file">Export full history (JSON)</button></div>
+      </div>
+      <div class="sv-pills" id="sv-hist-pills"></div>
+      <div class="sv-chart"><canvas id="sv-hist-chart"></canvas><div class="sv-chart-msg" id="sv-hist-msg"></div></div>
+    </div>
+    <div class="sv-card">
+      <div class="sv-card-head">
+        <span>Season ranks (top 1000)</span>
+        <div class="sv-pills">
+          <button class="sv-pill active" data-rank-type="trophies">Trophies</button>
+          <button class="sv-pill" data-rank-type="points">Points</button>
+        </div>
+      </div>
+      <div class="sv-chart"><canvas id="sv-rank-chart"></canvas><div class="sv-chart-msg" id="sv-rank-msg"></div></div>
+    </div>
+  </div>
+
+  <div id="sv-panel-raw" hidden>
+    <div class="sv-card">
+      <div class="sv-card-head">
+        <span>Raw profile JSON</span>
+        <div class="sv-pills">
+          <button class="sv-pill" id="sv-raw-copy" type="button">Copy</button>
+          <button class="sv-pill" id="sv-raw-dl" type="button">Download</button>
+          <button class="sv-pill" id="sv-raw-saved" type="button" title="The newest copy stored in Firestore, exactly as saved">Saved copy</button>
+        </div>
+      </div>
+      <pre class="sv-raw" id="sv-raw"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var esc = RBR.escHtml, fmtN = RBR.fmt;
+  function $(id) { return document.getElementById(id); }
+  function icon(name) { return 'ui/icons/rbr/' + name + '.png'; }
+
+  /* ---- Labels ---- */
+  var LABELS = {
+    _level: 'Level', _kdr: 'K/D Ratio', _winrate: 'Win Rate', _awards_seen: 'Skins Unlocked',
+    player_kills: 'Player Kills', deaths: 'Deaths', games_won: 'Wins', games_played: 'Games Played',
+    best_rank: 'Best Rank', most_player_kills: 'Best Kill Game', most_total_kills: 'Best Total Kill Game',
+    total_kills: 'Total Kills (inc. Bots)', assists: 'Assists', bot_kills: 'Bot Kills',
+    longest_killstreak: 'Best Killstreak', double_kills: 'Double Kills', triple_kills: 'Triple Kills',
+    quad_kills: 'Quad Kills', '5_kills': 'Penta Kills', first_bloods: 'First Bloods', top_5: 'Top 5 Finishes',
+    dunk_tanks: 'Dunk Kills', gems_found: 'Gems Found', coins_found: 'Coins Found', crates_collected: 'Crates Collected',
+    meters_driven: 'Distance Driven', missiles_fired: 'Missiles Fired',
+    ranked_royale_played: 'Ranked Games', ranked_royale_won: 'Ranked Wins',
+    squads_played: 'Squads Games', squads_won: 'Squads Wins', teams_played: 'Teams Games', teams_won: 'Teams Wins',
+    deathmatch_played: 'Deathmatch Games', deathmatch_won: 'Deathmatch Wins',
+    minemayhem_played: 'Mine Mayhem Games', minemayhem_won: 'Mine Mayhem Wins',
+    laser_tag_played: 'Laser Tag Games', laser_tag_won: 'Laser Tag Wins',
+    license_to_kill_played: 'Licence to Kill Games', license_to_kill_won: 'Licence to Kill Wins',
+    low_gravity_played: 'Low Gravity Games', low_gravity_won: 'Low Gravity Wins',
+    speed_shot_played: 'Speed Shot Games', speed_shot_won: 'Speed Shot Wins',
+    kills_using_flak: 'Flak Kills', kills_using_mine: 'Mine Kills', kills_using_nuke: 'Nuke Kills',
+    'kills_using_triple-shot': 'Triple Shot Kills', kills_using_grenade: 'Grenade Kills', kills_using_homing: 'Homing Kills',
+    kills_using_drill: 'Drill Kills', kills_using_laser: 'Laser Kills', kills_using_poison: 'Poison Kills', kills_using_shield: 'Shield Kills',
+    flaks_used: 'Flaks Used', mines_used: 'Mines Used', nukes_used: 'Nukes Used', grenades_used: 'Grenades Used',
+    homings_used: 'Homings Used', drills_used: 'Drills Used', lasers_used: 'Lasers Used', poisons_used: 'Poisons Used',
+    shields_used: 'Shields Used', 'triple-shots_used': 'Triple Shots Used', whirlwinds_used: 'Whirlwinds Used',
+    smokes_used: 'Smokes Used', jetpacks_used: 'Jetpacks Used', snipers: 'Snipers',
+    blocks_using_proj: 'Blocks (Projectile)', blocks_using_shield: 'Blocks (Shield)',
+    beachball_shots: 'Beachball Shots', two_birdss: 'Two Birds (One Shot)', yardsales: 'Yard Sales',
+  };
+  function label(k) { return LABELS[k] || RBR.niceName(k); }
+  function format(k, v) {
+    if (k === '_winrate') return Math.round(v) + '%';
+    if (k === '_kdr') return (Math.round(v * 100) / 100).toFixed(2);
+    if (k === 'meters_driven') return Math.round(v / 1000).toLocaleString() + ' km';
+    return typeof v === 'number' ? Math.round(v).toLocaleString() : String(v);
+  }
+  function flatten(profile) {
+    var meta = profile.metadata || {}, s = meta.stats || {};
+    return Object.assign({}, s, {
+      _level: meta.progress ? meta.progress.level : 0,
+      _awards_seen: meta.awards_seen || 0,
+      _kdr: s.deaths ? s.player_kills / s.deaths : 0,
+      _winrate: s.games_played ? 100 * s.games_won / s.games_played : 0,
+    });
+  }
+
+  /* ---- History: read from the full profiles in the archive (old statHistory is converted automatically) ---- */
+  async function loadSnapshots(userId) {
+    var all = await RBRArchive.snapshots(userId);   // full profiles (old split logs already converted)
+    return all.filter(function(e) { return Object.keys((e.profile.metadata || {}).stats || {}).length; })
+      .map(function(e) { return { date: e.date, stats: flatten(e.profile) }; });
+  }
+
+  /* ---- State ---- */
+  var cur = { userId: null, profile: null, flat: null, snaps: [], prev: null, histKey: null, rankType: 'trophies', ranks: null, ranksAsked: false, sub: 'overview', done: {} };
+  var charts = {}, drawSeq = {};
+
+  /* ---- Data ---- */
+  var MODES = [
+    ['ranked_royale', 'Ranked Royale'], ['squads', 'Squads'], ['teams', 'Teams'], ['deathmatch', 'Deathmatch'],
+    ['minemayhem', 'Mine Mayhem'], ['laser_tag', 'Laser Tag'], ['license_to_kill', 'Licence to Kill'],
+    ['low_gravity', 'Low Gravity'], ['speed_shot', 'Speed Shot'],
+  ];
+  var WEAPONS = [
+    ['Flak', 'kills_using_flak', 'flaks_used', 'flak'], ['Mine', 'kills_using_mine', 'mines_used', 'mine'],
+    ['Nuke', 'kills_using_nuke', 'nukes_used', 'nuke'], ['Triple Shot', 'kills_using_triple-shot', 'triple-shots_used', 'triple-shot'],
+    ['Grenade', 'kills_using_grenade', 'grenades_used', 'grenade'], ['Homing', 'kills_using_homing', 'homings_used', 'homing'],
+    ['Drill', 'kills_using_drill', 'drills_used', 'drill'], ['Laser', 'kills_using_laser', 'lasers_used', 'laser'],
+    ['Poison', 'kills_using_poison', 'poisons_used', 'poison'], ['Shield', 'kills_using_shield', 'shields_used', 'shield'],
+  ];
+  var COMBAT = ['double_kills', 'triple_kills', 'quad_kills', '5_kills', 'first_bloods', 'longest_killstreak', 'most_player_kills', 'assists', 'dunk_tanks'];
+  var GROUPS = [
+    ['General', ['_level', '_awards_seen', 'games_played', 'games_won', '_winrate', 'best_rank', 'top_5', 'meters_driven', 'coins_found', 'gems_found', 'crates_collected', 'missiles_fired']],
+    ['Combat', ['player_kills', 'deaths', '_kdr', 'total_kills', 'bot_kills', 'assists', 'first_bloods', 'longest_killstreak', 'most_player_kills', 'most_total_kills',
+      'double_kills', 'triple_kills', 'quad_kills', '5_kills', 'dunk_tanks', 'two_birdss', 'yardsales', 'snipers', 'beachball_shots']],
+    ['Game modes', [].concat.apply([], MODES.map(function(m) { return [m[0] + '_played', m[0] + '_won']; }))],
+    ['Weapons', null],
+  ];
+  var WEAPON_KEY = /^kills_using_|_used$|^blocks_using_/;
+
+  /* ---- Helpers over the current player ---- */
+  function pct(x, total) { return total ? Math.round(100 * x / total) : 0; }
+  function num(k) { return Number(cur.flat[k]) || 0; }
+  function delta(k) {
+    var prev = cur.prev;
+    if (!prev || typeof cur.flat[k] !== 'number' || typeof prev.stats[k] !== 'number') return '';
+    var d = cur.flat[k] - prev.stats[k];
+    if (Math.abs(d) < 0.005) return '';
+    return '<span class="sv-delta ' + (d > 0 ? 'up' : 'down') + '">' + (d > 0 ? '+' : '') + esc(format(k, d)) + '</span>';
+  }
+
+  /* ---- Overview ---- */
+  function renderOverview() {
+    var flat = cur.flat;
+    var html = '<div class="sv-heads">' +
+      '<div class="sv-head"><div class="sv-head-label">Win rate</div><div class="sv-head-val">' + esc(format('_winrate', num('_winrate'))) + delta('_winrate') + '</div>' +
+        '<div class="sv-head-sub"><strong>' + fmtN(num('games_won')) + '</strong> wins · <strong>' + fmtN(num('games_played')) + '</strong> games</div></div>' +
+      '<div class="sv-head"><div class="sv-head-label">K/D ratio</div><div class="sv-head-val">' + esc(format('_kdr', num('_kdr'))) + delta('_kdr') + '</div>' +
+        '<div class="sv-head-sub"><strong>' + fmtN(num('player_kills')) + '</strong> kills · <strong>' + fmtN(num('deaths')) + '</strong> deaths</div></div>' +
+      '<div class="sv-head"><div class="sv-head-label">Best rank</div><div class="sv-head-val">' + (flat.best_rank ? '#' + fmtN(flat.best_rank) : '—') + '</div>' +
+        '<div class="sv-head-sub"><strong>' + fmtN(num('top_5')) + '</strong> top-5 finishes' + delta('top_5') + '</div></div>' +
+    '</div>';
+
+    var combat = COMBAT.filter(function(k) { return flat[k] !== undefined; });
+    if (combat.length) {
+      html += '<div class="sv-panel"><h3>Combat</h3><div class="sv-tiles">' + combat.map(function(k) {
+        return '<div class="sv-tile"><div class="sv-tile-val">' + esc(format(k, flat[k])) + delta(k) + '</div><div class="sv-tile-label">' + esc(label(k)) + '</div></div>';
+      }).join('') + '</div></div>';
+    }
+
+    var modes = MODES.map(function(m) { return { name: m[1], p: num(m[0] + '_played'), w: num(m[0] + '_won'), key: m[0] + '_played' }; })
+      .filter(function(m) { return m.p > 0; })
+      .sort(function(x, y) { return y.p - x.p; });
+    if (modes.length) {
+      html += '<div class="sv-panel"><h3>Game modes<span>win rate</span></h3><div class="sv-bars">' + modes.map(function(m) {
+        return '<div class="sv-bar-row"><div class="sv-bar-name"><span>' + esc(m.name) + '</span></div>' +
+          '<div class="sv-bar-track"><div class="sv-bar-fill" style="width:' + pct(m.w, m.p) + '%"></div></div>' +
+          '<div class="sv-bar-meta">' + pct(m.w, m.p) + '%<span class="sv-bar-sub">' + fmtN(m.w) + ' / ' + fmtN(m.p) + delta(m.key) + '</span></div></div>';
+      }).join('') + '</div></div>';
+    }
+    $('sv-panel-overview').innerHTML = html;
+  }
+
+  /* ---- Weapons ---- */
+  function renderWeapons() {
+    var weapons = WEAPONS.map(function(w) { return { name: w[0], k: num(w[1]), u: num(w[2]), key: w[1], icon: w[3] }; })
+      .filter(function(w) { return w.k > 0 || w.u > 0; })
+      .sort(function(x, y) { return y.k - x.k; });
+    var maxK = weapons.reduce(function(m, w) { return Math.max(m, w.k); }, 0) || 1;
+    var html = weapons.length ? '<div class="sv-panel"><h3>Weapons<span>kills · share of uses</span></h3><div class="sv-bars">' + weapons.map(function(w) {
+      return '<div class="sv-bar-row"><div class="sv-bar-name"><img loading="lazy" src="' + icon(w.icon) + '" alt=""><span>' + esc(w.name) + '</span></div>' +
+        '<div class="sv-bar-track"><div class="sv-bar-fill" style="width:' + (100 * w.k / maxK).toFixed(1) + '%"></div></div>' +
+        '<div class="sv-bar-meta">' + fmtN(w.k) + delta(w.key) + '<span class="sv-bar-sub">' + (w.u ? pct(w.k, w.u) + '% of ' + fmtN(w.u) + ' uses' : '—') + '</span></div></div>';
+    }).join('') + '</div></div>' : '<div class="sv-empty">No weapon stats yet.</div>';
+    $('sv-panel-weapons').innerHTML = html;
+  }
+
+  /* ---- All stats: every stat once, grouped ---- */
+  function groupKeys(keys) {
+    var present = {}, seen = {}, byGroup = {}, names = GROUPS.map(function(g) { return g[0]; }).concat('Other');
+    keys.forEach(function(k) { present[k] = 1; });
+    names.forEach(function(n) { byGroup[n] = []; });
+    GROUPS.forEach(function(g) { if (g[1]) g[1].forEach(function(k) { if (present[k]) { byGroup[g[0]].push(k); seen[k] = 1; } }); });
+    keys.slice().sort().forEach(function(k) { if (!seen[k]) byGroup[WEAPON_KEY.test(k) ? 'Weapons' : 'Other'].push(k); });
+    return names.filter(function(n) { return byGroup[n].length; }).map(function(n) { return [n, byGroup[n]]; });
+  }
+
+  function renderAll() {
+    var flat = cur.flat;
+    $('sv-all').innerHTML = groupKeys(Object.keys(flat).filter(function(k) { return flat[k] !== undefined; })).map(function(g) {
+      return '<div class="sv-panel" data-group><h3>' + esc(g[0]) + '</h3><div class="sv-list">' + g[1].map(function(k) {
+        return '<div class="sv-row" data-text="' + esc(label(k).toLowerCase()) + '"><span class="sv-row-l">' + esc(label(k)) + '</span><span class="sv-row-v">' + esc(format(k, flat[k])) + delta(k) + '</span></div>';
+      }).join('') + '</div></div>';
+    }).join('');
+    filterAll();
+  }
+
+  /* ---- Compare: every stat for both players, side by side ---- */
+  var LOWER_BETTER = { deaths: 1, best_rank: 1 };
+  function renderCompare(players) {
+    var fa = flatten(players[0].profile), fb = flatten(players[1].profile);
+    var keys = Object.keys(Object.assign({}, fa, fb)).filter(function(k) { return fa[k] !== undefined || fb[k] !== undefined; });
+    function cell(k, mine, other) {
+      if (mine === undefined) return '<span class="v">—</span>';
+      var win = typeof mine === 'number' && typeof other === 'number' && mine !== other && (LOWER_BETTER[k] ? (mine > 0 && mine < (other || Infinity)) : mine > other);
+      return '<span class="v' + (win ? ' win' : '') + '">' + esc(format(k, mine)) + '</span>';
+    }
+    $('sv-compare').innerHTML = '<div class="sv-cmp"><div class="sv-cmp-head"><span></span><span>' + esc(players[0].profile.display_name || 'Player 1') +
+      '</span><span>' + esc(players[1].profile.display_name || 'Player 2') + '</span></div>' +
+      groupKeys(keys).map(function(g) {
+        return '<div class="sv-cmp-group">' + esc(g[0]) + '</div>' + g[1].map(function(k) {
+          return '<div class="sv-cmp-row"><span class="l">' + esc(label(k)) + '</span>' + cell(k, fa[k], fb[k]) + cell(k, fb[k], fa[k]) + '</div>';
+        }).join('');
+      }).join('') + '</div>';
+  }
+  function setCompare(on) {
+    $('sv-compare').hidden = !on;
+    $('sv-top').hidden = on;
+    if (on) {
+      $('sv-since').hidden = true;
+      ['overview', 'weapons', 'all', 'history', 'raw'].forEach(function(x) { $('sv-panel-' + x).hidden = true; });
+    }
+  }
+  function filterAll() {
+    var q = $('sv-filter').value.trim().toLowerCase(), any = false;
+    document.querySelectorAll('#sv-all [data-group]').forEach(function(g) {
+      var shown = 0;
+      g.querySelectorAll('.sv-row').forEach(function(r) {
+        var ok = !q || r.dataset.text.indexOf(q) !== -1;
+        r.hidden = !ok; if (ok) shown++;
+      });
+      g.hidden = !shown; if (shown) any = true;
+    });
+    var none = $('sv-all').querySelector('.sv-empty');
+    if (!any && !none) $('sv-all').insertAdjacentHTML('beforeend', '<div class="sv-empty">No stats match that filter.</div>');
+    if (any && none) none.remove();
+  }
+
+  /* ---- Charts (Chart.js is downloaded the first time History opens) ---- */
+  var chartLoad = null;
+  function ensureChart() {
+    if (window.Chart) return Promise.resolve();
+    if (!chartLoad) chartLoad = new Promise(function(ok, fail) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+      s.onload = ok;
+      s.onerror = function() { chartLoad = null; fail(new Error('Chart library failed to load')); };
+      document.head.appendChild(s);
+    });
+    return chartLoad;
+  }
+  function chartOptions(tooltipLabel, yOpts) {
+    var tick = { color: '#64748B', font: { family: 'Baloo 2', weight: '600' } };
+    return {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0a1a24', callbacks: { label: tooltipLabel } } },
+      scales: { x: { grid: { color: '#EFF6FF' }, ticks: tick }, y: Object.assign({ grid: { color: '#EFF6FF' }, ticks: tick }, yOpts) },
+    };
+  }
+  function drawLine(name, canvasId, msgId, labels, data, opts, msg) {
+    var seq = drawSeq[name] = (drawSeq[name] || 0) + 1;
+    if (charts[name]) { charts[name].destroy(); charts[name] = null; }
+    var m = $(msgId), canvas = $(canvasId);
+    function say(t) { m.textContent = t || ''; m.style.display = t ? 'flex' : 'none'; canvas.style.visibility = t ? 'hidden' : 'visible'; }
+    say(msg);
+    if (msg) return;
+    say('Loading chart…');
+    ensureChart().then(function() {
+      if (seq !== drawSeq[name]) return;
+      say('');
+      charts[name] = new Chart(canvas, {
+        type: 'line',
+        data: { labels: labels, datasets: [{ data: data, borderColor: '#00c6ff', backgroundColor: 'rgba(0,198,255,0.08)', borderWidth: 3,
+          pointBackgroundColor: '#1E3A8A', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 4, tension: 0.3, fill: !opts.reverse }] },
+        options: opts.options,
+      });
+    }).catch(function(e) { if (seq === drawSeq[name]) say(e.message); });
+  }
+
+  function renderHistory() {
+    var snaps = cur.snaps, flat = cur.flat;
+    var keys = Object.keys(LABELS).concat(Object.keys(flat).filter(function(k) { return !(k in LABELS); }))
+      .filter(function(k) { return typeof flat[k] === 'number' && snaps.some(function(s) { return k in s.stats; }); });
+    if (!cur.histKey || keys.indexOf(cur.histKey) === -1) cur.histKey = keys[0] || null;
+    $('sv-hist-pills').innerHTML = keys.map(function(k) {
+      return '<button class="sv-pill' + (k === cur.histKey ? ' active' : '') + '" data-key="' + esc(k) + '">' + esc(label(k)) + '</button>';
+    }).join('');
+    var key = cur.histKey;
+    var pts = key ? snaps.filter(function(s) { return key in s.stats; }) : [];
+    drawLine('hist', 'sv-hist-chart', 'sv-hist-msg',
+      pts.map(function(p) { return p.date; }), pts.map(function(p) { return p.stats[key]; }),
+      { options: chartOptions(function(c) { return label(key) + ': ' + format(key, c.parsed.y); },
+        { ticks: { color: '#64748B', font: { family: 'Baloo 2', weight: '600' }, callback: function(v) { return format(key, v); } } }) },
+      pts.length < 2 ? 'No history yet — look this player up again tomorrow to start a graph.' : '');
+
+    // Season ranks are only requested once History is actually opened
+    if (!cur.ranksAsked) {
+      cur.ranksAsked = true;
+      var userId = cur.userId;
+      RBR.leaderboard({ action: 'history', id: userId }).catch(function() { return { archive: false, history: [] }; })
+        .then(function(r) { if (cur.userId !== userId) return; cur.ranks = r; if (cur.sub === 'history') renderRanks(); });
+    }
+    renderRanks();
+  }
+
+  function renderRanks() {
+    document.querySelectorAll('[data-rank-type]').forEach(function(b) { b.classList.toggle('active', b.dataset.rankType === cur.rankType); });
+    if (!cur.ranks) { drawLine('rank', 'sv-rank-chart', 'sv-rank-msg', [], [], {}, 'Loading season ranks…'); return; }
+    if (!cur.ranks.archive) { drawLine('rank', 'sv-rank-chart', 'sv-rank-msg', [], [], {}, 'Season ranks will appear once the leaderboard archive is connected.'); return; }
+    var pts = cur.ranks.history.filter(function(h) { return h.type === cur.rankType; });
+    drawLine('rank', 'sv-rank-chart', 'sv-rank-msg',
+      pts.map(function(h) { return 'S' + h.season; }), pts.map(function(h) { return h.rank; }),
+      { reverse: true, options: chartOptions(function(c) { var h = pts[c.dataIndex]; return ['Rank #' + fmtN(h.rank), fmtN(h.score) + ' ' + cur.rankType]; },
+        { reverse: true, min: 1, suggestedMax: 100, ticks: { color: '#64748B', font: { family: 'Baloo 2', weight: '600' }, precision: 0 } }) },
+      pts.length ? '' : 'No archived top-1000 ' + cur.rankType + ' finishes.');
+  }
+
+  /* ---- Sub-tabs: each panel is built the first time it's opened ---- */
+  var RENDER = { overview: renderOverview, weapons: renderWeapons, all: renderAll };
+  function showSub(sub) {
+    cur.sub = sub;
+    document.querySelectorAll('.sv-subtab').forEach(function(b) { b.classList.toggle('active', b.dataset.sub === sub); });
+    ['overview', 'weapons', 'all', 'history', 'raw'].forEach(function(s) { $('sv-panel-' + s).hidden = s !== sub; });
+    $('sv-since').hidden = !(cur.prev && (sub === 'overview' || sub === 'weapons' || sub === 'all'));
+    if (!cur.flat) return;
+    if (RENDER[sub] && !cur.done[sub]) { cur.done[sub] = true; RENDER[sub](); }
+    if (sub === 'history') renderHistory();
+    if (sub === 'raw' && !cur.done.raw) { cur.done.raw = true; $('sv-raw').textContent = JSON.stringify(cur.profile, null, 2); }
+  }
+
+  /* ---- Events ---- */
+  document.querySelectorAll('.sv-subtab').forEach(function(b) { b.addEventListener('click', function() { showSub(b.dataset.sub); }); });
+  $('sv-hist-pills').addEventListener('click', function(e) { var b = e.target.closest('[data-key]'); if (b) { cur.histKey = b.dataset.key; renderHistory(); } });
+  document.querySelectorAll('[data-rank-type]').forEach(function(b) { b.addEventListener('click', function() { cur.rankType = b.dataset.rankType; renderRanks(); }); });
+  $('sv-filter').addEventListener('input', filterAll);
+  $('sv-hist-export').addEventListener('click', async function() {
+    var btn = this, was = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Exporting…';
+    try { await RBRArchive.downloadExport(cur.userId, cur.profile && cur.profile.display_name); btn.textContent = 'Exported ✓'; }
+    catch (e) { btn.textContent = 'Failed: ' + e.message; }
+    setTimeout(function() { btn.textContent = was; btn.disabled = false; }, 2500);
+  });
+  // Raw tab: switch between what's on screen and the Firestore document(s) as stored
+  var rawSaved = false;
+  $('sv-raw-saved').addEventListener('click', async function() {
+    var btn = this;
+    if (rawSaved) { rawSaved = false; btn.textContent = 'Saved copy'; btn.classList.remove('active'); $('sv-raw').textContent = JSON.stringify(cur.profile, null, 2); return; }
+    btn.textContent = 'Loading…';
+    var saved = await RBRArchive.getSaved(cur.userId).catch(function() { return null; });
+    if (!saved) { btn.textContent = 'Nothing saved yet'; setTimeout(function() { btn.textContent = 'Saved copy'; }, 2000); return; }
+    rawSaved = true; btn.textContent = 'Live profile'; btn.classList.add('active');
+    $('sv-raw').textContent = JSON.stringify({ source: saved.source, saved_on: saved.date, firestore: saved.raw }, null, 2);
+  });
+  $('sv-raw-copy').addEventListener('click', function() { RBR.copyText($('sv-raw').textContent, this); });
+  $('sv-raw-dl').addEventListener('click', function() {
+    var url = URL.createObjectURL(new Blob([$('sv-raw').textContent], { type: 'application/json' }));
+    var a = document.createElement('a');
+    a.href = url; a.download = ((cur.profile && cur.profile.display_name) || 'player') + '-stats.json'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  RBRHub.registerView('stats', {
+    needsPlayer: true,
+    showCompare: function(players) {
+      cur.userId = null;
+      renderCompare(players);
+      setCompare(true);
+    },
+    showPlayer: function(profile, userId) {
+      setCompare(false);
+      cur.userId = userId; cur.profile = profile; cur.flat = flatten(profile);
+      rawSaved = false; $('sv-raw-saved').textContent = 'Saved copy'; $('sv-raw-saved').classList.remove('active');
+      cur.snaps = []; cur.prev = null; cur.ranks = null; cur.ranksAsked = false; cur.done = {};
+      $('sv-since').hidden = true;
+      showSub(cur.sub);
+
+      loadSnapshots(userId).then(function(snaps) {
+        if (cur.userId !== userId) return;
+        cur.snaps = snaps;
+        // Changes are measured against the newest snapshot from an earlier day
+        for (var i = snaps.length - 1; i >= 0; i--) { if (snaps[i].date !== RBR.todayKey()) { cur.prev = snaps[i]; break; } }
+        $('sv-since').textContent = cur.prev ? 'Green and red numbers show changes since ' + cur.prev.date : '';
+        cur.done = {};
+        showSub(cur.sub);
+      }).catch(function(e) { console.warn('History load failed:', e.message); });
+    },
+  });
+})();
+</script>
