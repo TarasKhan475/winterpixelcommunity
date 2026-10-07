@@ -428,7 +428,7 @@
     <div class="fm-stats-body" id="sp-body">
       <div class="fm-stats-loading"><div class="fm-spinner"></div>Loading stats…</div>
     </div>
-    <a class="fm-stats-full-link" id="sp-link" href="stats.html" target="_blank">View full stats page →</a>
+    <a class="fm-stats-full-link" id="sp-link" href="player.html" target="_blank" rel="noopener">View full stats page →</a>
   </div>
 </div>
 
@@ -676,6 +676,7 @@ async function callApi(action,ids){
 
 /* ── Stats popup ── */
 async function openStats(userId,name){
+  document.getElementById('sp-link').href='player.html?id='+encodeURIComponent(userId);
   document.getElementById('sp-name').textContent=name;
   document.getElementById('sp-sub').textContent='Loading…';
   document.getElementById('sp-body').innerHTML='<div class="fm-stats-loading"><div class="fm-spinner"></div>Fetching stats…</div>';

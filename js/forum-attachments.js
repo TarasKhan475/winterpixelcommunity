@@ -507,8 +507,8 @@ function renderAttachment(attachment) {
     var badgeHtml = a.badge
       ? '<img class="embed-badge" src="ui/icons/badges/'+escAttr(a.badge)+'.png" alt="'+escAttr(a.badge)+'" onerror="this.style.display=\'none\'">'
       : '';
-    // Use ftoid_prefill via sessionStorage (same as friendtoid.html → stats.html pattern)
-    var statsUrl = 'stats.html';
+    // Straight into the Player Hub with this player loaded (shareable link, nothing stored in the browser)
+    var statsUrl = 'player.html' + (/^[a-f0-9-]{36}$/i.test(a.userId || '') ? '?id=' + encodeURIComponent(a.userId) : '');
     return '<div class="msg-embed msg-embed-stats">' +
       '<div class="embed-stats-header">' +
         '<img class="embed-tank" src="ui/icons/pfp/'+escAttr(a.skin)+'.png" onerror="this.src=\'ui/icons/pfp/default_tank.png\'" />' +
@@ -525,8 +525,7 @@ function renderAttachment(attachment) {
         '<div class="embed-stat"><div class="embed-stat-val">'+Number(a.played).toLocaleString()+'</div><div class="embed-stat-lbl">Games</div></div>' +
         '<div class="embed-stat"><div class="embed-stat-val">'+wr+'</div><div class="embed-stat-lbl">Win Rate</div></div>' +
       '</div>' +
-      '<a class="embed-stats-link" href="'+statsUrl+'" target="_blank" rel="noopener" ' +
-         'onclick="try{sessionStorage.setItem(\'ftoid_prefill\',\''+escAttr(a.userId)+'\');}catch(e){}">View Full Stats →</a>' +
+      '<a class="embed-stats-link" href="'+escAttr(statsUrl)+'" target="_blank" rel="noopener">View Full Stats →</a>' +
     '</div>';
   }
 
