@@ -1,23 +1,3 @@
-/* ================================================================
-   RBR LEADERBOARD API (Netlify Function)
-
-   GET /.netlify/functions/leaderboard?action=board&type=trophies&season=55
-   GET /.netlify/functions/leaderboard?action=history&id=<uuid>
-   GET /.netlify/functions/leaderboard?action=player&id=<uuid>
-
-   Archived seasons are read from Postgres (filled by
-   scripts/leaderboard-download.js). Newer seasons — or any season
-   the database doesn't have yet — are fetched live from Nakama.
-
-   Environment variables (Netlify → Site settings → Environment):
-     DATABASE_URL                   Postgres connection string (optional;
-                                    without it everything is fetched live)
-     LEADERBOARD_ARCHIVED_THROUGH   Last season stored in the DB (default 58)
-     NAKAMA_EMAIL / NAKAMA_PASSWORD Game account used for API calls
-     NAKAMA_CLIENT_VERSION          Client version sent on login
-================================================================ */
-const { Pool } = require('pg');
-
 const NAKAMA_BASE = 'https://dev-nakama.winterpixel.io/v2';
 const BASIC_AUTH  = 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=';
 
@@ -38,12 +18,41 @@ const NAKAMA_HEADERS = {
   'User-Agent':   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 };
 
-/* ---- Postgres (reused across warm invocations) ---- */
-let pool = null;
-function getPool() {
-  if (!process.env.DATABASE_URL) return null;
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 1 });
-  return pool;
+/* ---- Neon Postgres over HTTPS (no driver / no npm packages) ----
+   Same protocol the @neondatabase/serverless driver uses: POST the query to
+   https://<your-neon-host>/sql with the connection string in a header.
+   Values come back as text, so numbers are converted by the callers. */
+function hasDb() { return !!process.env.DATABASE_URL; }
+
+async function dbQuery(text, params) {
+  const conn = process.env.DATABASE_URL;
+  if (!conn) throw new Error('DATABASE_URL is not set');
+  const host = new URL(conn).hostname;
+  const ctrl = new AbortController();
+  const timer = setTimeout(function() { ctrl.abort(); }, 8000);
+  try {
+    const res = await fetch('https://' + host + '/sql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Neon-Connection-String': conn,
+        'Neon-Raw-Text-Output': 'true',
+        'Neon-Array-Mode': 'false',
+      },
+      body: JSON.stringify({ query: text, params: (params || []).map(String) }),
+      signal: ctrl.signal,
+    });
+    const data = await res.json().catch(function() { return {}; });
+    if (!res.ok) throw new Error('Database ' + res.status + (data.message ? ': ' + data.message : ''));
+    const names = (data.fields || []).map(function(f) { return f.name; });
+    // Rows are objects normally; handle array rows too
+    return (data.rows || []).map(function(r) {
+      if (!Array.isArray(r)) return r;
+      const o = {}; names.forEach(function(n, i) { o[n] = r[i]; }); return o;
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /* ---- Nakama ---- */
@@ -88,10 +97,9 @@ function isTrue(v) { return v === true || v === 'true'; }
 
 /* ---- Actions ---- */
 async function getBoard(type, season) {
-  const db = getPool();
-  if (db && season <= ARCHIVED_THROUGH) {
+  if (hasDb() && season <= ARCHIVED_THROUGH) {
     try {
-      const { rows } = await db.query(
+      const rows = await dbQuery(
         `SELECT owner_id, username, rank, score, num_score,
                 metadata->>'has_season_pass' AS pass
            FROM leaderboards
@@ -104,8 +112,8 @@ async function getBoard(type, season) {
         return {
           source: 'archive',
           players: rows.map(r => ({
-            owner_id: r.owner_id, username: r.username, rank: r.rank,
-            score: r.score, num_score: r.num_score, pass: r.pass === 'true',
+            owner_id: r.owner_id, username: r.username, rank: Number(r.rank),
+            score: Number(r.score), num_score: Number(r.num_score), pass: r.pass === 'true' || r.pass === true,
           })),
         };
       }
@@ -130,16 +138,25 @@ async function getBoard(type, season) {
 }
 
 async function getHistory(id) {
-  const db = getPool();
-  if (!db) return { archive: false, history: [] };
-  const { rows } = await db.query(
-    `SELECT season, type, rank, score, username
-       FROM leaderboards
-      WHERE owner_id = $1 AND rank BETWEEN 1 AND $2::int
-      ORDER BY season ASC`,
-    [id, TOP_N]
-  );
-  return { archive: true, history: rows };
+  if (!hasDb()) return { archive: false, history: [] };
+  try {
+    const rows = await dbQuery(
+      `SELECT season, type, rank, score, username
+         FROM leaderboards
+        WHERE owner_id = $1 AND rank BETWEEN 1 AND $2::int
+        ORDER BY season ASC`,
+      [id, TOP_N]
+    );
+    return {
+      archive: true,
+      history: rows.map(function(r) {
+        return { season: Number(r.season), type: r.type, rank: Number(r.rank), score: Number(r.score), username: r.username };
+      }),
+    };
+  } catch (e) {
+    console.error('[leaderboard] history read failed:', e.message);
+    return { archive: false, history: [] };
+  }
 }
 
 async function getPlayer(id) {
@@ -167,6 +184,12 @@ exports.handler = async function(event) {
   const action = q.action || 'board';
 
   try {
+    if (action === 'status') {
+      if (!hasDb()) return reply(200, { database: 'not configured (DATABASE_URL missing) — boards are fetched live' });
+      try { await dbQuery('SELECT 1 AS ok'); return reply(200, { database: 'ok', archived_through: ARCHIVED_THROUGH }); }
+      catch (e) { return reply(200, { database: 'error: ' + e.message }); }
+    }
+
     if (action === 'board') {
       const type = q.type === 'points' ? 'points' : 'trophies';
       const season = parseInt(q.season, 10);
