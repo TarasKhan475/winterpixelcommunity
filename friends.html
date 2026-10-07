@@ -531,8 +531,8 @@ var I_DECLINE='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" strok
 var I_REMOVE ='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>';
 var I_STATS  ='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>';
 
-function mkBtn(cls,svgFb,img,title,oc){
-  return '<button class="fm-btn '+cls+'" onclick="'+oc+'" title="'+title+'">'
+function mkBtn(cls,svgFb,img,title,act){
+  return '<button class="fm-btn '+cls+'" data-act="'+act+'" title="'+title+'">'
     +'<img src="'+img+'" alt="'+title+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">'
     +'<span style="display:none;align-items:center;justify-content:center;width:100%;height:100%;">'+svgFb+'</span>'
     +'</button>';
@@ -573,12 +573,12 @@ function renderList(){
     /* Only show accept/decline for received; only remove for friends/sent */
     var actions='';
     if(f.state==='received'){
-      actions+=mkBtn('accept', I_ACCEPT, 'ui/icons/accept.png',  'Accept',  "singleAction('accept','"+f.id+"','"+esc(f.name)+"',this)");
-      actions+=mkBtn('decline',I_DECLINE,'ui/icons/decline.png', 'Decline', "confirmAction('decline','"+f.id+"','"+esc(f.name)+"')");
+      actions+=mkBtn('accept', I_ACCEPT, 'ui/icons/accept.png',  'Accept',  'accept');
+      actions+=mkBtn('decline',I_DECLINE,'ui/icons/decline.png', 'Decline', 'decline');
     } else {
-      actions+=mkBtn('remove', I_REMOVE, 'ui/icons/remove.png',  'Remove',  "confirmAction('remove','"+f.id+"','"+esc(f.name)+"')");
+      actions+=mkBtn('remove', I_REMOVE, 'ui/icons/remove.png',  'Remove',  'remove');
     }
-    actions+=mkBtn('stats',I_STATS,'ui/icons/stats.png','View Stats',"openStats('"+f.id+"','"+esc(f.name)+"')");
+    actions+=mkBtn('stats',I_STATS,'ui/icons/stats.png','View Stats','stats');
     return '<div class="fm-row" data-id="'+f.id+'" data-state="'+f.state+'">'
       +'<input type="checkbox" class="fm-row-check" onchange="onCheck(this)">'
       +'<div class="fm-row-info">'
@@ -697,6 +697,17 @@ async function openStats(userId,name){
   }
 }
 function closeStats(){document.getElementById('ov-stats').classList.remove('open');}
+
+/* ── Row buttons: names are read from the data, never pasted into onclick strings ── */
+document.getElementById('fm-list').addEventListener('click',function(e){
+  var b=e.target.closest('.fm-btn[data-act]');if(!b)return;
+  var row=b.closest('.fm-row');if(!row)return;
+  var f=allFriends.map(parse).filter(function(x){return x.id===row.dataset.id;})[0];if(!f)return;
+  var act=b.dataset.act;
+  if(act==='accept')singleAction('accept',f.id,f.name,b);
+  else if(act==='decline'||act==='remove')confirmAction(act,f.id,f.name);
+  else if(act==='stats')openStats(f.id,f.name);
+});
 
 /* ── Quick Actions dropdown (desktop) ── */
 document.getElementById('fm-quick-btn').addEventListener('click',function(e){e.stopPropagation();document.getElementById('fm-quick-dd').classList.toggle('open');});
