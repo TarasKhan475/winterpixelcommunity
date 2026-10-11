@@ -369,21 +369,7 @@
 
 <script src="js/bottom-bar-loader.js"></script>
 <script>
-/* ================================================================
-   PLAYER HUB SHELL
 
-   Owns the search bar, tabs, player sidebar and the single profile
-   fetch. Each tab is a separate file in partials/ that's downloaded the
-   first time its tab opens and registers itself with:
-
-     RBRHub.registerView(name, {
-       showPlayer(profile, userId) — render the looked-up player
-       onShow()                    — tab became visible (optional)
-     })
-
-   Views that set needsPlayer get the sidebar and an empty state until
-   a player is looked up.
-================================================================ */
 var RBRHub = (function() {
   var TABS = ['stats', 'leaderboard', 'skins'];
   // Tabs that need a looked-up player aren't downloaded until there is one

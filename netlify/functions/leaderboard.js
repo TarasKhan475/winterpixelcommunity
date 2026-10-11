@@ -4,7 +4,7 @@ const BASIC_AUTH  = 'Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo=';
 const NAKAMA_EMAIL          = process.env.NAKAMA_EMAIL          || 'test6969khan@test.com';
 const NAKAMA_PASSWORD       = process.env.NAKAMA_PASSWORD       || 'password';
 const NAKAMA_CLIENT_VERSION = process.env.NAKAMA_CLIENT_VERSION || '9999999999';
-const ARCHIVED_THROUGH      = parseInt(process.env.LEADERBOARD_ARCHIVED_THROUGH || '58', 10);
+const ARCHIVED_THROUGH      = parseInt(process.env.LEADERBOARD_ARCHIVED_THROUGH || '59', 10);
 
 const TOP_N      = 1000;  // only the top 1000 of any board is ever stored or served
 const UUID_RE    = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
