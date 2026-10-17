@@ -183,7 +183,7 @@ button { cursor: pointer; font-family: 'Baloo 2', cursive; }
 .news-meta { font-size: 11px; color: var(--gray-muted); margin-top: 0px; }
 
 /* ---- NEWS FULL PAGE ---- */
-.news-page-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem; }
+.news-page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
 
 .news-full-card {
   border: 1.5px solid var(--gray-border); border-radius: var(--radius-lg);
@@ -215,6 +215,39 @@ button { cursor: pointer; font-family: 'Baloo 2', cursive; }
 .news-full-body ol { list-style: decimal; }
 .news-full-body li { margin-bottom: 4px; font-size: 14px; }
 .news-full-body strong { font-weight: 700; color: var(--blue-deep); }
+.news-full-body img { max-width: 100%; height: auto; }
+
+/* Compact article cards on news.html (click opens the reader) */
+.news-page-grid .news-full-card { display: flex; flex-direction: column; cursor: pointer; }
+.news-page-grid .news-full-card:hover,
+.news-page-grid .news-full-card:focus-visible { border-color: var(--blue); outline: none; }
+.news-page-grid .news-full-banner { height: 150px; flex-shrink: 0; }
+.news-page-grid .news-full-banner-emoji { font-size: 38px; }
+.news-page-grid .news-full-header { padding: 1rem 1.1rem 0.75rem; flex: 1; }
+.news-page-grid .news-full-header h2 { font-size: 16px; }
+.news-page-grid .vote-row { padding: 0.6rem 1.1rem 0.9rem; }
+.news-full-summary {
+  font-size: 13px; color: var(--gray-mid); line-height: 1.45; margin-bottom: 6px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Article reader popup */
+.news-modal {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  overflow-y: auto; background: rgba(15, 23, 42, 0.6); padding: 4vh 12px;
+}
+.news-modal.open { display: block; }
+.news-modal-panel {
+  position: relative; max-width: 760px; margin: 0 auto;
+  background: white; border-radius: var(--radius-lg); overflow: hidden;
+}
+.news-modal-close {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  width: 34px; height: 34px; border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92); color: var(--blue-deep);
+  font-size: 16px; cursor: pointer;
+}
+.news-modal-close:hover { background: white; }
 
 /* Votes */
 .vote-row {

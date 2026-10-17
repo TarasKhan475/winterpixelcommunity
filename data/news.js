@@ -8,7 +8,7 @@
  * 1. Copy one of the objects below
  * 2. Paste it at the TOP of the NEWS array (newest first)
  * 3. Fill in your details
- * 4. Save — done!
+ * 4. Save and done!
  *
  * FIELDS:
  *   id       - unique slug, no spaces (e.g. "patch-2-4-7")
@@ -22,7 +22,33 @@
  */
 
 const NEWS = [
-    {
+	{
+    id: "projectgatherwood",
+    title: "Gatherwood Releases and Info",
+    summary: "Gatherwood update info, links, and other info",
+    content: `
+      <p>Winterpixel never really announced Gatherwood, but the devs presumably finished the game since no further updates were made after it was put on all platforms on 9/18/2026.</p>
+      <h3>Links to play the game</h3>
+      <ul>
+        <li><strong>(website)</strong> https://gatherwood.winterpixel.io/</li>
+        <li><strong>(staging)</strong> https://farmer-staging.winterpixel.io/</li>
+        <li><strong>(poki)</strong> https://poki.com/en/g/project-gatherwood?</li>
+        <li><strong>(crazy games)</strong> https://www.crazygames.com/game/project-gatherwood-gou</li>
+        <li><strong>(app store)</strong> https://apps.apple.com/au/app/project-gatherwood/id6808748210</li>
+        <li><strong>(google play)</strong> https://play.google.com/store/apps/details?id=com.winterpixel.gatherwood</li>
+      </ul>
+      <h3>About the game</h3>
+      <img src="ui/news/assets/gatherwood.png" alt="" style="width:30%;border-radius:8px; 0;" />
+      <p>Gatherwood is a MMO style game where you play with other players in one large map that resets daily. Or at least used to, now instead of one large continuous map with many areas, you have to be of a certain level to get to each map. And each map only has 2 themes. But the game is decently fun and I bet devs tried out many different features in this game such as finding ways to update the game easier. There are many things to do in this game, fight enemies, fishing for rare fish in each area, discovering all items, upgrading tools, unlocking areas, upgrading your dorm, and even playing Soccer! I played this game while it was in development and I can say that this game is way more fun with other people. But even then, there is not many ways to talk with other players unfortunately. You CAN help others and communicate using emotes, you can drop items and go on expeditions together to explore the world and make it easier to collect gems.</p>
+      <img src="ui/news/assets/gatherwood2.png" alt="" style="width:50%;border-radius:8px;margin:1rem 0;" />
+      <p><strong>(Have fun playing!)</strong></p>
+    `,
+    tag: "Announcement",
+    date: "October 15, 2026",
+    author: "TarasKhan475",
+    thumb: "📰"
+  },
+  {
     id: "pixelcommunityupdatev3",
     title: "Winterpixel Community Update 3!",
     summary: "Ui revamped and new cosmetics viewer tool!",
@@ -80,7 +106,7 @@ const NEWS = [
     title: "Rocket Bot Royale is now 4 years old!",
     summary: "Today, April 20, 2026, Rocket Bot Royale turns 4 years old!",
     content: `
-      <p>Exactly four years ago today, April 20, 2026, Rocket Bot Royale officially turns four years old. The game first launched on this date across major platforms including Steam, Apple, and Android, marking the start of its growing community and evolving gameplay.
+      <p>Exactly four years ago today, April 20, 2026, Rocket Bot Royale officially turns four years old. The game first launched on this date across major platforms including Steam, Apple, and Android, marking the start of its growing community and evolving gameplay.</p>
       <p>Each anniversary has brought something new. For its first birthday (Season 20), the developers introduced a 4-player ranked mode along with special birthday cosmetics. The second birthday update added a new smoke bomb weapon, plus even more themed cosmetics. By the third anniversary, the game took on an Egyptian theme, continuing the tradition with fresh birthday cosmetics as well.</p>
       <img src="ui/news/assets/pink_tread-party.png" alt="Rocket Bot Royale party tread tank" style="width:10%;border-radius:8px;margin:1rem 0;" />
       <p>Now the question remains, will Season 54 be birthday themed to honor the fourth anniversary of Rocket Bot Royale?</p>
@@ -112,7 +138,7 @@ const NEWS = [
       <p>I am planning on launching this Winterpixel Community site!</p>
       <h3>Overview</h3>
       <p>This website has been in development for a long time now, I want to launch this website soon and I am quite happy with the forums page finally working! I also will clean up the front page so it is not as messy and may try to add a section for yt videos lol. But on serious note the next few serious features I am planning to add is RBR and GD statistics.</p>
-      <img src="ui\\logo.png" alt="Winterpixel Community Logo" style="width:10%;border-radius:8px;margin:1rem 0;" />
+      <img src="ui/logo.png" alt="Winterpixel Community Logo" style="width:10%;border-radius:8px;margin:1rem 0;" />
     `,
     tag: "Announcement",
     date: "April 19, 2026",
