@@ -17,35 +17,106 @@
   .sv-delta.up { background: #dcfce7; color: #15803d; }
   .sv-delta.down { background: #fee2e2; color: #b91c1c; }
 
-  /* Headline numbers */
-  .sv-heads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  .sv-head { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); padding: 14px 16px; min-width: 0; }
-  .sv-head-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-muted); }
-  .sv-head-val { font-size: 34px; font-weight: 800; line-height: 1.1; color: var(--blue-deep); }
-  .sv-head-sub { font-size: 12px; font-weight: 600; color: var(--gray-mid); }
-  .sv-head-sub strong { color: var(--blue-deep); }
+  /* Spotlight: headline cards on a navy band */
+  .sv-spot {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+    padding: 16px; border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--blue-deep) 0%, #0a2a3f 100%);
+    box-shadow: 0 6px 20px rgba(30,58,138,0.18);
+  }
+  .sv-spot.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sv-spot-card {
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius-md); padding: 14px; color: white; min-width: 0;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .sv-spot-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--blue); min-width: 0; }
+  .sv-spot-label span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sv-spot-icon { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+  .sv-legend-icon { width: 14px; height: 14px; object-fit: contain; vertical-align: -2px; margin-right: 2px; }
+  .sv-spot-big { font-size: 34px; font-weight: 800; line-height: 1; }
+  .sv-spot-sub { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.65); }
+  .sv-spot-sub strong { color: white; }
+  .sv-ring-wrap { display: flex; align-items: center; gap: 12px; }
+  .sv-ring { width: 74px; height: 74px; flex-shrink: 0; transform: rotate(-90deg); }
+  .sv-ring circle { fill: none; stroke-width: 9; }
+  .sv-ring .track { stroke: rgba(255,255,255,0.12); }
+  .sv-ring .fill { stroke: #22d3ee; stroke-linecap: round; }
+  .sv-ring .fill.lead { stroke: #34d399; }
+  .sv-split { display: flex; height: 10px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,0.12); }
+  .sv-split .k { background: #22d3ee; }
+  .sv-split .d { background: #f87171; }
+  .sv-split-legend { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); }
 
-  /* Sections */
-  .sv-panel { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); padding: 14px 16px; min-width: 0; }
-  .sv-panel h3 { font-size: 15px; font-weight: 800; color: var(--blue-deep); margin-bottom: 10px; }
-  .sv-panel h3 span { font-size: 11px; font-weight: 700; color: var(--gray-muted); margin-left: 6px; }
+  /* Panels */
+  .sv-panel { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-lg); padding: 14px 16px 16px; min-width: 0; }
+  .sv-panel-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .sv-panel-title h3 { font-size: 16px; font-weight: 800; color: var(--blue-deep); }
+  .sv-panel-title span { font-size: 11px; font-weight: 700; color: var(--gray-muted); }
 
-  /* Plain value tiles */
-  .sv-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
-  .sv-tile { background: var(--blue-pale); border-radius: var(--radius-sm); padding: 8px 10px; min-width: 0; }
-  .sv-tile-val { font-size: 18px; font-weight: 800; color: var(--blue-deep); line-height: 1.15; }
-  .sv-tile-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--gray-muted); }
+  /* Game modes: one win-rate ring per mode */
+  .sv-modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
+  .sv-mode { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px 8px; border-radius: var(--radius-md); background: var(--blue-pale); text-align: center; min-width: 0; }
+  .sv-mode-ring { position: relative; width: 80px; height: 80px; }
+  .sv-mode-ring .sv-ring { width: 80px; height: 80px; }
+  .sv-mode-ring .sv-ring .track { stroke: rgba(30,58,138,0.12); }
+  .sv-mode-ring .sv-ring .fill { stroke: #10b981; }
+  .sv-mode-ring b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; color: var(--blue-deep); }
+  .sv-mode-name { max-width: 100%; font-size: 12px; font-weight: 800; color: var(--blue-deep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sv-mode-sub { font-size: 10px; font-weight: 700; color: var(--gray-muted); }
 
-  /* Bar rows (modes + weapons) */
+  /* Weapons: one big dial (share of all uses) + a small dial per weapon (kills per use) */
+  .sv-wbig { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .sv-donut-wrap { position: relative; width: 200px; height: 200px; flex-shrink: 0; }
+  .sv-donut { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .sv-donut circle { fill: none; stroke-width: 22; }
+  .sv-donut .track { stroke: var(--blue-pale); }
+  .sv-donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .sv-donut-center b { font-size: 30px; font-weight: 800; line-height: 1; color: var(--blue-deep); }
+  .sv-donut-center span { margin-top: 3px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-muted); }
+  .sv-wlegend { flex: 1; min-width: 230px; display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 7px 18px; }
+  .sv-wrow { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 13px; font-weight: 700; color: var(--blue-deep); }
+  .sv-wrow i { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .sv-wrow img { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+  .sv-wrow .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sv-wrow .pct { font-weight: 800; }
+  .sv-wrow .uses { font-size: 11px; font-weight: 700; color: var(--gray-muted); white-space: nowrap; }
+  .sv-mode.kill .sv-mode-ring .sv-ring .fill { stroke: #f97316; }
+  .sv-mode-name img { width: 18px; height: 18px; object-fit: contain; vertical-align: -4px; margin-right: 3px; }
+
+  /* Combat strip */
+  .sv-combat { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; }
+  .sv-chip { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-md); background: var(--blue-pale); min-width: 0; }
+  .sv-chip-icon {
+    width: 38px; height: 38px; flex-shrink: 0; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px; font-weight: 800; color: white; line-height: 1;
+  }
+  .sv-chip-icon.img { background: white !important; box-shadow: inset 0 0 0 1.5px var(--gray-border); }
+  .sv-chip-icon img { width: 32px; height: 32px; object-fit: contain; }
+  .sv-chip-body { min-width: 0; }
+  .sv-chip-val { font-size: 18px; font-weight: 800; color: var(--blue-deep); line-height: 1.1; }
+  .sv-chip-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--gray-muted); line-height: 1.2; }
+
+  /* Weapon bars */
   .sv-bars { display: flex; flex-direction: column; gap: 9px; }
-  .sv-bar-row { display: grid; grid-template-columns: 130px minmax(0, 1fr) 96px; align-items: center; gap: 10px; }
+  .sv-bar-row { display: grid; grid-template-columns: 124px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
   .sv-bar-name { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 13px; font-weight: 700; color: var(--blue-deep); }
   .sv-bar-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sv-bar-name img { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; }
-  .sv-bar-track { height: 10px; background: var(--blue-pale); border-radius: 99px; overflow: hidden; }
-  .sv-bar-fill { height: 100%; border-radius: 99px; background: var(--blue); }
-  .sv-bar-meta { font-size: 13px; font-weight: 800; color: var(--blue-deep); text-align: right; white-space: nowrap; }
+  .sv-bar-name img { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
+  .sv-bar-track { height: 12px; background: var(--blue-pale); border-radius: 99px; overflow: hidden; position: relative; }
+  .sv-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue), var(--blue-mid)); }
+  .sv-bar-meta { font-size: 12px; font-weight: 700; color: var(--gray-mid); text-align: right; white-space: nowrap; min-width: 92px; }
+  .sv-bar-meta strong { color: var(--blue-deep); font-size: 13px; }
   .sv-bar-sub { display: block; font-size: 10px; font-weight: 700; color: var(--gray-muted); }
+
+  /* Ledger: every stat as a compact list with its icon */
+  .sv-ledger { columns: 3 220px; column-gap: 28px; }
+  .sv-led-row { display: flex; align-items: baseline; gap: 6px; padding: 5px 0; border-bottom: 1px dashed var(--gray-border); break-inside: avoid; }
+  .sv-led-icon { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; align-self: center; }
+  .sv-led-icon.blank { visibility: hidden; }
+  .sv-led-label { font-size: 13px; font-weight: 600; color: var(--gray-mid); flex: 1; min-width: 0; }
+  .sv-led-val { font-size: 14px; font-weight: 800; color: var(--blue-deep); white-space: nowrap; }
 
   /* All stats */
   .sv-filter {
@@ -54,10 +125,6 @@
     font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 600; color: var(--blue-deep); outline: none;
   }
   .sv-filter:focus { border-color: var(--blue); }
-  .sv-list { columns: 2 260px; column-gap: 32px; }
-  .sv-row { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--blue-pale); break-inside: avoid; }
-  .sv-row-l { font-size: 13px; font-weight: 600; color: var(--gray-mid); }
-  .sv-row-v { font-size: 14px; font-weight: 800; color: var(--blue-deep); white-space: nowrap; }
   .sv-empty { padding: 1.5rem; text-align: center; font-size: 13px; color: var(--gray-muted); }
 
   /* History / raw */
@@ -84,18 +151,26 @@
   .sv-cmp-head span { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sv-cmp-group { padding: 6px 12px; background: var(--blue-pale); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-muted); }
   .sv-cmp-row { padding-top: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--blue-pale); }
-  .sv-cmp-row .l { font-size: 13px; font-weight: 600; color: var(--gray-mid); }
+  .sv-cmp-row .l { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 13px; font-weight: 600; color: var(--gray-mid); }
   .sv-cmp-row .v { text-align: center; font-size: 14px; font-weight: 800; color: var(--blue-deep); border-radius: var(--radius-sm); padding: 1px 4px; }
   .sv-cmp-row .v.win { background: #dcfce7; color: #15803d; }
   .sv-cmp { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); }
 
+  @media (max-width: 1100px) { .sv-spot { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 600px) {
     .sv-cmp-head, .sv-cmp-row { grid-template-columns: minmax(0, 1fr) 70px 70px; padding: 0 8px; gap: 4px; }
-    .sv-heads { gap: 8px; }
-    .sv-head { padding: 10px; }
-    .sv-head-val { font-size: 24px; }
-    .sv-bar-row { grid-template-columns: 96px minmax(0, 1fr) 80px; gap: 8px; }
+    .sv-spot { padding: 10px; gap: 8px; }
+    .sv-spot-card { padding: 10px; }
+    .sv-spot-big { font-size: 26px; }
+    .sv-ring { width: 56px; height: 56px; }
+    .sv-modes { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+    .sv-donut-wrap { width: 160px; height: 160px; }
+    .sv-donut-center b { font-size: 24px; }
+    .sv-mode-ring, .sv-mode-ring .sv-ring { width: 68px; height: 68px; }
     .sv-panel { padding: 12px; }
+    .sv-bar-row { grid-template-columns: 104px minmax(0, 1fr) auto; gap: 8px; }
+    .sv-bar-name img { width: 22px; height: 22px; }
+    .sv-bar-meta { min-width: 74px; }
   }
 </style>
 
@@ -103,7 +178,6 @@
   <div class="sv-top" id="sv-top">
     <div class="sv-subtabs" role="tablist">
       <button class="sv-subtab active" data-sub="overview">Overview</button>
-      <button class="sv-subtab" data-sub="weapons">Weapons</button>
       <button class="sv-subtab" data-sub="all">All stats</button>
       <button class="sv-subtab" data-sub="history">History</button>
       <button class="sv-subtab" data-sub="raw">Raw</button>
@@ -113,7 +187,6 @@
   <div id="sv-compare" hidden></div>
 
   <div id="sv-panel-overview" class="sv-stack"></div>
-  <div id="sv-panel-weapons" class="sv-stack" hidden></div>
   <div id="sv-panel-all" hidden>
     <input class="sv-filter" id="sv-filter" type="text" placeholder="Filter stats…" autocomplete="off" aria-label="Filter stats" />
     <div class="sv-stack" id="sv-all"></div>
@@ -179,11 +252,11 @@
     low_gravity_played: 'Low Gravity Games', low_gravity_won: 'Low Gravity Wins',
     speed_shot_played: 'Speed Shot Games', speed_shot_won: 'Speed Shot Wins',
     kills_using_flak: 'Flak Kills', kills_using_mine: 'Mine Kills', kills_using_nuke: 'Nuke Kills',
-    'kills_using_triple-shot': 'Triple Shot Kills', kills_using_grenade: 'Grenade Kills', kills_using_homing: 'Homing Kills',
+    'kills_using_triple-shot': 'Rapid Kills', kills_using_grenade: 'Grenade Kills', kills_using_homing: 'Homing Kills',
     kills_using_drill: 'Drill Kills', kills_using_laser: 'Laser Kills', kills_using_poison: 'Poison Kills', kills_using_shield: 'Shield Kills',
     flaks_used: 'Flaks Used', mines_used: 'Mines Used', nukes_used: 'Nukes Used', grenades_used: 'Grenades Used',
     homings_used: 'Homings Used', drills_used: 'Drills Used', lasers_used: 'Lasers Used', poisons_used: 'Poisons Used',
-    shields_used: 'Shields Used', 'triple-shots_used': 'Triple Shots Used', whirlwinds_used: 'Whirlwinds Used',
+    shields_used: 'Shields Used', 'triple-shots_used': 'Rapid Used', whirlwinds_used: 'Whirlwinds Used',
     smokes_used: 'Smokes Used', jetpacks_used: 'Jetpacks Used', snipers: 'Snipers',
     blocks_using_proj: 'Blocks (Projectile)', blocks_using_shield: 'Blocks (Shield)',
     beachball_shots: 'Beachball Shots', two_birdss: 'Two Birds (One Shot)', yardsales: 'Yard Sales',
@@ -205,15 +278,19 @@
     });
   }
 
-  /* ---- History: read from the full profiles in the archive (old statHistory is converted automatically) ---- */
-  async function loadSnapshots(userId) {
-    var all = await RBRArchive.snapshots(userId);   // full profiles (old split logs already converted)
+  /* ---- Archive reads (kept small: opening a player costs ~2 reads) ---- */
+  async function loadBaseline(userId) {          // one earlier day, for the green/red change chips
+    var p = await RBRArchive.previous(userId);
+    return p ? { date: p.date, stats: flatten(p.profile) } : null;
+  }
+  async function loadHistory(userId) {           // up to 90 days, only when the History tab is opened
+    var all = await RBRArchive.snapshots(userId);
     return all.filter(function(e) { return Object.keys((e.profile.metadata || {}).stats || {}).length; })
       .map(function(e) { return { date: e.date, stats: flatten(e.profile) }; });
   }
 
   /* ---- State ---- */
-  var cur = { userId: null, profile: null, flat: null, snaps: [], prev: null, histKey: null, rankType: 'trophies', ranks: null, ranksAsked: false, sub: 'overview', done: {} };
+  var cur = { userId: null, profile: null, flat: null, snaps: [], histState: '', prev: null, histKey: null, rankType: 'trophies', ranks: null, ranksAsked: false, sub: 'overview', done: {} };
   var charts = {}, drawSeq = {};
 
   /* ---- Data ---- */
@@ -224,12 +301,34 @@
   ];
   var WEAPONS = [
     ['Flak', 'kills_using_flak', 'flaks_used', 'flak'], ['Mine', 'kills_using_mine', 'mines_used', 'mine'],
-    ['Nuke', 'kills_using_nuke', 'nukes_used', 'nuke'], ['Triple Shot', 'kills_using_triple-shot', 'triple-shots_used', 'triple-shot'],
+    ['Nuke', 'kills_using_nuke', 'nukes_used', 'nuke'], ['Rapid', 'kills_using_triple-shot', 'triple-shots_used', 'triple-shot'],
     ['Grenade', 'kills_using_grenade', 'grenades_used', 'grenade'], ['Homing', 'kills_using_homing', 'homings_used', 'homing'],
     ['Drill', 'kills_using_drill', 'drills_used', 'drill'], ['Laser', 'kills_using_laser', 'lasers_used', 'laser'],
     ['Poison', 'kills_using_poison', 'poisons_used', 'poison'], ['Shield', 'kills_using_shield', 'shields_used', 'shield'],
   ];
-  var COMBAT = ['double_kills', 'triple_kills', 'quad_kills', '5_kills', 'first_bloods', 'longest_killstreak', 'most_player_kills', 'assists', 'dunk_tanks'];
+  // [stat, image or text glyph, fallback colour]
+  var COMBAT = [
+    ['double_kills', { img: 'ui/icons/badges/double_kills_7.png' }, '#38bdf8'],
+    ['triple_kills', { img: 'ui/icons/badges/triple_kills_7.png' }, '#6366f1'],
+    ['quad_kills', { img: 'ui/icons/badges/quad_kills_7.png' }, '#a855f7'],
+    ['5_kills', { text: '5×' }, '#ec4899'],
+    ['first_bloods', { img: icon('skull') }, '#ef4444'],
+    ['longest_killstreak', { text: '🔥' }, '#f97316'],
+    ['most_player_kills', { img: icon('homing') }, '#0ea5e9'],
+    ['assists', { text: '🤝' }, '#14b8a6'],
+    ['dunk_tanks', { text: '💦' }, '#3b82f6'],
+  ];
+  // Game art next to each stat (full list + compare)
+  var ICONS = {};
+  (function() {
+    var li = { gems_found: 'gem', coins_found: 'coin', crates_collected: 'crate', beachball_shots: 'beachball', whirlwinds_used: 'whirlwind',
+      smokes_used: 'smoke', jetpacks_used: 'jetpack', snipers: 'sniper', missiles_fired: 'missile', blocks_using_shield: 'shield', blocks_using_proj: 'missile',
+      deaths: 'skull', _winrate: 'crown', games_won: 'crown', best_rank: 'trophy', top_5: 'trophy' };
+    Object.keys(li).forEach(function(k) { ICONS[k] = icon(li[k]); });
+    WEAPONS.forEach(function(w) { ICONS[w[1]] = icon(w[3]); ICONS[w[2]] = icon(w[3]); });
+    COMBAT.forEach(function(c) { if (c[1].img) ICONS[c[0]] = c[1].img; });
+  })();
+  function iconCell(k) { return ICONS[k] ? '<img class="sv-led-icon" loading="lazy" src="' + esc(ICONS[k]) + '" alt="">' : '<span class="sv-led-icon blank"></span>'; }
   var GROUPS = [
     ['General', ['_level', '_awards_seen', 'games_played', 'games_won', '_winrate', 'best_rank', 'top_5', 'meters_driven', 'coins_found', 'gems_found', 'crates_collected', 'missiles_fired']],
     ['Combat', ['player_kills', 'deaths', '_kdr', 'total_kills', 'bot_kills', 'assists', 'first_bloods', 'longest_killstreak', 'most_player_kills', 'most_total_kills',
@@ -250,50 +349,101 @@
     return '<span class="sv-delta ' + (d > 0 ? 'up' : 'down') + '">' + (d > 0 ? '+' : '') + esc(format(k, d)) + '</span>';
   }
 
+  /* ---- Weapons: big dial + small dials ---- */
+  var WEAPON_COLORS = ['#f97316', '#ef4444', '#a855f7', '#22d3ee', '#84cc16', '#eab308', '#14b8a6', '#ec4899', '#6366f1', '#64748b'];
+  function donut(parts, total) {
+    var C = 2 * Math.PI * 70, off = 0;
+    var svg = '<svg class="sv-donut" viewBox="0 0 180 180" aria-hidden="true"><circle class="track" cx="90" cy="90" r="70"/>';
+    parts.forEach(function(p) {
+      var len = total ? C * p.value / total : 0;
+      svg += '<circle cx="90" cy="90" r="70" stroke="' + p.color + '" stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) +
+        '" stroke-dashoffset="' + (-off).toFixed(2) + '"><title>' + esc(p.name) + '</title></circle>';
+      off += len;
+    });
+    return svg + '</svg>';
+  }
+  function share(u, total) {
+    if (!total) return '0%';
+    var p = 100 * u / total;
+    return p > 0 && p < 1 ? '<1%' : Math.round(p) + '%';
+  }
+  function weaponsPanel(weapons) {
+    var total = weapons.reduce(function(t, w) { return t + w.u; }, 0);
+    weapons = weapons.slice().sort(function(a, b) { return b.u - a.u; });
+    var big = '<div class="sv-wbig"><div class="sv-donut-wrap">' + donut(weapons.map(function(w) { return { value: w.u, color: w.color, name: w.name }; }), total) +
+      '<div class="sv-donut-center"><b>' + fmtN(total) + '</b><span>weapons used</span></div></div>' +
+      '<div class="sv-wlegend">' + weapons.map(function(w) {
+        return '<div class="sv-wrow"><i style="background:' + w.color + '"></i><img loading="lazy" src="' + icon(w.icon) + '" alt="">' +
+          '<span class="nm">' + esc(w.name) + '</span><span class="pct">' + share(w.u, total) + '</span>' +
+          '<span class="uses">' + fmtN(w.u) + ' used' + delta(w.ukey) + '</span></div>';
+      }).join('') + '</div></div>';
+    var dials = '<div class="sv-modes">' + weapons.map(function(w) {
+      var rate = w.u ? Math.round(100 * w.k / w.u) : null;
+      return '<div class="sv-mode kill"><div class="sv-mode-ring">' + ring(rate === null ? 0 : rate) + '<b>' + (rate === null ? '—' : rate + '%') + '</b></div>' +
+        '<div class="sv-mode-name" title="' + esc(w.name) + '"><img loading="lazy" src="' + icon(w.icon) + '" alt="">' + esc(w.name) + '</div>' +
+        '<div class="sv-mode-sub">' + fmtN(w.k) + ' kills / ' + fmtN(w.u) + ' used' + delta(w.kkey) + '</div></div>';
+    }).join('') + '</div>';
+    return '<div class="sv-panel"><div class="sv-panel-title"><h3>Weapons</h3><span>share of all weapon uses</span></div>' + big +
+      '<div class="sv-panel-title" style="margin-top:18px"><h3>Kill rate</h3><span>kills with the weapon ÷ times it was used</span></div>' + dials + '</div>';
+  }
+
   /* ---- Overview ---- */
+  var RING_C = 2 * Math.PI * 30;
+  function ring(p, lead) {
+    return '<svg class="sv-ring" viewBox="0 0 74 74" aria-hidden="true"><circle class="track" cx="37" cy="37" r="30"/>' +
+      '<circle class="fill' + (lead ? ' lead' : '') + '" cx="37" cy="37" r="30" stroke-dasharray="' + (RING_C * Math.min(p, 100) / 100).toFixed(1) + ' ' + RING_C.toFixed(1) + '"/></svg>';
+  }
   function renderOverview() {
-    var flat = cur.flat;
-    var html = '<div class="sv-heads">' +
-      '<div class="sv-head"><div class="sv-head-label">Win rate</div><div class="sv-head-val">' + esc(format('_winrate', num('_winrate'))) + delta('_winrate') + '</div>' +
-        '<div class="sv-head-sub"><strong>' + fmtN(num('games_won')) + '</strong> wins · <strong>' + fmtN(num('games_played')) + '</strong> games</div></div>' +
-      '<div class="sv-head"><div class="sv-head-label">K/D ratio</div><div class="sv-head-val">' + esc(format('_kdr', num('_kdr'))) + delta('_kdr') + '</div>' +
-        '<div class="sv-head-sub"><strong>' + fmtN(num('player_kills')) + '</strong> kills · <strong>' + fmtN(num('deaths')) + '</strong> deaths</div></div>' +
-      '<div class="sv-head"><div class="sv-head-label">Best rank</div><div class="sv-head-val">' + (flat.best_rank ? '#' + fmtN(flat.best_rank) : '—') + '</div>' +
-        '<div class="sv-head-sub"><strong>' + fmtN(num('top_5')) + '</strong> top-5 finishes' + delta('top_5') + '</div></div>' +
+    var flat = cur.flat, meta = (cur.profile && cur.profile.metadata) || {};
+    var winrate = num('_winrate'), kdr = num('_kdr'), kills = num('player_kills'), deaths = num('deaths');
+    var won = num('games_won'), played = num('games_played');
+
+    var html = '<div class="sv-spot">' +
+      '<div class="sv-spot-card"><div class="sv-spot-label"><img class="sv-spot-icon" src="' + icon('crown') + '" alt="">Win rate</div><div class="sv-ring-wrap">' + ring(winrate) +
+        '<div><div class="sv-spot-big">' + esc(format('_winrate', winrate)) + '</div>' + delta('_winrate') + '</div></div>' +
+        '<div class="sv-spot-sub"><strong>' + fmtN(won) + '</strong> wins' + delta('games_won') + ' · <strong>' + fmtN(played) + '</strong> games' + delta('games_played') + '</div></div>' +
+
+      '<div class="sv-spot-card"><div class="sv-spot-label">K/D ratio</div>' +
+        '<div><span class="sv-spot-big">' + esc(format('_kdr', kdr)) + '</span>' + delta('_kdr') + '</div>' +
+        '<div class="sv-split" aria-hidden="true"><span class="k" style="width:' + pct(kills, kills + deaths) + '%"></span><span class="d" style="flex:1"></span></div>' +
+        '<div class="sv-split-legend"><span>' + fmtN(kills) + ' kills' + delta('player_kills') + '</span><span><img class="sv-legend-icon" src="' + icon('skull') + '" alt="">' + fmtN(deaths) + ' deaths' + delta('deaths') + '</span></div></div>' +
+
+      '<div class="sv-spot-card"><div class="sv-spot-label">Level</div>' +
+        '<div><span class="sv-spot-big">' + esc(format('_level', num('_level'))) + '</span>' + delta('_level') + '</div>' +
+        (meta.progress && meta.progress.xp ? '<div class="sv-spot-sub"><strong>' + fmtN(meta.progress.xp) + '</strong> XP</div>' : '') +
+        '<div class="sv-spot-sub"><strong>' + fmtN(num('_awards_seen')) + '</strong> skins unlocked' + delta('_awards_seen') + '</div></div>' +
+
+      '<div class="sv-spot-card"><div class="sv-spot-label"><img class="sv-spot-icon" src="' + icon('trophy') + '" alt="">Best rank</div>' +
+        '<div><span class="sv-spot-big">' + (flat.best_rank ? '#' + fmtN(flat.best_rank) : '—') + '</span></div>' +
+        '<div class="sv-spot-sub"><strong>' + fmtN(num('top_5')) + '</strong> top-5 finishes' + delta('top_5') + '</div>' +
+        '<div class="sv-spot-sub"><strong>' + fmtN(num('total_kills')) + '</strong> total kills incl. bots' + delta('total_kills') + '</div></div>' +
     '</div>';
 
-    var combat = COMBAT.filter(function(k) { return flat[k] !== undefined; });
+    var combat = COMBAT.filter(function(c) { return flat[c[0]] !== undefined; });
     if (combat.length) {
-      html += '<div class="sv-panel"><h3>Combat</h3><div class="sv-tiles">' + combat.map(function(k) {
-        return '<div class="sv-tile"><div class="sv-tile-val">' + esc(format(k, flat[k])) + delta(k) + '</div><div class="sv-tile-label">' + esc(label(k)) + '</div></div>';
+      html += '<div class="sv-panel"><div class="sv-panel-title"><h3>Combat</h3></div><div class="sv-combat">' + combat.map(function(c) {
+        var glyph = c[1].img ? '<img loading="lazy" src="' + esc(c[1].img) + '" alt="">' : esc(c[1].text);
+        return '<div class="sv-chip"><div class="sv-chip-icon' + (c[1].img ? ' img' : '') + '" style="background:' + c[2] + '">' + glyph + '</div>' +
+          '<div class="sv-chip-body"><div class="sv-chip-val">' + esc(format(c[0], flat[c[0]])) + delta(c[0]) + '</div><div class="sv-chip-label">' + esc(label(c[0])) + '</div></div></div>';
       }).join('') + '</div></div>';
     }
 
     var modes = MODES.map(function(m) { return { name: m[1], p: num(m[0] + '_played'), w: num(m[0] + '_won'), key: m[0] + '_played' }; })
-      .filter(function(m) { return m.p > 0; })
-      .sort(function(x, y) { return y.p - x.p; });
+      .filter(function(m) { return m.p > 0; }).sort(function(x, y) { return y.p - x.p; });
     if (modes.length) {
-      html += '<div class="sv-panel"><h3>Game modes<span>win rate</span></h3><div class="sv-bars">' + modes.map(function(m) {
-        return '<div class="sv-bar-row"><div class="sv-bar-name"><span>' + esc(m.name) + '</span></div>' +
-          '<div class="sv-bar-track"><div class="sv-bar-fill" style="width:' + pct(m.w, m.p) + '%"></div></div>' +
-          '<div class="sv-bar-meta">' + pct(m.w, m.p) + '%<span class="sv-bar-sub">' + fmtN(m.w) + ' / ' + fmtN(m.p) + delta(m.key) + '</span></div></div>';
+      html += '<div class="sv-panel"><div class="sv-panel-title"><h3>Game modes</h3><span>win rate</span></div><div class="sv-modes">' + modes.map(function(m) {
+        var wr = pct(m.w, m.p);
+        return '<div class="sv-mode"><div class="sv-mode-ring">' + ring(wr) + '<b>' + wr + '%</b></div>' +
+          '<div class="sv-mode-name" title="' + esc(m.name) + '">' + esc(m.name) + '</div>' +
+          '<div class="sv-mode-sub">' + fmtN(m.w) + ' / ' + fmtN(m.p) + ' wins' + delta(m.key) + '</div></div>';
       }).join('') + '</div></div>';
     }
-    $('sv-panel-overview').innerHTML = html;
-  }
 
-  /* ---- Weapons ---- */
-  function renderWeapons() {
-    var weapons = WEAPONS.map(function(w) { return { name: w[0], k: num(w[1]), u: num(w[2]), key: w[1], icon: w[3] }; })
-      .filter(function(w) { return w.k > 0 || w.u > 0; })
-      .sort(function(x, y) { return y.k - x.k; });
-    var maxK = weapons.reduce(function(m, w) { return Math.max(m, w.k); }, 0) || 1;
-    var html = weapons.length ? '<div class="sv-panel"><h3>Weapons<span>kills · share of uses</span></h3><div class="sv-bars">' + weapons.map(function(w) {
-      return '<div class="sv-bar-row"><div class="sv-bar-name"><img loading="lazy" src="' + icon(w.icon) + '" alt=""><span>' + esc(w.name) + '</span></div>' +
-        '<div class="sv-bar-track"><div class="sv-bar-fill" style="width:' + (100 * w.k / maxK).toFixed(1) + '%"></div></div>' +
-        '<div class="sv-bar-meta">' + fmtN(w.k) + delta(w.key) + '<span class="sv-bar-sub">' + (w.u ? pct(w.k, w.u) + '% of ' + fmtN(w.u) + ' uses' : '—') + '</span></div></div>';
-    }).join('') + '</div></div>' : '<div class="sv-empty">No weapon stats yet.</div>';
-    $('sv-panel-weapons').innerHTML = html;
+    var weapons = WEAPONS.map(function(w, i) {
+      return { name: w[0], k: num(w[1]), u: num(w[2]), kkey: w[1], ukey: w[2], icon: w[3], color: WEAPON_COLORS[i % WEAPON_COLORS.length] };
+    }).filter(function(w) { return w.u > 0 || w.k > 0; });
+    if (weapons.length) html += weaponsPanel(weapons);
+    $('sv-panel-overview').innerHTML = html;
   }
 
   /* ---- All stats: every stat once, grouped ---- */
@@ -309,8 +459,9 @@
   function renderAll() {
     var flat = cur.flat;
     $('sv-all').innerHTML = groupKeys(Object.keys(flat).filter(function(k) { return flat[k] !== undefined; })).map(function(g) {
-      return '<div class="sv-panel" data-group><h3>' + esc(g[0]) + '</h3><div class="sv-list">' + g[1].map(function(k) {
-        return '<div class="sv-row" data-text="' + esc(label(k).toLowerCase()) + '"><span class="sv-row-l">' + esc(label(k)) + '</span><span class="sv-row-v">' + esc(format(k, flat[k])) + delta(k) + '</span></div>';
+      return '<div class="sv-panel" data-group><div class="sv-panel-title"><h3>' + esc(g[0]) + '</h3></div><div class="sv-ledger">' + g[1].map(function(k) {
+        return '<div class="sv-led-row" data-text="' + esc(label(k).toLowerCase()) + '">' + iconCell(k) +
+          '<span class="sv-led-label">' + esc(label(k)) + '</span><span class="sv-led-val">' + esc(format(k, flat[k])) + '</span>' + delta(k) + '</div>';
       }).join('') + '</div></div>';
     }).join('');
     filterAll();
@@ -326,11 +477,18 @@
       var win = typeof mine === 'number' && typeof other === 'number' && mine !== other && (LOWER_BETTER[k] ? (mine > 0 && mine < (other || Infinity)) : mine > other);
       return '<span class="v' + (win ? ' win' : '') + '">' + esc(format(k, mine)) + '</span>';
     }
-    $('sv-compare').innerHTML = '<div class="sv-cmp"><div class="sv-cmp-head"><span></span><span>' + esc(players[0].profile.display_name || 'Player 1') +
+    function top(pl, f, other) {
+      var wr = Number(f._winrate) || 0, lead = wr > (Number(other._winrate) || 0), meta = pl.profile.metadata || {};
+      return '<div class="sv-spot-card"><div class="sv-spot-label"><img class="sv-spot-icon" src="' + icon('crown') + '" alt=""><span>' + esc(pl.profile.display_name || 'Player') + '</span></div>' +
+        '<div class="sv-ring-wrap">' + ring(wr, lead) + '<div><div class="sv-spot-big">' + esc(format('_winrate', wr)) + '</div></div></div>' +
+        '<div class="sv-spot-sub">K/D <strong>' + esc(format('_kdr', Number(f._kdr) || 0)) + '</strong> · Level <strong>' + esc(String(meta.progress ? meta.progress.level : '?')) + '</strong></div></div>';
+    }
+    $('sv-compare').innerHTML = '<div class="sv-spot two" style="margin-bottom:14px">' + top(players[0], fa, fb) + top(players[1], fb, fa) + '</div>' +
+      '<div class="sv-cmp"><div class="sv-cmp-head"><span></span><span>' + esc(players[0].profile.display_name || 'Player 1') +
       '</span><span>' + esc(players[1].profile.display_name || 'Player 2') + '</span></div>' +
       groupKeys(keys).map(function(g) {
         return '<div class="sv-cmp-group">' + esc(g[0]) + '</div>' + g[1].map(function(k) {
-          return '<div class="sv-cmp-row"><span class="l">' + esc(label(k)) + '</span>' + cell(k, fa[k], fb[k]) + cell(k, fb[k], fa[k]) + '</div>';
+          return '<div class="sv-cmp-row"><span class="l">' + iconCell(k) + '<span>' + esc(label(k)) + '</span></span>' + cell(k, fa[k], fb[k]) + cell(k, fb[k], fa[k]) + '</div>';
         }).join('');
       }).join('') + '</div>';
   }
@@ -339,14 +497,14 @@
     $('sv-top').hidden = on;
     if (on) {
       $('sv-since').hidden = true;
-      ['overview', 'weapons', 'all', 'history', 'raw'].forEach(function(x) { $('sv-panel-' + x).hidden = true; });
+      ['overview', 'all', 'history', 'raw'].forEach(function(x) { $('sv-panel-' + x).hidden = true; });
     }
   }
   function filterAll() {
     var q = $('sv-filter').value.trim().toLowerCase(), any = false;
     document.querySelectorAll('#sv-all [data-group]').forEach(function(g) {
       var shown = 0;
-      g.querySelectorAll('.sv-row').forEach(function(r) {
+      g.querySelectorAll('.sv-led-row').forEach(function(r) {
         var ok = !q || r.dataset.text.indexOf(q) !== -1;
         r.hidden = !ok; if (ok) shown++;
       });
@@ -437,15 +595,27 @@
   }
 
   /* ---- Sub-tabs: each panel is built the first time it's opened ---- */
-  var RENDER = { overview: renderOverview, weapons: renderWeapons, all: renderAll };
+  function ensureHistory() {
+    if (cur.histState === 'loaded') { renderHistory(); return; }
+    if (cur.histState === 'loading') return;
+    cur.histState = 'loading';
+    var uid = cur.userId;
+    drawLine('hist', 'sv-hist-chart', 'sv-hist-msg', [], [], {}, 'Loading history…');
+    loadHistory(uid).then(function(snaps) {
+      if (cur.userId !== uid) return;
+      cur.snaps = snaps; cur.histState = 'loaded';
+      if (cur.sub === 'history') renderHistory();
+    }).catch(function(e) { cur.histState = ''; console.warn('History load failed:', e.message); drawLine('hist', 'sv-hist-chart', 'sv-hist-msg', [], [], {}, 'Couldn\'t load the history. Try again in a moment.'); });
+  }
+  var RENDER = { overview: renderOverview, all: renderAll };
   function showSub(sub) {
     cur.sub = sub;
     document.querySelectorAll('.sv-subtab').forEach(function(b) { b.classList.toggle('active', b.dataset.sub === sub); });
-    ['overview', 'weapons', 'all', 'history', 'raw'].forEach(function(s) { $('sv-panel-' + s).hidden = s !== sub; });
-    $('sv-since').hidden = !(cur.prev && (sub === 'overview' || sub === 'weapons' || sub === 'all'));
+    ['overview', 'all', 'history', 'raw'].forEach(function(s) { $('sv-panel-' + s).hidden = s !== sub; });
+    $('sv-since').hidden = !(cur.prev && (sub === 'overview' || sub === 'all'));
     if (!cur.flat) return;
     if (RENDER[sub] && !cur.done[sub]) { cur.done[sub] = true; RENDER[sub](); }
-    if (sub === 'history') renderHistory();
+    if (sub === 'history') ensureHistory();
     if (sub === 'raw' && !cur.done.raw) { cur.done.raw = true; $('sv-raw').textContent = JSON.stringify(cur.profile, null, 2); }
   }
 
@@ -491,19 +661,17 @@
       setCompare(false);
       cur.userId = userId; cur.profile = profile; cur.flat = flatten(profile);
       rawSaved = false; $('sv-raw-saved').textContent = 'Saved copy'; $('sv-raw-saved').classList.remove('active');
-      cur.snaps = []; cur.prev = null; cur.ranks = null; cur.ranksAsked = false; cur.done = {};
+      cur.snaps = []; cur.histState = ''; cur.prev = null; cur.ranks = null; cur.ranksAsked = false; cur.done = {};
       $('sv-since').hidden = true;
       showSub(cur.sub);
 
-      loadSnapshots(userId).then(function(snaps) {
-        if (cur.userId !== userId) return;
-        cur.snaps = snaps;
-        // Changes are measured against the newest snapshot from an earlier day
-        for (var i = snaps.length - 1; i >= 0; i--) { if (snaps[i].date !== RBR.todayKey()) { cur.prev = snaps[i]; break; } }
-        $('sv-since').textContent = cur.prev ? 'Green and red numbers show changes since ' + cur.prev.date : '';
-        cur.done = {};
+      loadBaseline(userId).then(function(prev) {
+        if (cur.userId !== userId || !prev) return;
+        cur.prev = prev;
+        $('sv-since').textContent = 'Green and red numbers show changes since ' + prev.date;
+        cur.done.overview = cur.done.all = false;      // re-draw just the dashboard with the change chips
         showSub(cur.sub);
-      }).catch(function(e) { console.warn('History load failed:', e.message); });
+      }).catch(function(e) { console.warn('Baseline load failed:', e.message); });
     },
   });
 })();

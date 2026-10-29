@@ -121,8 +121,10 @@
   };
 
   // Autocomplete: prefix match across the old indexes and the archive, de-duplicated by user id
+  var suggestCache = {};   // prefix -> { at, list }  (typing 'ab' again, or backspacing, costs nothing)
   RBR.suggestPlayers = async function(prefix, limit) {
-    var lower = prefix.toLowerCase();
+    var lower = prefix.toLowerCase(), key = lower + '|' + limit, hit = suggestCache[key];
+    if (hit && Date.now() - hit.at < 5 * 60 * 1000) return hit.list;
     var queries = ['playerIndex', 'cosmeticPlayerIndex'].map(function(col) {
       return db.collection(col)
         .where('displayName_lower', '>=', lower).where('displayName_lower', '<=', lower + '')
@@ -138,8 +140,10 @@
         out.push({ id: id, name: d.displayName || id });
       });
     });
-    (await RBRArchive.suggest(prefix, limit)).forEach(function(p) { if (!seen[p.id]) { seen[p.id] = true; out.push(p); } });
-    return out.slice(0, limit);
+    if (out.length < limit) (await RBRArchive.suggest(prefix, limit)).forEach(function(p) { if (!seen[p.id]) { seen[p.id] = true; out.push(p); } });
+    out = out.slice(0, limit);
+    if (out.length) suggestCache[key] = { at: Date.now(), list: out };
+    return out;
   };
 
   /* ================================================================
@@ -168,7 +172,14 @@
   var aCache = {};            // in-memory only: userId -> merged history (cleared on save)
 
   function aSnaps(col, id) { return db.collection(col).doc(id).collection('snapshots'); }
-  function aSafe(fn) { return Promise.resolve().then(fn).catch(function(e) { console.warn('Archive:', e.message); return null; }); }
+  function aSafe(fn) {
+    return Promise.resolve().then(fn).catch(function(e) {
+      console.warn(e.code === 'failed-precondition'
+        ? 'Archive: this search needs a Firestore index. Open the link in the next message and click Create index:\n' + e.message
+        : 'Archive: ' + e.message);
+      return null;
+    });
+  }
 
   // The old logs only held a slice — rebuild a profile-shaped object from them
   function aFromLegacy(id, st, cs, name) {
@@ -180,25 +191,44 @@
   }
 
   /* ---- write: the one and only save ---- */
-  function aSave(userId, profile) {
+  var aRecentCache = {};      // userId -> promise of that player's newest two archive captures: ONE read shared by save() and previous()
+  var aWriteDenied = false;   // the rules refused a write this page session: stop trying
+  function aRecentTwo(userId) {
+    return aRecentCache[userId] || (aRecentCache[userId] = aSafe(function() { return aRecent(A_NEW, userId, 2); }).then(function(r) { return r || []; }));
+  }
+
+  // The name index is what makes SEARCH BY NAME work. It lives in playerIndex (your rules already allow it, nothing to deploy)
+  // and is only written when this device has not indexed this player's current name yet.
+  function aIndexName(userId, profile) {
+    var name = profile.display_name || '';
+    if (!name) return Promise.resolve(false);
+    var key = 'arch_idx_' + userId, mark = name.toLowerCase();
+    try { if (localStorage.getItem(key) === mark) return Promise.resolve(false); } catch (e) {}
+    return db.collection('playerIndex').doc(userId).set({ userId: userId, displayName: name, displayName_lower: mark }, { merge: true })
+      .then(function() { try { localStorage.setItem(key, mark); } catch (e) {} suggestCache = {}; return true; })
+      .catch(function(e) { console.warn('Name index write:', e.message); return false; });
+  }
+
+  async function aSave(userId, profile) {
     // Fallback mode never writes: a recovered/saved copy is never stored again (checked by marker AND by identity)
-    if (!userId || !profile || profile._archived || (aRecovered && aRecovered.has(profile))) return Promise.resolve(false);
-    var day = RBR.todayKey(), flag = 'arch_saved_' + userId + '_' + day;
-    try { if (sessionStorage.getItem(flag)) return Promise.resolve(false); } catch (e) {}   // rules are create-only: one try per day is enough
+    if (!userId || !profile || profile._archived || (aRecovered && aRecovered.has(profile))) return false;
+    aIndexName(userId, profile);
+    if (aWriteDenied) return false;
+    var day = RBR.todayKey(), recent = await aRecentTwo(userId);
+    if (recent.some(function(d) { return d.date === day; })) return false;       // today's capture already exists: nothing to write
     var json = JSON.stringify(profile), meta = profile.metadata || {}, name = profile.display_name || '';
-    if (json.length > A_MAX_JSON) { console.warn('Archive: profile too large to store (' + json.length + ' chars)'); return Promise.resolve(false); }
+    if (json.length > A_MAX_JSON) { console.warn('Archive: profile too large to store (' + json.length + ' chars)'); return false; }
     var payload = { schema: 2, timestamp: Date.now(), display_name: name, display_name_lower: name.toLowerCase(),
       friend_code: meta.friend_code ? String(meta.friend_code).toLowerCase() : null, json: json };
     if (RBR.currentUser) payload.uid = RBR.currentUser.uid;
     delete aCache[userId];
-
-    return aSnaps(A_NEW, userId).doc(day).set(payload).then(function() { return true; }).catch(function(e) {
-      if (e.code !== 'permission-denied') console.warn('Archive write:', e.message);   // denied = already captured today (or rules not deployed yet)
+    var ok = await aSnaps(A_NEW, userId).doc(day).set(payload).then(function() { return true; }).catch(function(e) {
+      if (e.code === 'permission-denied') { aWriteDenied = true; console.warn('Archive write blocked by the Firestore rules (publish firestore.rules)'); }
+      else console.warn('Archive write:', e.message);
       return false;
-    }).then(function(ok) {
-      try { sessionStorage.setItem(flag, '1'); } catch (e) {}
-      return ok;
     });
+    aRecentCache[userId] = Promise.resolve([{ date: day, data: payload }].concat(recent));   // a repeat lookup today now costs nothing
+    return ok;
   }
 
   /* ---- read: newest saved copy ("get saved stats") ---- */
@@ -268,6 +298,17 @@
     return out;
   }
 
+  /* ---- read: the baseline for "changes since last time" ----
+     Uses the same single read as save() (the player's newest two archive captures). Players who have no earlier
+     archive day yet simply get no change chips until their second capture; the old split logs are still used
+     by History, export and the saved-copy fallback. */
+  async function aPrevious(userId) {
+    var today = RBR.todayKey();
+    var hit = (await aRecentTwo(userId)).filter(function(d) { return d.date !== today; })[0];
+    if (!hit) return null;
+    try { return { date: hit.date, timestamp: hit.data.timestamp, profile: JSON.parse(hit.data.json) }; } catch (e) { return null; }
+  }
+
   /* ---- export: the complete record, nothing trimmed ---- */
   async function aAllDocs(col, id) {
     var out = [], last = null;
@@ -330,7 +371,7 @@
   async function aSuggest(prefix, limit) {
     var lower = prefix.toLowerCase();
     var s = await aSafe(function() {
-      return db.collectionGroup('snapshots').where('display_name_lower', '>=', lower).where('display_name_lower', '<=', lower + '\uf8ff').limit(limit * 5).get();
+      return db.collectionGroup('snapshots').where('display_name_lower', '>=', lower).where('display_name_lower', '<=', lower + '\uf8ff').limit(limit * 3).get();
     });
     var seen = {}, out = [];
     if (s) s.forEach(function(doc) {
@@ -341,9 +382,38 @@
     return out.slice(0, limit);
   }
 
+  // One-time backfill: make every player already in the archive searchable by name.
+  // Open the site, press F12, open the Console and run:   await RBRArchive.rebuildNameIndex()
+  async function aRebuildNameIndex() {
+    var names = {}, last = null, scanned = 0;
+    for (;;) {
+      var q = db.collectionGroup('snapshots').limit(300);
+      if (last) q = q.startAfter(last);
+      var snap = await q.get();
+      snap.forEach(function(d) {
+        var owner = d.ref.parent.parent, id = owner && owner.id, x = d.data();
+        if (id && UUID_RE.test(id) && x.display_name) names[id] = x.display_name;   // later documents are newer names
+      });
+      scanned += snap.size;
+      if (snap.size < 300) break;
+      last = snap.docs[snap.docs.length - 1];
+    }
+    var ids = Object.keys(names), done = 0;
+    for (var i = 0; i < ids.length; i += 400) {
+      var batch = db.batch();
+      ids.slice(i, i + 400).forEach(function(id) {
+        batch.set(db.collection('playerIndex').doc(id), { userId: id, displayName: names[id], displayName_lower: names[id].toLowerCase() }, { merge: true });
+      });
+      await batch.commit();
+      done += Math.min(400, ids.length - i);
+    }
+    suggestCache = {};
+    return { documents_scanned: scanned, players_indexed: done };
+  }
+
   window.RBRArchive = {
-    save: aSave, getSaved: aGetSaved, loadSaved: aLoadSaved, snapshots: aSnapshots,
-    exportAll: aExportAll, downloadExport: aDownloadExport, resolve: aResolve, suggest: aSuggest,
+    save: aSave, getSaved: aGetSaved, loadSaved: aLoadSaved, snapshots: aSnapshots, previous: aPrevious,
+    exportAll: aExportAll, downloadExport: aDownloadExport, resolve: aResolve, suggest: aSuggest, rebuildNameIndex: aRebuildNameIndex,
   };
   RBR.getSavedStats = aGetSaved;
 
