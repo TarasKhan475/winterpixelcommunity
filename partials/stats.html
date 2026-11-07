@@ -1,176 +1,131 @@
 <!-- Player hub · Stats tab. Loaded into player.html by RBRHub; not a standalone page. -->
 <style>
-  .sv-top { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 14px; }
-  .sv-subtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  /* One surface (white, 1px border, --radius-md), one accent (--blue-deep), one number style.
+     Layout is a single column of panels; nothing is coloured except changes (green/red). */
+  [data-view-root] button { font-family: inherit; cursor: pointer; }
+
+  /* Sub-tabs */
+  .sv-top { margin-bottom: 16px; }
+  .sv-subtabs { display: flex; gap: 8px; flex-wrap: wrap; }
   .sv-subtab {
-    padding: 5px 16px; border-radius: var(--radius-full); border: 2px solid var(--gray-border); background: white;
-    font-size: 14px; font-weight: 800; color: var(--gray-mid);
-    transition: border-color var(--transition), color var(--transition), background var(--transition);
+    padding: 7px 18px; border: 0; border-radius: var(--radius-md); background: var(--blue-pale);
+    font-size: 14px; font-weight: 700; color: var(--blue-deep);
+    transition: background var(--transition), color var(--transition);
   }
-  .sv-subtab:hover { border-color: var(--blue); color: var(--blue-deep); }
-  .sv-subtab.active { background: var(--blue-deep); border-color: var(--blue-deep); color: white; }
+  .sv-subtab:hover { background: #dbeafe; }
+  .sv-subtab.active { background: var(--blue-deep); color: white; }
 
-  .sv-since { font-size: 12px; font-weight: 600; color: var(--gray-muted); margin: 0 0 10px; }
-  .sv-stack { display: flex; flex-direction: column; gap: 14px; }
+  .sv-since { display: inline-block; padding: 5px 10px; border-radius: var(--radius-md); background: var(--blue-pale); font-size: 12px; font-weight: 600; color: var(--blue-deep); margin: 0 0 12px; }
+  .sv-since[hidden] { display: none; }
+  .sv-stack { display: flex; flex-direction: column; gap: 16px; }
 
-  .sv-delta { display: inline-block; margin-left: 5px; font-size: 11px; font-weight: 800; padding: 0 7px; border-radius: var(--radius-full); line-height: 1.6; vertical-align: middle; }
-  .sv-delta.up { background: #dcfce7; color: #15803d; }
-  .sv-delta.down { background: #fee2e2; color: #b91c1c; }
+  /* Change markers: plain coloured text */
+  .sv-delta { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .sv-delta.up { color: #15803d; }
+  .sv-delta.down { color: #b91c1c; }
 
-  /* Spotlight: headline cards on a navy band */
-  .sv-spot {
-    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
-    padding: 16px; border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--blue-deep) 0%, #0a2a3f 100%);
-    box-shadow: 0 6px 20px rgba(30,58,138,0.18);
-  }
-  .sv-spot.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sv-spot-card {
-    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
-    border-radius: var(--radius-md); padding: 14px; color: white; min-width: 0;
-    display: flex; flex-direction: column; gap: 6px;
-  }
-  .sv-spot-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--blue); min-width: 0; }
-  .sv-spot-label span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sv-spot-icon { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
-  .sv-legend-icon { width: 14px; height: 14px; object-fit: contain; vertical-align: -2px; margin-right: 2px; }
-  .sv-spot-big { font-size: 34px; font-weight: 800; line-height: 1; }
-  .sv-spot-sub { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.65); }
-  .sv-spot-sub strong { color: white; }
-  .sv-ring-wrap { display: flex; align-items: center; gap: 12px; }
-  .sv-ring { width: 74px; height: 74px; flex-shrink: 0; transform: rotate(-90deg); }
-  .sv-ring circle { fill: none; stroke-width: 9; }
-  .sv-ring .track { stroke: rgba(255,255,255,0.12); }
-  .sv-ring .fill { stroke: #22d3ee; stroke-linecap: round; }
-  .sv-ring .fill.lead { stroke: #34d399; }
-  .sv-split { display: flex; height: 10px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,0.12); }
-  .sv-split .k { background: #22d3ee; }
-  .sv-split .d { background: #f87171; }
-  .sv-split-legend { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); }
+  /* Shared bar */
+  .sv-bar { height: 6px; background: var(--blue-pale); border-radius: 99px; overflow: hidden; }
+  .sv-bar span { display: block; height: 100%; background: var(--blue-deep); border-radius: 99px; }
+  .sv-bar span.lead { background: #15803d; }
+
+  /* Headline figures */
+  .sv-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .sv-kpi { background: white; border: 1px solid var(--gray-border); border-radius: var(--radius-md); padding: 14px 16px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .sv-kpi-label { font-size: 13px; font-weight: 600; color: var(--blue-deep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sv-kpi-val { font-size: 30px; font-weight: 700; line-height: 1; color: var(--blue-deep); }
+  .sv-kpi-sub { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12px; font-weight: 600; color: var(--blue-deep); }
+  .sv-kpi-sub strong { color: var(--blue-deep); font-weight: 700; }
 
   /* Panels */
-  .sv-panel { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-lg); padding: 14px 16px 16px; min-width: 0; }
+  .sv-panel { background: white; border: 1px solid var(--gray-border); border-radius: var(--radius-md); padding: 14px 16px 16px; min-width: 0; }
   .sv-panel-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
-  .sv-panel-title h3 { font-size: 16px; font-weight: 800; color: var(--blue-deep); }
-  .sv-panel-title span { font-size: 11px; font-weight: 700; color: var(--gray-muted); }
+  .sv-panel-title h3 { font-size: 16px; font-weight: 700; color: var(--blue-deep); }
+  .sv-panel-title span { font-size: 12px; font-weight: 600; color: var(--blue-deep); }
 
-  /* Game modes: one win-rate ring per mode */
-  .sv-modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
-  .sv-mode { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px 8px; border-radius: var(--radius-md); background: var(--blue-pale); text-align: center; min-width: 0; }
-  .sv-mode-ring { position: relative; width: 80px; height: 80px; }
-  .sv-mode-ring .sv-ring { width: 80px; height: 80px; }
-  .sv-mode-ring .sv-ring .track { stroke: rgba(30,58,138,0.12); }
-  .sv-mode-ring .sv-ring .fill { stroke: #10b981; }
-  .sv-mode-ring b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; color: var(--blue-deep); }
-  .sv-mode-name { max-width: 100%; font-size: 12px; font-weight: 800; color: var(--blue-deep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sv-mode-sub { font-size: 10px; font-weight: 700; color: var(--gray-muted); }
+  /* Combat tiles */
+  .sv-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .sv-tile { padding: 10px 12px; border: 1px solid var(--gray-border); border-radius: var(--radius-md); min-width: 0; }
+  .sv-tile-label { font-size: 12px; font-weight: 600; color: var(--blue-deep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sv-tile-val { margin-top: 2px; font-size: 20px; font-weight: 700; line-height: 1.2; color: var(--blue-deep); }
 
-  /* Weapons: one big dial (share of all uses) + a small dial per weapon (kills per use) */
-  .sv-wbig { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
-  .sv-donut-wrap { position: relative; width: 200px; height: 200px; flex-shrink: 0; }
-  .sv-donut { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .sv-donut circle { fill: none; stroke-width: 22; }
-  .sv-donut .track { stroke: var(--blue-pale); }
-  .sv-donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-  .sv-donut-center b { font-size: 30px; font-weight: 800; line-height: 1; color: var(--blue-deep); }
-  .sv-donut-center span { margin-top: 3px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-muted); }
-  .sv-wlegend { flex: 1; min-width: 230px; display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 7px 18px; }
-  .sv-wrow { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 13px; font-weight: 700; color: var(--blue-deep); }
-  .sv-wrow i { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-  .sv-wrow img { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
-  .sv-wrow .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .sv-wrow .pct { font-weight: 800; }
-  .sv-wrow .uses { font-size: 11px; font-weight: 700; color: var(--gray-muted); white-space: nowrap; }
-  .sv-mode.kill .sv-mode-ring .sv-ring .fill { stroke: #f97316; }
-  .sv-mode-name img { width: 18px; height: 18px; object-fit: contain; vertical-align: -4px; margin-right: 3px; }
+  /* Tables (game modes, weapons) */
+  .sv-scroll { overflow-x: auto; }
+  .sv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .sv-table th { padding: 6px 10px; text-align: left; font-size: 12px; font-weight: 600; color: var(--blue-deep); border-bottom: 1px solid var(--gray-border); white-space: nowrap; }
+  .sv-table td { padding: 8px 10px; border-bottom: 1px solid var(--blue-pale); font-weight: 600; color: var(--blue-deep); vertical-align: middle; }
+  .sv-table tbody tr:last-child td { border-bottom: 0; }
+  .sv-table th:first-child, .sv-table td:first-child { padding-left: 0; }
+  .sv-table th:last-child, .sv-table td:last-child { padding-right: 0; }
+  .sv-table .n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sv-table .name { display: flex; align-items: center; gap: 8px; min-width: 0; white-space: nowrap; }
+  .sv-table .name img { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+  .sv-meter { display: flex; align-items: center; gap: 10px; min-width: 130px; }
+  .sv-meter .sv-bar { flex: 1; min-width: 60px; }
+  .sv-meter b { min-width: 36px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
 
-  /* Combat strip */
-  .sv-combat { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; }
-  .sv-chip { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-md); background: var(--blue-pale); min-width: 0; }
-  .sv-chip-icon {
-    width: 38px; height: 38px; flex-shrink: 0; border-radius: 11px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 19px; font-weight: 800; color: white; line-height: 1;
-  }
-  .sv-chip-icon.img { background: white !important; box-shadow: inset 0 0 0 1.5px var(--gray-border); }
-  .sv-chip-icon img { width: 32px; height: 32px; object-fit: contain; }
-  .sv-chip-body { min-width: 0; }
-  .sv-chip-val { font-size: 18px; font-weight: 800; color: var(--blue-deep); line-height: 1.1; }
-  .sv-chip-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--gray-muted); line-height: 1.2; }
+  /* All stats: plain grid, name over value */
+  .sv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+  .sv-cell { padding: 8px 10px; border: 1px solid var(--gray-border); border-radius: var(--radius-md); background: white; min-width: 0; }
+  .sv-cell-name { font-size: 12px; font-weight: 600; color: var(--blue-deep); overflow-wrap: anywhere; }
+  .sv-cell-val { margin-top: 2px; font-size: 16px; font-weight: 700; color: var(--blue-deep); overflow-wrap: anywhere; }
+  .sv-grid .sv-empty { grid-column: 1 / -1; }
 
-  /* Weapon bars */
-  .sv-bars { display: flex; flex-direction: column; gap: 9px; }
-  .sv-bar-row { display: grid; grid-template-columns: 124px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
-  .sv-bar-name { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 13px; font-weight: 700; color: var(--blue-deep); }
-  .sv-bar-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sv-bar-name img { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
-  .sv-bar-track { height: 12px; background: var(--blue-pale); border-radius: 99px; overflow: hidden; position: relative; }
-  .sv-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue), var(--blue-mid)); }
-  .sv-bar-meta { font-size: 12px; font-weight: 700; color: var(--gray-mid); text-align: right; white-space: nowrap; min-width: 92px; }
-  .sv-bar-meta strong { color: var(--blue-deep); font-size: 13px; }
-  .sv-bar-sub { display: block; font-size: 10px; font-weight: 700; color: var(--gray-muted); }
-
-  /* Ledger: every stat as a compact list with its icon */
-  .sv-ledger { columns: 3 220px; column-gap: 28px; }
-  .sv-led-row { display: flex; align-items: baseline; gap: 6px; padding: 5px 0; border-bottom: 1px dashed var(--gray-border); break-inside: avoid; }
-  .sv-led-icon { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; align-self: center; }
+  /* Stat icons (compare view only) */
+  .sv-led-icon { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
   .sv-led-icon.blank { visibility: hidden; }
-  .sv-led-label { font-size: 13px; font-weight: 600; color: var(--gray-mid); flex: 1; min-width: 0; }
-  .sv-led-val { font-size: 14px; font-weight: 800; color: var(--blue-deep); white-space: nowrap; }
 
-  /* All stats */
-  .sv-filter {
-    width: 100%; height: 38px; padding: 0 14px; margin-bottom: 12px; background: white;
-    border: 2px solid var(--gray-border); border-radius: var(--radius-full);
-    font-family: 'Baloo 2', cursive; font-size: 14px; font-weight: 600; color: var(--blue-deep); outline: none;
+  /* Inputs */
+  .sv-filter, .sv-select {
+    height: 36px; padding: 0 12px; background: white; border: 1px solid var(--gray-border); border-radius: var(--radius-md);
+    font-family: inherit; font-size: 14px; font-weight: 600; color: var(--blue-deep); outline: none;
   }
-  .sv-filter:focus { border-color: var(--blue); }
-  .sv-empty { padding: 1.5rem; text-align: center; font-size: 13px; color: var(--gray-muted); }
+  .sv-filter { width: 100%; margin-bottom: 16px; }
+  .sv-filter:focus, .sv-select:focus { border-color: var(--blue-deep); }
+  .sv-empty { padding: 1.5rem; text-align: center; font-size: 13px; color: var(--blue-deep); }
 
   /* History / raw */
-  .sv-card { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 14px; }
+  .sv-card { background: white; border: 1px solid var(--gray-border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px; }
   .sv-card-head {
     display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
-    padding: 9px 14px; background: var(--blue-pale); border-bottom: 1.5px solid var(--gray-border);
-    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-muted);
+    padding: 10px 14px; border-bottom: 1px solid var(--gray-border);
+    font-size: 14px; font-weight: 700; color: var(--blue-deep);
   }
-  .sv-pills { display: flex; gap: 5px; flex-wrap: wrap; padding: 12px 14px 0; }
-  .sv-card-head .sv-pills { padding: 0; }
-  .sv-pill { padding: 2px 11px; border-radius: var(--radius-full); border: 1.5px solid var(--gray-border); background: white; font-size: 11px; font-weight: 700; color: var(--blue-mid); }
-  .sv-pill.active { background: var(--blue); border-color: var(--blue); color: white; }
+  .sv-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sv-pill { padding: 4px 12px; border-radius: var(--radius-md); border: 1px solid var(--gray-border); background: white; font-size: 12px; font-weight: 600; color: var(--blue-deep); }
+  .sv-pill:hover { border-color: var(--blue-deep); }
+  .sv-pill:disabled { opacity: 0.6; cursor: default; }
+  .sv-pill.active { background: var(--blue-deep); border-color: var(--blue-deep); color: white; }
+  .sv-toolbar { padding: 12px 14px 0; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--blue-deep); }
+  .sv-toolbar .sv-select { min-width: 200px; max-width: 100%; }
   .sv-chart { position: relative; height: 260px; padding: 12px 14px; }
-  .sv-chart-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; font-size: 13px; color: var(--gray-muted); }
-  .sv-raw { margin: 0; padding: 14px; max-height: 560px; overflow: auto; font-size: 11px; line-height: 1.6; background: #f8fafc; }
+  .sv-chart-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; font-size: 13px; color: var(--blue-deep); }
+  .sv-raw { margin: 0; padding: 14px; max-height: 560px; overflow: auto; font-size: 12px; line-height: 1.6; background: #f8fafc; }
 
   /* Compare: every stat, both players side by side */
+  .sv-cmp { background: white; border: 1px solid var(--gray-border); border-radius: var(--radius-md); }
   .sv-cmp-head, .sv-cmp-row { display: grid; grid-template-columns: minmax(0, 1fr) 92px 92px; gap: 6px; align-items: center; padding: 0 12px; }
   .sv-cmp-head {
-    position: sticky; top: 62px; z-index: 2; padding-top: 8px; padding-bottom: 8px;
-    background: var(--blue-deep); color: white; font-size: 12px; font-weight: 800; border-radius: var(--radius-md) var(--radius-md) 0 0;
+    position: sticky; top: 62px; z-index: 2; padding-top: 10px; padding-bottom: 10px;
+    background: white; color: var(--blue-deep); font-size: 13px; font-weight: 700;
+    border-bottom: 1px solid var(--gray-border); border-radius: var(--radius-md) var(--radius-md) 0 0;
   }
   .sv-cmp-head span { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sv-cmp-group { padding: 6px 12px; background: var(--blue-pale); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-muted); }
+  .sv-cmp-group { padding: 8px 12px; background: var(--blue-pale); font-size: 13px; font-weight: 700; color: var(--blue-deep); }
   .sv-cmp-row { padding-top: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--blue-pale); }
-  .sv-cmp-row .l { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 13px; font-weight: 600; color: var(--gray-mid); }
-  .sv-cmp-row .v { text-align: center; font-size: 14px; font-weight: 800; color: var(--blue-deep); border-radius: var(--radius-sm); padding: 1px 4px; }
+  .sv-cmp-row .l { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; font-weight: 600; color: var(--blue-deep); }
+  .sv-cmp-row .v { text-align: center; font-size: 14px; font-weight: 700; color: var(--blue-deep); border-radius: var(--radius-sm); padding: 1px 4px; }
   .sv-cmp-row .v.win { background: #dcfce7; color: #15803d; }
-  .sv-cmp { background: white; border: 1.5px solid var(--gray-border); border-radius: var(--radius-md); }
 
-  @media (max-width: 1100px) { .sv-spot { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 600px) {
     .sv-cmp-head, .sv-cmp-row { grid-template-columns: minmax(0, 1fr) 70px 70px; padding: 0 8px; gap: 4px; }
-    .sv-spot { padding: 10px; gap: 8px; }
-    .sv-spot-card { padding: 10px; }
-    .sv-spot-big { font-size: 26px; }
-    .sv-ring { width: 56px; height: 56px; }
-    .sv-modes { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
-    .sv-donut-wrap { width: 160px; height: 160px; }
-    .sv-donut-center b { font-size: 24px; }
-    .sv-mode-ring, .sv-mode-ring .sv-ring { width: 68px; height: 68px; }
+    .sv-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .sv-kpi { padding: 12px; }
+    .sv-kpi-val { font-size: 24px; }
     .sv-panel { padding: 12px; }
-    .sv-bar-row { grid-template-columns: 104px minmax(0, 1fr) auto; gap: 8px; }
-    .sv-bar-name img { width: 22px; height: 22px; }
-    .sv-bar-meta { min-width: 74px; }
+    .sv-meter { min-width: 0; }
+    .sv-meter .sv-bar { display: none; }
+    .sv-table th, .sv-table td { padding-left: 6px; padding-right: 6px; }
   }
 </style>
 
@@ -189,7 +144,7 @@
   <div id="sv-panel-overview" class="sv-stack"></div>
   <div id="sv-panel-all" hidden>
     <input class="sv-filter" id="sv-filter" type="text" placeholder="Filter stats…" autocomplete="off" aria-label="Filter stats" />
-    <div class="sv-stack" id="sv-all"></div>
+    <div class="sv-grid" id="sv-all"></div>
   </div>
 
   <div id="sv-panel-history" hidden>
@@ -197,7 +152,7 @@
       <div class="sv-card-head"><span>Stat history (daily snapshots)</span>
         <div class="sv-pills"><button class="sv-pill" id="sv-hist-export" type="button" title="Every saved snapshot, complete, as one JSON file">Export full history (JSON)</button></div>
       </div>
-      <div class="sv-pills" id="sv-hist-pills"></div>
+      <div class="sv-toolbar"><label for="sv-hist-select">Stat</label><select class="sv-select" id="sv-hist-select"></select></div>
       <div class="sv-chart"><canvas id="sv-hist-chart"></canvas><div class="sv-chart-msg" id="sv-hist-msg"></div></div>
     </div>
     <div class="sv-card">
@@ -306,18 +261,11 @@
     ['Drill', 'kills_using_drill', 'drills_used', 'drill'], ['Laser', 'kills_using_laser', 'lasers_used', 'laser'],
     ['Poison', 'kills_using_poison', 'poisons_used', 'poison'], ['Shield', 'kills_using_shield', 'shields_used', 'shield'],
   ];
-  // [stat, image or text glyph, fallback colour]
-  var COMBAT = [
-    ['double_kills', { img: 'ui/icons/badges/double_kills_7.png' }, '#38bdf8'],
-    ['triple_kills', { img: 'ui/icons/badges/triple_kills_7.png' }, '#6366f1'],
-    ['quad_kills', { img: 'ui/icons/badges/quad_kills_7.png' }, '#a855f7'],
-    ['5_kills', { text: '5×' }, '#ec4899'],
-    ['first_bloods', { img: icon('skull') }, '#ef4444'],
-    ['longest_killstreak', { text: '🔥' }, '#f97316'],
-    ['most_player_kills', { img: icon('homing') }, '#0ea5e9'],
-    ['assists', { text: '🤝' }, '#14b8a6'],
-    ['dunk_tanks', { text: '💦' }, '#3b82f6'],
-  ];
+  var COMBAT = ['double_kills', 'triple_kills', 'quad_kills', '5_kills', 'first_bloods', 'longest_killstreak', 'most_player_kills', 'assists', 'dunk_tanks'];
+  var COMBAT_ICONS = {
+    double_kills: 'ui/icons/badges/double_kills_7.png', triple_kills: 'ui/icons/badges/triple_kills_7.png',
+    quad_kills: 'ui/icons/badges/quad_kills_7.png', first_bloods: icon('skull'), most_player_kills: icon('homing'),
+  };
   // Game art next to each stat (full list + compare)
   var ICONS = {};
   (function() {
@@ -326,7 +274,7 @@
       deaths: 'skull', _winrate: 'crown', games_won: 'crown', best_rank: 'trophy', top_5: 'trophy' };
     Object.keys(li).forEach(function(k) { ICONS[k] = icon(li[k]); });
     WEAPONS.forEach(function(w) { ICONS[w[1]] = icon(w[3]); ICONS[w[2]] = icon(w[3]); });
-    COMBAT.forEach(function(c) { if (c[1].img) ICONS[c[0]] = c[1].img; });
+    Object.keys(COMBAT_ICONS).forEach(function(k) { ICONS[k] = COMBAT_ICONS[k]; });
   })();
   function iconCell(k) { return ICONS[k] ? '<img class="sv-led-icon" loading="lazy" src="' + esc(ICONS[k]) + '" alt="">' : '<span class="sv-led-icon blank"></span>'; }
   var GROUPS = [
@@ -349,98 +297,82 @@
     return '<span class="sv-delta ' + (d > 0 ? 'up' : 'down') + '">' + (d > 0 ? '+' : '') + esc(format(k, d)) + '</span>';
   }
 
-  /* ---- Weapons: big dial + small dials ---- */
-  var WEAPON_COLORS = ['#f97316', '#ef4444', '#a855f7', '#22d3ee', '#84cc16', '#eab308', '#14b8a6', '#ec4899', '#6366f1', '#64748b'];
-  function donut(parts, total) {
-    var C = 2 * Math.PI * 70, off = 0;
-    var svg = '<svg class="sv-donut" viewBox="0 0 180 180" aria-hidden="true"><circle class="track" cx="90" cy="90" r="70"/>';
-    parts.forEach(function(p) {
-      var len = total ? C * p.value / total : 0;
-      svg += '<circle cx="90" cy="90" r="70" stroke="' + p.color + '" stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) +
-        '" stroke-dashoffset="' + (-off).toFixed(2) + '"><title>' + esc(p.name) + '</title></circle>';
-      off += len;
-    });
-    return svg + '</svg>';
-  }
+  /* ---- Shared pieces ---- */
   function share(u, total) {
-    if (!total) return '0%';
-    var p = 100 * u / total;
-    return p > 0 && p < 1 ? '<1%' : Math.round(p) + '%';
+    if (!total) return 0;
+    return 100 * u / total;
   }
+  function shareText(p) { return p > 0 && p < 1 ? '<1%' : Math.round(p) + '%'; }
+  function bar(p, lead) {
+    return '<div class="sv-bar" aria-hidden="true"><span' + (lead ? ' class="lead"' : '') + ' style="width:' + Math.max(0, Math.min(p, 100)).toFixed(1) + '%"></span></div>';
+  }
+  function kpi(label, val, mid, subs) {
+    return '<div class="sv-kpi"><div class="sv-kpi-label">' + label + '</div><div class="sv-kpi-val">' + val + '</div>' + (mid || '') +
+      (subs && subs.length ? '<div class="sv-kpi-sub">' + subs.map(function(s) { return '<span>' + s + '</span>'; }).join('') + '</div>' : '') + '</div>';
+  }
+  function panel(title, note, body) {
+    return '<div class="sv-panel"><div class="sv-panel-title"><h3>' + esc(title) + '</h3>' + (note ? '<span>' + esc(note) + '</span>' : '') + '</div>' + body + '</div>';
+  }
+
+  /* ---- Weapons ---- */
   function weaponsPanel(weapons) {
     var total = weapons.reduce(function(t, w) { return t + w.u; }, 0);
     weapons = weapons.slice().sort(function(a, b) { return b.u - a.u; });
-    var big = '<div class="sv-wbig"><div class="sv-donut-wrap">' + donut(weapons.map(function(w) { return { value: w.u, color: w.color, name: w.name }; }), total) +
-      '<div class="sv-donut-center"><b>' + fmtN(total) + '</b><span>weapons used</span></div></div>' +
-      '<div class="sv-wlegend">' + weapons.map(function(w) {
-        return '<div class="sv-wrow"><i style="background:' + w.color + '"></i><img loading="lazy" src="' + icon(w.icon) + '" alt="">' +
-          '<span class="nm">' + esc(w.name) + '</span><span class="pct">' + share(w.u, total) + '</span>' +
-          '<span class="uses">' + fmtN(w.u) + ' used' + delta(w.ukey) + '</span></div>';
-      }).join('') + '</div></div>';
-    var dials = '<div class="sv-modes">' + weapons.map(function(w) {
-      var rate = w.u ? Math.round(100 * w.k / w.u) : null;
-      return '<div class="sv-mode kill"><div class="sv-mode-ring">' + ring(rate === null ? 0 : rate) + '<b>' + (rate === null ? '—' : rate + '%') + '</b></div>' +
-        '<div class="sv-mode-name" title="' + esc(w.name) + '"><img loading="lazy" src="' + icon(w.icon) + '" alt="">' + esc(w.name) + '</div>' +
-        '<div class="sv-mode-sub">' + fmtN(w.k) + ' kills / ' + fmtN(w.u) + ' used' + delta(w.kkey) + '</div></div>';
-    }).join('') + '</div>';
-    return '<div class="sv-panel"><div class="sv-panel-title"><h3>Weapons</h3><span>share of all weapon uses</span></div>' + big +
-      '<div class="sv-panel-title" style="margin-top:18px"><h3>Kill rate</h3><span>kills with the weapon ÷ times it was used</span></div>' + dials + '</div>';
+    var rows = weapons.map(function(w) {
+      var s = share(w.u, total), rate = w.u ? Math.round(100 * w.k / w.u) + '%' : '—';
+      return '<tr><td><div class="name"><img loading="lazy" src="' + icon(w.icon) + '" alt="">' + esc(w.name) + '</div></td>' +
+        '<td><div class="sv-meter">' + bar(s) + '<b>' + shareText(s) + '</b></div></td>' +
+        '<td class="n">' + fmtN(w.u) + delta(w.ukey) + '</td>' +
+        '<td class="n">' + fmtN(w.k) + delta(w.kkey) + '</td>' +
+        '<td class="n">' + rate + '</td></tr>';
+    }).join('');
+    return panel('Weapons', 'sorted by uses',
+      '<div class="sv-scroll"><table class="sv-table"><thead><tr><th>Weapon</th><th>Share of uses</th><th class="n">Uses</th><th class="n">Kills</th>' +
+      '<th class="n" title="Kills with the weapon divided by times it was used">Kill rate</th></tr></thead><tbody>' + rows + '</tbody></table></div>');
   }
 
   /* ---- Overview ---- */
-  var RING_C = 2 * Math.PI * 30;
-  function ring(p, lead) {
-    return '<svg class="sv-ring" viewBox="0 0 74 74" aria-hidden="true"><circle class="track" cx="37" cy="37" r="30"/>' +
-      '<circle class="fill' + (lead ? ' lead' : '') + '" cx="37" cy="37" r="30" stroke-dasharray="' + (RING_C * Math.min(p, 100) / 100).toFixed(1) + ' ' + RING_C.toFixed(1) + '"/></svg>';
-  }
   function renderOverview() {
     var flat = cur.flat, meta = (cur.profile && cur.profile.metadata) || {};
     var winrate = num('_winrate'), kdr = num('_kdr'), kills = num('player_kills'), deaths = num('deaths');
     var won = num('games_won'), played = num('games_played');
 
-    var html = '<div class="sv-spot">' +
-      '<div class="sv-spot-card"><div class="sv-spot-label"><img class="sv-spot-icon" src="' + icon('crown') + '" alt="">Win rate</div><div class="sv-ring-wrap">' + ring(winrate) +
-        '<div><div class="sv-spot-big">' + esc(format('_winrate', winrate)) + '</div>' + delta('_winrate') + '</div></div>' +
-        '<div class="sv-spot-sub"><strong>' + fmtN(won) + '</strong> wins' + delta('games_won') + ' · <strong>' + fmtN(played) + '</strong> games' + delta('games_played') + '</div></div>' +
-
-      '<div class="sv-spot-card"><div class="sv-spot-label">K/D ratio</div>' +
-        '<div><span class="sv-spot-big">' + esc(format('_kdr', kdr)) + '</span>' + delta('_kdr') + '</div>' +
-        '<div class="sv-split" aria-hidden="true"><span class="k" style="width:' + pct(kills, kills + deaths) + '%"></span><span class="d" style="flex:1"></span></div>' +
-        '<div class="sv-split-legend"><span>' + fmtN(kills) + ' kills' + delta('player_kills') + '</span><span><img class="sv-legend-icon" src="' + icon('skull') + '" alt="">' + fmtN(deaths) + ' deaths' + delta('deaths') + '</span></div></div>' +
-
-      '<div class="sv-spot-card"><div class="sv-spot-label">Level</div>' +
-        '<div><span class="sv-spot-big">' + esc(format('_level', num('_level'))) + '</span>' + delta('_level') + '</div>' +
-        (meta.progress && meta.progress.xp ? '<div class="sv-spot-sub"><strong>' + fmtN(meta.progress.xp) + '</strong> XP</div>' : '') +
-        '<div class="sv-spot-sub"><strong>' + fmtN(num('_awards_seen')) + '</strong> skins unlocked' + delta('_awards_seen') + '</div></div>' +
-
-      '<div class="sv-spot-card"><div class="sv-spot-label"><img class="sv-spot-icon" src="' + icon('trophy') + '" alt="">Best rank</div>' +
-        '<div><span class="sv-spot-big">' + (flat.best_rank ? '#' + fmtN(flat.best_rank) : '—') + '</span></div>' +
-        '<div class="sv-spot-sub"><strong>' + fmtN(num('top_5')) + '</strong> top-5 finishes' + delta('top_5') + '</div>' +
-        '<div class="sv-spot-sub"><strong>' + fmtN(num('total_kills')) + '</strong> total kills incl. bots' + delta('total_kills') + '</div></div>' +
+    var html = '<div class="sv-kpis">' +
+      kpi('Win rate', esc(format('_winrate', winrate)) + delta('_winrate'), bar(winrate), [
+        '<strong>' + fmtN(won) + '</strong> wins' + delta('games_won'),
+        '<strong>' + fmtN(played) + '</strong> games' + delta('games_played')]) +
+      kpi('K/D ratio', esc(format('_kdr', kdr)) + delta('_kdr'), bar(pct(kills, kills + deaths)), [
+        '<strong>' + fmtN(kills) + '</strong> kills' + delta('player_kills'),
+        '<strong>' + fmtN(deaths) + '</strong> deaths' + delta('deaths')]) +
+      kpi('Level', esc(format('_level', num('_level'))) + delta('_level'), '', [].concat(
+        meta.progress && meta.progress.xp ? ['<strong>' + fmtN(meta.progress.xp) + '</strong> XP'] : [],
+        ['<strong>' + fmtN(num('_awards_seen')) + '</strong> skins unlocked' + delta('_awards_seen')])) +
+      kpi('Best rank', flat.best_rank ? '#' + fmtN(flat.best_rank) : '—', '', [
+        '<strong>' + fmtN(num('top_5')) + '</strong> top-5 finishes' + delta('top_5'),
+        '<strong>' + fmtN(num('total_kills')) + '</strong> total kills incl. bots' + delta('total_kills')]) +
     '</div>';
 
-    var combat = COMBAT.filter(function(c) { return flat[c[0]] !== undefined; });
+    var combat = COMBAT.filter(function(k) { return flat[k] !== undefined; });
     if (combat.length) {
-      html += '<div class="sv-panel"><div class="sv-panel-title"><h3>Combat</h3></div><div class="sv-combat">' + combat.map(function(c) {
-        var glyph = c[1].img ? '<img loading="lazy" src="' + esc(c[1].img) + '" alt="">' : esc(c[1].text);
-        return '<div class="sv-chip"><div class="sv-chip-icon' + (c[1].img ? ' img' : '') + '" style="background:' + c[2] + '">' + glyph + '</div>' +
-          '<div class="sv-chip-body"><div class="sv-chip-val">' + esc(format(c[0], flat[c[0]])) + delta(c[0]) + '</div><div class="sv-chip-label">' + esc(label(c[0])) + '</div></div></div>';
-      }).join('') + '</div></div>';
+      html += panel('Combat', '', '<div class="sv-tiles">' + combat.map(function(k) {
+        return '<div class="sv-tile"><div class="sv-tile-label">' + esc(label(k)) + '</div><div class="sv-tile-val">' + esc(format(k, flat[k])) + delta(k) + '</div></div>';
+      }).join('') + '</div>');
     }
 
-    var modes = MODES.map(function(m) { return { name: m[1], p: num(m[0] + '_played'), w: num(m[0] + '_won'), key: m[0] + '_played' }; })
+    var modes = MODES.map(function(m) { return { name: m[1], p: num(m[0] + '_played'), w: num(m[0] + '_won'), key: m[0] + '_played', wkey: m[0] + '_won' }; })
       .filter(function(m) { return m.p > 0; }).sort(function(x, y) { return y.p - x.p; });
     if (modes.length) {
-      html += '<div class="sv-panel"><div class="sv-panel-title"><h3>Game modes</h3><span>win rate</span></div><div class="sv-modes">' + modes.map(function(m) {
-        var wr = pct(m.w, m.p);
-        return '<div class="sv-mode"><div class="sv-mode-ring">' + ring(wr) + '<b>' + wr + '%</b></div>' +
-          '<div class="sv-mode-name" title="' + esc(m.name) + '">' + esc(m.name) + '</div>' +
-          '<div class="sv-mode-sub">' + fmtN(m.w) + ' / ' + fmtN(m.p) + ' wins' + delta(m.key) + '</div></div>';
-      }).join('') + '</div></div>';
+      html += panel('Game modes', 'sorted by games played',
+        '<div class="sv-scroll"><table class="sv-table"><thead><tr><th>Mode</th><th>Win rate</th><th class="n">Wins</th><th class="n">Played</th></tr></thead><tbody>' +
+        modes.map(function(m) {
+          var wr = pct(m.w, m.p);
+          return '<tr><td>' + esc(m.name) + '</td><td><div class="sv-meter">' + bar(wr) + '<b>' + wr + '%</b></div></td>' +
+            '<td class="n">' + fmtN(m.w) + delta(m.wkey) + '</td><td class="n">' + fmtN(m.p) + delta(m.key) + '</td></tr>';
+        }).join('') + '</tbody></table></div>');
     }
 
-    var weapons = WEAPONS.map(function(w, i) {
-      return { name: w[0], k: num(w[1]), u: num(w[2]), kkey: w[1], ukey: w[2], icon: w[3], color: WEAPON_COLORS[i % WEAPON_COLORS.length] };
+    var weapons = WEAPONS.map(function(w) {
+      return { name: w[0], k: num(w[1]), u: num(w[2]), kkey: w[1], ukey: w[2], icon: w[3] };
     }).filter(function(w) { return w.u > 0 || w.k > 0; });
     if (weapons.length) html += weaponsPanel(weapons);
     $('sv-panel-overview').innerHTML = html;
@@ -457,12 +389,12 @@
   }
 
   function renderAll() {
-    var flat = cur.flat;
-    $('sv-all').innerHTML = groupKeys(Object.keys(flat).filter(function(k) { return flat[k] !== undefined; })).map(function(g) {
-      return '<div class="sv-panel" data-group><div class="sv-panel-title"><h3>' + esc(g[0]) + '</h3></div><div class="sv-ledger">' + g[1].map(function(k) {
-        return '<div class="sv-led-row" data-text="' + esc(label(k).toLowerCase()) + '">' + iconCell(k) +
-          '<span class="sv-led-label">' + esc(label(k)) + '</span><span class="sv-led-val">' + esc(format(k, flat[k])) + '</span>' + delta(k) + '</div>';
-      }).join('') + '</div></div>';
+    var stats = (cur.profile && cur.profile.metadata && cur.profile.metadata.stats) || {};
+    $('sv-all').innerHTML = Object.keys(stats).map(function(k) {
+      var v = stats[k], shown = typeof v === 'number' ? v.toLocaleString() : (v !== null && typeof v === 'object' ? JSON.stringify(v) : String(v));
+      var name = RBR.niceName(k);
+      return '<div class="sv-cell" data-text="' + esc((name + ' ' + k).toLowerCase()) + '"><div class="sv-cell-name">' + esc(name) + '</div>' +
+        '<div class="sv-cell-val">' + esc(shown) + delta(k) + '</div></div>';
     }).join('');
     filterAll();
   }
@@ -479,11 +411,11 @@
     }
     function top(pl, f, other) {
       var wr = Number(f._winrate) || 0, lead = wr > (Number(other._winrate) || 0), meta = pl.profile.metadata || {};
-      return '<div class="sv-spot-card"><div class="sv-spot-label"><img class="sv-spot-icon" src="' + icon('crown') + '" alt=""><span>' + esc(pl.profile.display_name || 'Player') + '</span></div>' +
-        '<div class="sv-ring-wrap">' + ring(wr, lead) + '<div><div class="sv-spot-big">' + esc(format('_winrate', wr)) + '</div></div></div>' +
-        '<div class="sv-spot-sub">K/D <strong>' + esc(format('_kdr', Number(f._kdr) || 0)) + '</strong> · Level <strong>' + esc(String(meta.progress ? meta.progress.level : '?')) + '</strong></div></div>';
+      return kpi(esc(pl.profile.display_name || 'Player'), esc(format('_winrate', wr)) + ' <span class="sv-kpi-label" style="font-size:12px">win rate</span>', bar(wr, lead), [
+        'K/D <strong>' + esc(format('_kdr', Number(f._kdr) || 0)) + '</strong>',
+        'Level <strong>' + esc(String(meta.progress ? meta.progress.level : '?')) + '</strong>']);
     }
-    $('sv-compare').innerHTML = '<div class="sv-spot two" style="margin-bottom:14px">' + top(players[0], fa, fb) + top(players[1], fb, fa) + '</div>' +
+    $('sv-compare').innerHTML = '<div class="sv-kpis" style="margin-bottom:16px;grid-template-columns:repeat(2,minmax(0,1fr))">' + top(players[0], fa, fb) + top(players[1], fb, fa) + '</div>' +
       '<div class="sv-cmp"><div class="sv-cmp-head"><span></span><span>' + esc(players[0].profile.display_name || 'Player 1') +
       '</span><span>' + esc(players[1].profile.display_name || 'Player 2') + '</span></div>' +
       groupKeys(keys).map(function(g) {
@@ -502,13 +434,9 @@
   }
   function filterAll() {
     var q = $('sv-filter').value.trim().toLowerCase(), any = false;
-    document.querySelectorAll('#sv-all [data-group]').forEach(function(g) {
-      var shown = 0;
-      g.querySelectorAll('.sv-led-row').forEach(function(r) {
-        var ok = !q || r.dataset.text.indexOf(q) !== -1;
-        r.hidden = !ok; if (ok) shown++;
-      });
-      g.hidden = !shown; if (shown) any = true;
+    document.querySelectorAll('#sv-all .sv-cell').forEach(function(c) {
+      var ok = !q || c.dataset.text.indexOf(q) !== -1;
+      c.hidden = !ok; if (ok) any = true;
     });
     var none = $('sv-all').querySelector('.sv-empty');
     if (!any && !none) $('sv-all').insertAdjacentHTML('beforeend', '<div class="sv-empty">No stats match that filter.</div>');
@@ -529,11 +457,11 @@
     return chartLoad;
   }
   function chartOptions(tooltipLabel, yOpts) {
-    var tick = { color: '#64748B', font: { family: 'Baloo 2', weight: '600' } };
+    var tick = { color: '#1E3A8A', font: { family: 'Baloo 2', weight: '600' } };
     return {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0a1a24', callbacks: { label: tooltipLabel } } },
-      scales: { x: { grid: { color: '#EFF6FF' }, ticks: tick }, y: Object.assign({ grid: { color: '#EFF6FF' }, ticks: tick }, yOpts) },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', callbacks: { label: tooltipLabel } } },
+      scales: { x: { grid: { color: '#E5E7EB' }, ticks: tick }, y: Object.assign({ grid: { color: '#E5E7EB' }, ticks: tick }, yOpts) },
     };
   }
   function drawLine(name, canvasId, msgId, labels, data, opts, msg) {
@@ -549,8 +477,8 @@
       say('');
       charts[name] = new Chart(canvas, {
         type: 'line',
-        data: { labels: labels, datasets: [{ data: data, borderColor: '#00c6ff', backgroundColor: 'rgba(0,198,255,0.08)', borderWidth: 3,
-          pointBackgroundColor: '#1E3A8A', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 4, tension: 0.3, fill: !opts.reverse }] },
+        data: { labels: labels, datasets: [{ data: data, borderColor: '#1E3A8A', backgroundColor: 'rgba(30,58,138,0.06)', borderWidth: 2,
+          pointBackgroundColor: '#1E3A8A', pointBorderColor: '#fff', pointBorderWidth: 1.5, pointRadius: 3, tension: 0.25, fill: !opts.reverse }] },
         options: opts.options,
       });
     }).catch(function(e) { if (seq === drawSeq[name]) say(e.message); });
@@ -561,15 +489,15 @@
     var keys = Object.keys(LABELS).concat(Object.keys(flat).filter(function(k) { return !(k in LABELS); }))
       .filter(function(k) { return typeof flat[k] === 'number' && snaps.some(function(s) { return k in s.stats; }); });
     if (!cur.histKey || keys.indexOf(cur.histKey) === -1) cur.histKey = keys[0] || null;
-    $('sv-hist-pills').innerHTML = keys.map(function(k) {
-      return '<button class="sv-pill' + (k === cur.histKey ? ' active' : '') + '" data-key="' + esc(k) + '">' + esc(label(k)) + '</button>';
+    $('sv-hist-select').innerHTML = keys.map(function(k) {
+      return '<option value="' + esc(k) + '"' + (k === cur.histKey ? ' selected' : '') + '>' + esc(label(k)) + '</option>';
     }).join('');
     var key = cur.histKey;
     var pts = key ? snaps.filter(function(s) { return key in s.stats; }) : [];
     drawLine('hist', 'sv-hist-chart', 'sv-hist-msg',
       pts.map(function(p) { return p.date; }), pts.map(function(p) { return p.stats[key]; }),
       { options: chartOptions(function(c) { return label(key) + ': ' + format(key, c.parsed.y); },
-        { ticks: { color: '#64748B', font: { family: 'Baloo 2', weight: '600' }, callback: function(v) { return format(key, v); } } }) },
+        { ticks: { color: '#1E3A8A', font: { family: 'Baloo 2', weight: '600' }, callback: function(v) { return format(key, v); } } }) },
       pts.length < 2 ? 'No history yet — look this player up again tomorrow to start a graph.' : '');
 
     // Season ranks are only requested once History is actually opened
@@ -590,7 +518,7 @@
     drawLine('rank', 'sv-rank-chart', 'sv-rank-msg',
       pts.map(function(h) { return 'S' + h.season; }), pts.map(function(h) { return h.rank; }),
       { reverse: true, options: chartOptions(function(c) { var h = pts[c.dataIndex]; return ['Rank #' + fmtN(h.rank), fmtN(h.score) + ' ' + cur.rankType]; },
-        { reverse: true, min: 1, suggestedMax: 100, ticks: { color: '#64748B', font: { family: 'Baloo 2', weight: '600' }, precision: 0 } }) },
+        { reverse: true, min: 1, suggestedMax: 100, ticks: { color: '#1E3A8A', font: { family: 'Baloo 2', weight: '600' }, precision: 0 } }) },
       pts.length ? '' : 'No archived top-1000 ' + cur.rankType + ' finishes.');
   }
 
@@ -621,13 +549,13 @@
 
   /* ---- Events ---- */
   document.querySelectorAll('.sv-subtab').forEach(function(b) { b.addEventListener('click', function() { showSub(b.dataset.sub); }); });
-  $('sv-hist-pills').addEventListener('click', function(e) { var b = e.target.closest('[data-key]'); if (b) { cur.histKey = b.dataset.key; renderHistory(); } });
+  $('sv-hist-select').addEventListener('change', function() { cur.histKey = this.value; renderHistory(); });
   document.querySelectorAll('[data-rank-type]').forEach(function(b) { b.addEventListener('click', function() { cur.rankType = b.dataset.rankType; renderRanks(); }); });
   $('sv-filter').addEventListener('input', filterAll);
   $('sv-hist-export').addEventListener('click', async function() {
     var btn = this, was = btn.textContent;
     btn.disabled = true; btn.textContent = 'Exporting…';
-    try { await RBRArchive.downloadExport(cur.userId, cur.profile && cur.profile.display_name); btn.textContent = 'Exported ✓'; }
+    try { await RBRArchive.downloadExport(cur.userId, cur.profile && cur.profile.display_name); btn.textContent = 'Exported'; }
     catch (e) { btn.textContent = 'Failed: ' + e.message; }
     setTimeout(function() { btn.textContent = was; btn.disabled = false; }, 2500);
   });
