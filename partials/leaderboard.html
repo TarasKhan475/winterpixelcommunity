@@ -36,26 +36,20 @@
   .lv-status { font-size: 12px; font-weight: 700; color: var(--blue-deep); min-height: 16px; margin: -4px 0 10px; }
   .lv-status.err { color: #b91c1c; }
 
-  /* Podium: 2nd, 1st, 3rd, stepped */
-  .lv-podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; margin-bottom: 16px; }
-  .lv-pod {
-    display: flex; flex-direction: column; align-items: center; padding: 14px 8px 0; min-width: 0; cursor: pointer; overflow: hidden;
-    background: white; border: 1.5px solid var(--blue-light); border-radius: var(--radius-lg);
-    transition: border-color var(--transition), transform var(--transition);
+  /* Top 3 */
+  .lv-podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+  .lv-podium-card {
+    background: white; border: 2px solid var(--blue-light); border-radius: var(--radius-md);
+    padding: 12px 8px; text-align: center; cursor: pointer; min-width: 0;
+    transition: transform var(--transition), border-color var(--transition);
   }
-  .lv-pod:hover { border-color: var(--blue); transform: translateY(-2px); }
-  .lv-pod.p1 { border-color: var(--blue-deep); }
-  .lv-pod-badge { width: 52px; height: 52px; object-fit: contain; }
-  .lv-pod.p1 .lv-pod-badge { width: 68px; height: 68px; }
-  .lv-pod-name { max-width: 100%; margin-top: 6px; font-size: 15px; font-weight: 800; color: var(--blue-deep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lv-pod-score { margin: 2px 0 12px; font-size: 13px; font-weight: 700; color: var(--blue-deep); }
-  .lv-pod-step {
-    align-self: stretch; display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 800; color: white; background: var(--blue-deep);
-  }
-  .lv-pod.p1 .lv-pod-step { height: 36px; }
-  .lv-pod.p2 .lv-pod-step { height: 28px; background: var(--blue); }
-  .lv-pod.p3 .lv-pod-step { height: 20px; background: var(--blue-mid); }
+  .lv-podium-card:hover { transform: translateY(-2px); border-color: var(--blue); }
+  .lv-podium-card.gold   { border-color: #FCD34D; background: linear-gradient(180deg, #FFFBEB, white 70%); }
+  .lv-podium-card.silver { border-color: #CBD5E1; background: linear-gradient(180deg, #F8FAFC, white 70%); }
+  .lv-podium-card.bronze { border-color: #FDBA74; background: linear-gradient(180deg, #FFF7ED, white 70%); }
+  .lv-medal { display: block; width: 40px; height: 40px; margin: 0 auto; object-fit: contain; }
+  .lv-podium-name { display: block; font-size: 15px; font-weight: 800; color: var(--blue-deep); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lv-podium-score { display: block; font-size: 13px; font-weight: 700; color: var(--blue-mid); }
 
   /* Table */
   .lv-panel { background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-lg); overflow: hidden; }
@@ -95,16 +89,14 @@
   .lv-source { font-size: 12px; font-weight: 600; color: var(--blue-deep); text-align: right; margin-top: 8px; }
   .lv-skel { height: 20px; margin: 14px 16px; border-radius: 6px; background: var(--blue-light); animation: lv-pulse 1.2s ease-in-out infinite; }
   @keyframes lv-pulse { 50% { opacity: 0.45; } }
-  @media (prefers-reduced-motion: reduce) { .lv-skel { animation: none; } .lv-pod { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .lv-skel { animation: none; } .lv-podium-card { transition: none; } }
 
   @media (max-width: 600px) {
     .lv-title { font-size: 22px; }
     .lv-head, .lv-row { grid-template-columns: 48px minmax(0, 1fr) 84px; padding-left: 12px; padding-right: 12px; }
     .lv-num, .lv-head .lv-matches { display: none; }
     .lv-podium { gap: 6px; }
-    .lv-pod-name { font-size: 13px; }
-    .lv-pod-badge { width: 40px; height: 40px; }
-    .lv-pod.p1 .lv-pod-badge { width: 52px; height: 52px; }
+    .lv-podium-name { font-size: 13px; }
   }
 </style>
 
@@ -184,17 +176,15 @@
     more();
   }
 
-  // Shown 2nd, 1st, 3rd so the winner stands in the middle
   function podium(top) {
     var el = $('lv-podium');
     if (top.length < 3) { el.hidden = true; return; }
-    el.innerHTML = [1, 0, 2].map(function(i) {
-      var p = top[i];
-      return '<button type="button" class="lv-pod p' + (i + 1) + '" data-id="' + esc(p.owner_id) + '">' +
-        '<img class="lv-pod-badge" src="' + BADGES[i] + '" alt="' + PLACE[i] + ' place">' +
-        '<span class="lv-pod-name">' + esc(p.username || 'Anonymous') + '</span>' +
-        '<span class="lv-pod-score">' + fmt(p.score) + ' ' + typeLabel(st.type).toLowerCase() + '</span>' +
-        '<span class="lv-pod-step">' + (i + 1) + '</span></button>';
+    var cls = ['gold', 'silver', 'bronze'];
+    el.innerHTML = top.map(function(p, i) {
+      return '<button type="button" class="lv-podium-card ' + cls[i] + '" data-id="' + esc(p.owner_id) + '">' +
+        '<img class="lv-medal" src="' + BADGES[i] + '" alt="' + PLACE[i] + ' place">' +
+        '<span class="lv-podium-name">' + esc(p.username || 'Anonymous') + '</span>' +
+        '<span class="lv-podium-score">' + fmt(p.score) + ' ' + typeLabel(st.type).toLowerCase() + '</span></button>';
     }).join('');
     el.hidden = false;
   }
