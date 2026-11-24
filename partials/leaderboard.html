@@ -1,138 +1,158 @@
 <!-- Player hub · Leaderboard tab. Loaded into the hub by RBRHub; not a standalone page. -->
 <style>
-  /* Same language as the home page: pale-blue panels, white header bands, blue-light borders,
-     rounded pills for inputs. Navy text throughout; the podium badges are the only imagery. */
-  [data-view-root] button, [data-view-root] select, [data-view-root] input { font-family: inherit; }
-
-  .lv-title { font-size: 26px; font-weight: 800; color: var(--blue-deep); margin: 0 0 12px; line-height: 1.1; }
-
-  /* Controls: one bar */
-  .lv-controls {
-    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px;
-    padding: 10px; background: white; border: 1.5px solid var(--blue-light); border-radius: var(--radius-lg);
+  /* Game-style leaderboard: a rounded box tiled with ui/panel-pattern.png, double outline
+     (#FFC589 inside, black outside). All text is one size, white with a black outline.
+     The page itself never scrolls: JS sizes the root to the viewport and only the list scrolls. */
+  [data-view-root] {
+    --lv-tan: #FFC589;
+    --lv-pass: #FFD83D;
+    --lv-text: 15px;
+    display: flex; flex-direction: column; gap: 10px; min-height: 0;
   }
-  .lv-search {
-    flex: 1; min-width: 200px; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px;
-    background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-full);
-    transition: border-color var(--transition), background var(--transition);
-  }
-  .lv-search:focus-within { border-color: var(--blue); background: white; }
-  .lv-search svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--blue-deep); }
-  .lv-input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--blue-deep); }
-  .lv-input::placeholder { color: var(--blue-muted); }
-  .lv-select {
-    height: 38px; padding: 0 14px; background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-full);
-    font-size: 14px; font-weight: 700; color: var(--blue-deep); outline: none; cursor: pointer;
-    transition: border-color var(--transition);
-  }
-  .lv-select:focus { border-color: var(--blue); }
-  .lv-toggle { display: flex; gap: 2px; padding: 3px; background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-full); }
-  .lv-toggle button {
-    border: none; background: none; border-radius: var(--radius-full); padding: 5px 16px; cursor: pointer;
-    font-size: 13px; font-weight: 700; color: var(--blue-deep); transition: background var(--transition), color var(--transition);
-  }
-  .lv-toggle button.active { background: var(--blue-deep); color: white; }
+  [data-view-root] button, [data-view-root] input { font-family: inherit; }
 
-  .lv-status { font-size: 12px; font-weight: 700; color: var(--blue-deep); min-height: 16px; margin: -4px 0 10px; }
-  .lv-status.err { color: #b91c1c; }
-
-  /* Top 3 */
-  .lv-podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
-  .lv-podium-card {
-    background: white; border: 2px solid var(--blue-light); border-radius: var(--radius-md);
-    padding: 12px 8px; text-align: center; cursor: pointer; min-width: 0;
-    transition: transform var(--transition), border-color var(--transition);
+  /* Outlined text: white fill, black outline */
+  .lv-t {
+    font-size: var(--lv-text); font-weight: 800; line-height: 1.2; color: #fff;
+    paint-order: stroke fill; -webkit-text-stroke: 4px #000;
+    text-shadow: 0 2px 0 #000;
   }
-  .lv-podium-card:hover { transform: translateY(-2px); border-color: var(--blue); }
-  .lv-podium-card.gold   { border-color: #FCD34D; background: linear-gradient(180deg, #FFFBEB, white 70%); }
-  .lv-podium-card.silver { border-color: #CBD5E1; background: linear-gradient(180deg, #F8FAFC, white 70%); }
-  .lv-podium-card.bronze { border-color: #FDBA74; background: linear-gradient(180deg, #FFF7ED, white 70%); }
-  .lv-medal { display: block; width: 40px; height: 40px; margin: 0 auto; object-fit: contain; }
-  .lv-podium-name { display: block; font-size: 15px; font-weight: 800; color: var(--blue-deep); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lv-podium-score { display: block; font-size: 13px; font-weight: 700; color: var(--blue-mid); }
 
-  /* Table */
-  .lv-panel { background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-lg); overflow: hidden; }
-  .lv-head, .lv-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) 90px 110px; align-items: center; gap: 10px; padding: 0 16px; }
+  /* Controls */
+  .lv-controls { flex: none; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  /* Plain dark boxes, slightly rounded, flat #FFC589 text */
+  .lv-search, .lv-dd, .lv-toggle {
+    height: 38px; background: rgba(0,0,0,0.45); border: none; border-radius: 6px; box-shadow: none;
+  }
+  .lv-input, .lv-dd-btn, .lv-toggle button {
+    font-size: var(--lv-text); font-weight: 700; color: #FFC589; opacity: 1;
+    -webkit-text-stroke: 0; paint-order: normal; text-shadow: none;
+  }
+  .lv-search { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 8px; padding: 0 14px; }
+  .lv-search:focus-within { background: rgba(0,0,0,0.65); }
+  .lv-search svg { width: 18px; height: 18px; flex-shrink: 0; color: #fff; filter: none; }
+  .lv-input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; }
+  .lv-input::placeholder { color: #FFC589; opacity: 1; }
+  /* Custom season dropdown (the native list can't be styled) */
+  .lv-dd { position: relative; --lv-menu-bg: rgba(10, 30, 100, 0.2); }
+  .lv-dd::after {
+    content: ''; position: absolute; right: 12px; top: 50%; width: 12px; height: 12px; margin-top: -6px; pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 3.8h7L6 9z' fill='%23fff' stroke='%23fff' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .lv-dd-btn { width: 100%; height: 100%; padding: 0 34px 0 12px; text-align: left; background: transparent; border: none; border-radius: inherit; cursor: pointer; white-space: nowrap; }
+  .lv-dd-menu {
+    position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; max-height: 280px; overflow-y: auto; z-index: 30;
+    padding: 4px 0; background: var(--lv-menu-bg); border-radius: 6px;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.6) transparent;
+  }
+  .lv-dd-opt {
+    display: block; width: 100%; padding: 8px 14px; text-align: left; white-space: nowrap; cursor: pointer;
+    background: transparent; border: none; border-radius: 0; font-size: var(--lv-text); font-weight: 700; color: #fff;
+  }
+  .lv-dd-opt:hover, .lv-dd-opt:focus-visible { background: rgba(255,255,255,0.2); outline: none; }
+  .lv-dd-opt.sel { background: rgba(255,255,255,0.35); }
+  .lv-toggle { display: flex; gap: 2px; padding: 3px; }
+  .lv-toggle button { border: none; background: none; border-radius: 4px; padding: 0 14px; cursor: pointer; }
+  .lv-toggle button.active { background: rgba(255,255,255,0.5); }
+  [data-view-root] :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  /* Box */
+  .lv-box {
+    flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; margin: 8px 8px 10px;
+    background: #3b2a66 url('ui/panel-pattern.png') repeat;
+    border: 6.5px solid var(--lv-tan); border-radius: 22px;
+    box-shadow: 0 1.5px 0 4.5px #000;   /* black outline pushed down: thin on top, thick on the bottom */
+  }
+  .lv-head, .lv-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) 80px 110px; align-items: center; gap: 10px; padding: 0 16px; }
   .lv-head {
-    padding-top: 10px; padding-bottom: 10px; background: white; border-bottom: 1.5px solid var(--blue-light);
-    font-size: 13px; font-weight: 800; color: var(--blue-deep);
+    flex: none; height: 42px; scrollbar-gutter: stable; overflow: hidden;
+    background: rgba(0,0,0,0.5); border-radius: 15px 15px 0 0;
   }
-  .lv-head .r { text-align: right; }
+  .lv-head span { color: var(--lv-tan); }
+  .lv-r { text-align: right; }
+
+  .lv-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: var(--lv-tan) rgba(0,0,0,0.35); }
   .lv-row {
-    width: 100%; padding-top: 9px; padding-bottom: 9px; text-align: left; color: inherit; cursor: pointer;
-    background: transparent; border: none; border-bottom: 1px solid var(--blue-light);
-    transition: background var(--transition);
+    width: 100%; height: 44px; text-align: left; cursor: pointer; background: transparent; border: none;
+    border-bottom: 2px solid rgba(0,0,0,0.28); transition: background 0.12s;
   }
-  .lv-row:last-child { border-bottom: none; }
-  .lv-row:hover, .lv-row:focus-visible { background: white; outline: none; }
+  .lv-row:hover, .lv-row:focus-visible { background: rgba(255,255,255,0.14); outline: none; }
+  .lv-row .lv-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .lv-row .lv-pass { color: var(--lv-pass); }
 
-  .lv-rank-cell { display: flex; align-items: center; }
-  .lv-rank {
-    min-width: 36px; padding: 2px 8px; text-align: center; border-radius: var(--radius-full);
-    font-size: 12px; font-weight: 800; color: var(--blue-deep); background: var(--blue-light);
-  }
-  .lv-rank.top { background: var(--blue-deep); color: white; }
-  .lv-rank-badge { width: 30px; height: 30px; object-fit: contain; }
-  .lv-who { min-width: 0; }
-  .lv-name { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--blue-deep); min-width: 0; }
-  .lv-name > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lv-pass { flex-shrink: 0; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--blue-light); color: var(--blue-deep); }
-  .lv-id { display: block; font-size: 11px; color: var(--blue-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lv-num { font-size: 13px; font-weight: 700; color: var(--blue-deep); text-align: right; }
-  .lv-score { font-size: 15px; font-weight: 800; color: var(--blue-deep); text-align: right; }
-
-  .lv-empty { padding: 2.5rem 1rem; text-align: center; color: var(--blue-deep); font-size: 13px; font-weight: 600; }
-  .lv-more { padding: 12px; text-align: center; border-top: 1px solid var(--blue-light); background: white; }
-  .lv-more button { background: var(--blue-deep); color: white; border: none; border-radius: var(--radius-full); padding: 7px 24px; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .lv-more button:hover { background: var(--blue); }
-  .lv-source { font-size: 12px; font-weight: 600; color: var(--blue-deep); text-align: right; margin-top: 8px; }
-  .lv-skel { height: 20px; margin: 14px 16px; border-radius: 6px; background: var(--blue-light); animation: lv-pulse 1.2s ease-in-out infinite; }
+  .lv-empty { padding: 2.5rem 1rem; text-align: center; }
+  .lv-skel { height: 20px; margin: 12px 16px; border-radius: 6px; background: rgba(0,0,0,0.3); animation: lv-pulse 1.2s ease-in-out infinite; }
   @keyframes lv-pulse { 50% { opacity: 0.45; } }
-  @media (prefers-reduced-motion: reduce) { .lv-skel { animation: none; } .lv-podium-card { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .lv-skel { animation: none; } .lv-row { transition: none; } }
+
+  .lv-foot { flex: none; height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: rgba(0,0,0,0.5); border-top: 2px solid #000; }
+  .lv-foot .lv-t { color: var(--lv-tan); }
+  #lv-status.err { color: #ff8a8a; }
 
   @media (max-width: 600px) {
-    .lv-title { font-size: 22px; }
-    .lv-head, .lv-row { grid-template-columns: 48px minmax(0, 1fr) 84px; padding-left: 12px; padding-right: 12px; }
-    .lv-num, .lv-head .lv-matches { display: none; }
-    .lv-podium { gap: 6px; }
-    .lv-podium-name { font-size: 13px; }
+    .lv-head, .lv-row { grid-template-columns: 46px minmax(0, 1fr) 56px 80px; gap: 6px; padding: 0 10px; }
+    .lv-dd { flex: 1; }
   }
 </style>
 
 <div data-view-root>
-  <h2 class="lv-title">Season leaderboards</h2>
   <div class="lv-controls">
     <label class="lv-search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20.5 20.5"/></svg>
       <input class="lv-input" id="lv-search" type="text" placeholder="Filter by username or user ID" autocomplete="off" spellcheck="false" aria-label="Filter players" />
     </label>
-    <select class="lv-select" id="lv-season" aria-label="Season"></select>
+    <div class="lv-dd" id="lv-dd">
+      <button type="button" class="lv-dd-btn" id="lv-season-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Season"></button>
+      <div class="lv-dd-menu" id="lv-season-menu" role="listbox" hidden></div>
+    </div>
     <div class="lv-toggle" role="group" aria-label="Leaderboard type">
       <button type="button" data-type="trophies" class="active">Trophies</button>
       <button type="button" data-type="points">Points</button>
     </div>
   </div>
-  <div class="lv-status" id="lv-status"></div>
-  <div class="lv-podium" id="lv-podium" hidden></div>
-  <div class="lv-panel">
-    <div class="lv-head"><span>Rank</span><span>Player</span><span class="r lv-matches">Matches</span><span class="r" id="lv-score-head">Trophies</span></div>
-    <div id="lv-rows"></div>
-    <div class="lv-more" id="lv-more" hidden><button type="button" id="lv-more-btn">Show more</button></div>
+
+  <div class="lv-box">
+    <div class="lv-head">
+      <span class="lv-t">RANK</span><span class="lv-t">NAME</span>
+      <span class="lv-t lv-r">GAMES</span><span class="lv-t lv-r" id="lv-score-head">TROPHIES</span>
+    </div>
+    <div class="lv-list" id="lv-list"><div id="lv-rows"></div></div>
+    <div class="lv-foot"><span class="lv-t" id="lv-status"></span><span class="lv-t" id="lv-source"></span></div>
   </div>
-  <div class="lv-source" id="lv-source"></div>
 </div>
 
 <script>
 (function() {
-  var ARCHIVED_THROUGH = 60, LATEST_SEASON = 61, DEFAULT_SEASON = 61, PAGE_SIZE = 100;   // 0-60 archived, 61 = live
-  var BADGES = ['ui/icons/badges/playoff_rd1.png', 'ui/icons/badges/playoff_rd2.png', 'ui/icons/badges/playoff_rd3.png'];
-  var PLACE = ['1st', '2nd', '3rd'];
+  var ARCHIVED_THROUGH = 60, LATEST_SEASON = 61, DEFAULT_SEASON = 61, PAGE_SIZE = 100, EXTRA_HEIGHT = 260;   // 0-60 archived, 61 = live
   var st = { type: 'trophies', season: DEFAULT_SEASON, players: [], filtered: [], shown: 0, loadId: 0, loaded: false };
   var esc = RBR.escHtml, fmt = RBR.fmt;
   function $(id) { return document.getElementById(id); }
   function typeLabel(t) { return t === 'points' ? 'Points' : 'Trophies'; }
-  function setStatus(msg, err) { $('lv-status').textContent = msg || ''; $('lv-status').className = 'lv-status' + (err ? ' err' : ''); }
+  function setStatus(msg, err) { $('lv-status').textContent = msg || ''; $('lv-status').className = 'lv-t' + (err ? ' err' : ''); }
+
+  /* Fill the viewport exactly so the page never scrolls; only .lv-list does. */
+  function fit() {
+    var root = document.querySelector('[data-view-root]');
+    if (!root || !root.offsetParent) return;
+    var top = root.getBoundingClientRect().top + window.pageYOffset;
+    var wrap = root.closest('.hub-wrap');
+    var pad = wrap ? parseFloat(getComputedStyle(wrap).paddingBottom) || 0 : 0;
+    var foot = document.querySelector('.hub-footer');
+    sizePattern();
+    var h = window.innerHeight - top - pad - (foot ? foot.offsetHeight : 0);
+    root.style.height = (Math.max(h, 320) + EXTRA_HEIGHT) + 'px';   // deliberately longer than the viewport
+  }
+
+  /* Keep the panel pattern at no more than half the box width, so at least two tiles show across. */
+  var tileW = 0;
+  function sizePattern() {
+    var box = document.querySelector('.lv-box');
+    if (!box || !tileW) return;
+    box.style.backgroundSize = Math.min(tileW, box.clientWidth / 2) + 'px auto';
+  }
+  var tileImg = new Image();
+  tileImg.onload = function() { tileW = tileImg.naturalWidth; sizePattern(); };
+  tileImg.src = 'ui/panel-pattern.png';
 
   function writeUrl() {
     var p = new URLSearchParams(location.search);
@@ -145,22 +165,23 @@
 
   async function load() {
     var id = ++st.loadId;
-    $('lv-rows').innerHTML = Array(8).join('<div class="lv-skel"></div>');
-    $('lv-podium').hidden = true; $('lv-more').hidden = true; $('lv-source').textContent = '';
-    $('lv-score-head').textContent = typeLabel(st.type);
+    $('lv-rows').innerHTML = Array(10).join('<div class="lv-skel"></div>');
+    $('lv-list').scrollTop = 0;
+    $('lv-source').textContent = '';
+    $('lv-score-head').textContent = typeLabel(st.type).toUpperCase();
     setStatus('Loading season ' + st.season + '…');
     writeUrl();
     try {
       var data = await RBR.leaderboard({ action: 'board', type: st.type, season: st.season });
       if (id !== st.loadId) return;
       st.players = data.players || [];
-      setStatus('');
-      $('lv-source').textContent = 'Top ' + fmt(st.players.length) + ' players · ' + (data.source === 'archive' ? 'archived season' : 'live from game server');
+      setStatus('Top ' + fmt(st.players.length) + ' players');
+      $('lv-source').textContent = data.source === 'archive' ? 'Archived season' : 'Live';
       filter();
     } catch (e) {
       if (id !== st.loadId) return;
       st.players = [];
-      $('lv-rows').innerHTML = '<div class="lv-empty">Couldn\'t load this leaderboard. Please try again in a moment.</div>';
+      $('lv-rows').innerHTML = '<div class="lv-empty lv-t">Couldn\'t load this leaderboard. Please try again in a moment.</div>';
       setStatus(e.message, true);
     }
   }
@@ -172,61 +193,70 @@
     });
     st.shown = 0;
     $('lv-rows').innerHTML = '';
-    podium(q ? [] : st.players.slice(0, 3));
+    $('lv-list').scrollTop = 0;
     more();
-  }
-
-  function podium(top) {
-    var el = $('lv-podium');
-    if (top.length < 3) { el.hidden = true; return; }
-    var cls = ['gold', 'silver', 'bronze'];
-    el.innerHTML = top.map(function(p, i) {
-      return '<button type="button" class="lv-podium-card ' + cls[i] + '" data-id="' + esc(p.owner_id) + '">' +
-        '<img class="lv-medal" src="' + BADGES[i] + '" alt="' + PLACE[i] + ' place">' +
-        '<span class="lv-podium-name">' + esc(p.username || 'Anonymous') + '</span>' +
-        '<span class="lv-podium-score">' + fmt(p.score) + ' ' + typeLabel(st.type).toLowerCase() + '</span></button>';
-    }).join('');
-    el.hidden = false;
-  }
-
-  function rankCell(p) {
-    if (p.rank >= 1 && p.rank <= 3) return '<img class="lv-rank-badge" src="' + BADGES[p.rank - 1] + '" alt="#' + p.rank + '">';
-    return '<span class="lv-rank' + (p.rank <= 10 ? ' top' : '') + '">#' + fmt(p.rank) + '</span>';
   }
 
   function more() {
     var rows = $('lv-rows');
     if (!st.filtered.length) {
-      rows.innerHTML = '<div class="lv-empty">' + (st.players.length ? 'No players match that filter.' : 'No leaderboard entries for this season.') + '</div>';
-      $('lv-more').hidden = true;
+      rows.innerHTML = '<div class="lv-empty lv-t">' + (st.players.length ? 'No players match that filter.' : 'No leaderboard entries for this season.') + '</div>';
       return;
     }
     var next = st.filtered.slice(st.shown, st.shown + PAGE_SIZE);
     rows.insertAdjacentHTML('beforeend', next.map(function(p) {
-      return '<button type="button" class="lv-row" data-id="' + esc(p.owner_id) + '" title="Open ' + esc(p.username || 'player') + ' in Stats">' +
-        '<span class="lv-rank-cell">' + rankCell(p) + '</span>' +
-        '<span class="lv-who"><span class="lv-name"><span>' + esc(p.username || 'Anonymous') + '</span>' +
-          (p.pass ? '<span class="lv-pass">Pass</span>' : '') + '</span><span class="lv-id">' + esc(p.owner_id) + '</span></span>' +
-        '<span class="lv-num">' + fmt(p.num_score) + '</span>' +
-        '<span class="lv-score">' + fmt(p.score) + '</span></button>';
+      var name = esc(p.username || 'Anonymous');
+      return '<button type="button" class="lv-row" data-id="' + esc(p.owner_id) + '" title="Open ' + esc(p.username || 'player') + ' in Stats (' + esc(p.owner_id) + ')">' +
+        '<span class="lv-t">#' + fmt(p.rank) + '</span>' +
+        '<span class="lv-t' + (p.pass ? ' lv-pass' : '') + '">' + name + '</span>' +
+        '<span class="lv-t lv-r">' + fmt(p.num_score) + '</span>' +
+        '<span class="lv-t lv-r">' + fmt(p.score) + '</span></button>';
     }).join(''));
     st.shown += next.length;
-    $('lv-more').hidden = st.shown >= st.filtered.length;
-    $('lv-more-btn').textContent = 'Show more (' + fmt(st.filtered.length - st.shown) + ' left)';
   }
 
   /* ---- Init ---- */
-  var sel = $('lv-season');
-  for (var s = LATEST_SEASON; s >= 0; s--) {
-    var o = document.createElement('option');
-    o.value = s; o.textContent = s === 0 ? 'Season 0 (Launch)' : s > ARCHIVED_THROUGH ? 'Season ' + s + ' (Live)' : 'Season ' + s;
-    sel.appendChild(o);
+  var ddBtn = $('lv-season-btn'), ddMenu = $('lv-season-menu');
+  function seasonLabel(n) { return n === 0 ? 'Season 0 (Launch)' : n > ARCHIVED_THROUGH ? 'Season ' + n + ' (Live)' : 'Season ' + n; }
+  ddMenu.innerHTML = (function() {
+    var h = '';
+    for (var n = LATEST_SEASON; n >= 0; n--) h += '<button type="button" class="lv-dd-opt" role="option" data-season="' + n + '">' + seasonLabel(n) + '</button>';
+    return h;
+  })();
+  function markSeason() {
+    ddBtn.textContent = seasonLabel(st.season);
+    ddMenu.querySelectorAll('.lv-dd-opt').forEach(function(o) {
+      var on = parseInt(o.dataset.season, 10) === st.season;
+      o.classList.toggle('sel', on); o.setAttribute('aria-selected', on);
+    });
   }
+  function toggleMenu(open) {
+    ddMenu.hidden = !open; ddBtn.setAttribute('aria-expanded', open);
+    if (open) { var cur = ddMenu.querySelector('.sel'); if (cur) cur.scrollIntoView({ block: 'nearest' }); }
+  }
+  ddBtn.addEventListener('click', function() { toggleMenu(ddMenu.hidden); });
+  ddMenu.addEventListener('click', function(e) {
+    var o = e.target.closest('.lv-dd-opt'); if (!o) return;
+    var n = parseInt(o.dataset.season, 10);
+    toggleMenu(false); ddBtn.focus();
+    if (n !== st.season) { st.season = n; markSeason(); load(); }
+  });
+  document.addEventListener('click', function(e) { if (!ddMenu.hidden && !e.target.closest('#lv-dd')) toggleMenu(false); });
+  $('lv-dd').addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !ddMenu.hidden) { toggleMenu(false); ddBtn.focus(); return; }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    if (ddMenu.hidden) toggleMenu(true);
+    var opts = Array.prototype.slice.call(ddMenu.querySelectorAll('.lv-dd-opt'));
+    var i = opts.indexOf(document.activeElement);
+    i = i === -1 ? opts.indexOf(ddMenu.querySelector('.sel')) : i + (e.key === 'ArrowDown' ? 1 : -1);
+    if (opts[i]) opts[i].focus();
+  });
   var params = new URLSearchParams(location.search);
   var ps = parseInt(params.get('season'), 10);
   if (!isNaN(ps) && ps >= 0 && ps <= LATEST_SEASON) st.season = ps;
   if (params.get('type') === 'points') st.type = 'points';
-  sel.value = st.season;
+  markSeason();
   document.querySelectorAll('.lv-toggle button').forEach(function(b) {
     b.classList.toggle('active', b.dataset.type === st.type);
     b.addEventListener('click', function() {
@@ -236,17 +266,21 @@
       load();
     });
   });
-  sel.addEventListener('change', function() { st.season = parseInt(sel.value, 10); load(); });
   var t = null;
   $('lv-search').addEventListener('input', function() { clearTimeout(t); t = setTimeout(filter, 200); });
-  $('lv-more-btn').addEventListener('click', more);
-  function open(e) { var el = e.target.closest('[data-id]'); if (el) RBRHub.openPlayer(el.dataset.id); }
-  $('lv-rows').addEventListener('click', open);
-  $('lv-podium').addEventListener('click', open);
+  $('lv-list').addEventListener('scroll', function() {
+    var l = $('lv-list');
+    if (st.shown < st.filtered.length && l.scrollTop + l.clientHeight >= l.scrollHeight - 240) more();
+  });
+  $('lv-rows').addEventListener('click', function(e) { var el = e.target.closest('[data-id]'); if (el) RBRHub.openPlayer(el.dataset.id); });
+  window.addEventListener('resize', fit);
 
   RBRHub.registerView('leaderboard', {
     needsPlayer: false,
-    onShow: function() { if (!st.loaded) { st.loaded = true; load(); } else writeUrl(); },
+    onShow: function() {
+      fit(); requestAnimationFrame(fit);
+      if (!st.loaded) { st.loaded = true; load(); } else writeUrl();
+    },
   });
 })();
 </script>

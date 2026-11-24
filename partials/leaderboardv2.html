@@ -1,0 +1,252 @@
+<!-- Player hub · Leaderboard tab. Loaded into the hub by RBRHub; not a standalone page. -->
+<style>
+  /* Same language as the home page: pale-blue panels, white header bands, blue-light borders,
+     rounded pills for inputs. Navy text throughout; the podium badges are the only imagery. */
+  [data-view-root] button, [data-view-root] select, [data-view-root] input { font-family: inherit; }
+
+  .lv-title { font-size: 26px; font-weight: 800; color: var(--blue-deep); margin: 0 0 12px; line-height: 1.1; }
+
+  /* Controls: one bar */
+  .lv-controls {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px;
+    padding: 10px; background: white; border: 1.5px solid var(--blue-light); border-radius: var(--radius-lg);
+  }
+  .lv-search {
+    flex: 1; min-width: 200px; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px;
+    background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-full);
+    transition: border-color var(--transition), background var(--transition);
+  }
+  .lv-search:focus-within { border-color: var(--blue); background: white; }
+  .lv-search svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--blue-deep); }
+  .lv-input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--blue-deep); }
+  .lv-input::placeholder { color: var(--blue-muted); }
+  .lv-select {
+    height: 38px; padding: 0 14px; background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-full);
+    font-size: 14px; font-weight: 700; color: var(--blue-deep); outline: none; cursor: pointer;
+    transition: border-color var(--transition);
+  }
+  .lv-select:focus { border-color: var(--blue); }
+  .lv-toggle { display: flex; gap: 2px; padding: 3px; background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-full); }
+  .lv-toggle button {
+    border: none; background: none; border-radius: var(--radius-full); padding: 5px 16px; cursor: pointer;
+    font-size: 13px; font-weight: 700; color: var(--blue-deep); transition: background var(--transition), color var(--transition);
+  }
+  .lv-toggle button.active { background: var(--blue-deep); color: white; }
+
+  .lv-status { font-size: 12px; font-weight: 700; color: var(--blue-deep); min-height: 16px; margin: -4px 0 10px; }
+  .lv-status.err { color: #b91c1c; }
+
+  /* Top 3 */
+  .lv-podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+  .lv-podium-card {
+    background: white; border: 2px solid var(--blue-light); border-radius: var(--radius-md);
+    padding: 12px 8px; text-align: center; cursor: pointer; min-width: 0;
+    transition: transform var(--transition), border-color var(--transition);
+  }
+  .lv-podium-card:hover { transform: translateY(-2px); border-color: var(--blue); }
+  .lv-podium-card.gold   { border-color: #FCD34D; background: linear-gradient(180deg, #FFFBEB, white 70%); }
+  .lv-podium-card.silver { border-color: #CBD5E1; background: linear-gradient(180deg, #F8FAFC, white 70%); }
+  .lv-podium-card.bronze { border-color: #FDBA74; background: linear-gradient(180deg, #FFF7ED, white 70%); }
+  .lv-medal { display: block; width: 40px; height: 40px; margin: 0 auto; object-fit: contain; }
+  .lv-podium-name { display: block; font-size: 15px; font-weight: 800; color: var(--blue-deep); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lv-podium-score { display: block; font-size: 13px; font-weight: 700; color: var(--blue-mid); }
+
+  /* Table */
+  .lv-panel { background: var(--blue-pale); border: 1.5px solid var(--blue-light); border-radius: var(--radius-lg); overflow: hidden; }
+  .lv-head, .lv-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) 90px 110px; align-items: center; gap: 10px; padding: 0 16px; }
+  .lv-head {
+    padding-top: 10px; padding-bottom: 10px; background: white; border-bottom: 1.5px solid var(--blue-light);
+    font-size: 13px; font-weight: 800; color: var(--blue-deep);
+  }
+  .lv-head .r { text-align: right; }
+  .lv-row {
+    width: 100%; padding-top: 9px; padding-bottom: 9px; text-align: left; color: inherit; cursor: pointer;
+    background: transparent; border: none; border-bottom: 1px solid var(--blue-light);
+    transition: background var(--transition);
+  }
+  .lv-row:last-child { border-bottom: none; }
+  .lv-row:hover, .lv-row:focus-visible { background: white; outline: none; }
+
+  .lv-rank-cell { display: flex; align-items: center; }
+  .lv-rank {
+    min-width: 36px; padding: 2px 8px; text-align: center; border-radius: var(--radius-full);
+    font-size: 12px; font-weight: 800; color: var(--blue-deep); background: var(--blue-light);
+  }
+  .lv-rank.top { background: var(--blue-deep); color: white; }
+  .lv-rank-badge { width: 30px; height: 30px; object-fit: contain; }
+  .lv-who { min-width: 0; }
+  .lv-name { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--blue-deep); min-width: 0; }
+  .lv-name > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lv-pass { flex-shrink: 0; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--blue-light); color: var(--blue-deep); }
+  .lv-id { display: block; font-size: 11px; color: var(--blue-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lv-num { font-size: 13px; font-weight: 700; color: var(--blue-deep); text-align: right; }
+  .lv-score { font-size: 15px; font-weight: 800; color: var(--blue-deep); text-align: right; }
+
+  .lv-empty { padding: 2.5rem 1rem; text-align: center; color: var(--blue-deep); font-size: 13px; font-weight: 600; }
+  .lv-more { padding: 12px; text-align: center; border-top: 1px solid var(--blue-light); background: white; }
+  .lv-more button { background: var(--blue-deep); color: white; border: none; border-radius: var(--radius-full); padding: 7px 24px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .lv-more button:hover { background: var(--blue); }
+  .lv-source { font-size: 12px; font-weight: 600; color: var(--blue-deep); text-align: right; margin-top: 8px; }
+  .lv-skel { height: 20px; margin: 14px 16px; border-radius: 6px; background: var(--blue-light); animation: lv-pulse 1.2s ease-in-out infinite; }
+  @keyframes lv-pulse { 50% { opacity: 0.45; } }
+  @media (prefers-reduced-motion: reduce) { .lv-skel { animation: none; } .lv-podium-card { transition: none; } }
+
+  @media (max-width: 600px) {
+    .lv-title { font-size: 22px; }
+    .lv-head, .lv-row { grid-template-columns: 48px minmax(0, 1fr) 84px; padding-left: 12px; padding-right: 12px; }
+    .lv-num, .lv-head .lv-matches { display: none; }
+    .lv-podium { gap: 6px; }
+    .lv-podium-name { font-size: 13px; }
+  }
+</style>
+
+<div data-view-root>
+  <h2 class="lv-title">Season leaderboards</h2>
+  <div class="lv-controls">
+    <label class="lv-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input class="lv-input" id="lv-search" type="text" placeholder="Filter by username or user ID" autocomplete="off" spellcheck="false" aria-label="Filter players" />
+    </label>
+    <select class="lv-select" id="lv-season" aria-label="Season"></select>
+    <div class="lv-toggle" role="group" aria-label="Leaderboard type">
+      <button type="button" data-type="trophies" class="active">Trophies</button>
+      <button type="button" data-type="points">Points</button>
+    </div>
+  </div>
+  <div class="lv-status" id="lv-status"></div>
+  <div class="lv-podium" id="lv-podium" hidden></div>
+  <div class="lv-panel">
+    <div class="lv-head"><span>Rank</span><span>Player</span><span class="r lv-matches">Matches</span><span class="r" id="lv-score-head">Trophies</span></div>
+    <div id="lv-rows"></div>
+    <div class="lv-more" id="lv-more" hidden><button type="button" id="lv-more-btn">Show more</button></div>
+  </div>
+  <div class="lv-source" id="lv-source"></div>
+</div>
+
+<script>
+(function() {
+  var ARCHIVED_THROUGH = 60, LATEST_SEASON = 61, DEFAULT_SEASON = 61, PAGE_SIZE = 100;   // 0-60 archived, 61 = live
+  var BADGES = ['ui/icons/badges/playoff_rd1.png', 'ui/icons/badges/playoff_rd2.png', 'ui/icons/badges/playoff_rd3.png'];
+  var PLACE = ['1st', '2nd', '3rd'];
+  var st = { type: 'trophies', season: DEFAULT_SEASON, players: [], filtered: [], shown: 0, loadId: 0, loaded: false };
+  var esc = RBR.escHtml, fmt = RBR.fmt;
+  function $(id) { return document.getElementById(id); }
+  function typeLabel(t) { return t === 'points' ? 'Points' : 'Trophies'; }
+  function setStatus(msg, err) { $('lv-status').textContent = msg || ''; $('lv-status').className = 'lv-status' + (err ? ' err' : ''); }
+
+  function writeUrl() {
+    var p = new URLSearchParams(location.search);
+    p.delete('season'); p.delete('type');
+    if (st.season !== DEFAULT_SEASON) p.set('season', st.season);
+    if (st.type !== 'trophies') p.set('type', st.type);
+    var qs = p.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+
+  async function load() {
+    var id = ++st.loadId;
+    $('lv-rows').innerHTML = Array(8).join('<div class="lv-skel"></div>');
+    $('lv-podium').hidden = true; $('lv-more').hidden = true; $('lv-source').textContent = '';
+    $('lv-score-head').textContent = typeLabel(st.type);
+    setStatus('Loading season ' + st.season + '…');
+    writeUrl();
+    try {
+      var data = await RBR.leaderboard({ action: 'board', type: st.type, season: st.season });
+      if (id !== st.loadId) return;
+      st.players = data.players || [];
+      setStatus('');
+      $('lv-source').textContent = 'Top ' + fmt(st.players.length) + ' players · ' + (data.source === 'archive' ? 'archived season' : 'live from game server');
+      filter();
+    } catch (e) {
+      if (id !== st.loadId) return;
+      st.players = [];
+      $('lv-rows').innerHTML = '<div class="lv-empty">Couldn\'t load this leaderboard. Please try again in a moment.</div>';
+      setStatus(e.message, true);
+    }
+  }
+
+  function filter() {
+    var q = $('lv-search').value.trim().toLowerCase();
+    st.filtered = !q ? st.players : st.players.filter(function(p) {
+      return (p.username || '').toLowerCase().indexOf(q) !== -1 || (p.owner_id || '').toLowerCase().indexOf(q) !== -1;
+    });
+    st.shown = 0;
+    $('lv-rows').innerHTML = '';
+    podium(q ? [] : st.players.slice(0, 3));
+    more();
+  }
+
+  function podium(top) {
+    var el = $('lv-podium');
+    if (top.length < 3) { el.hidden = true; return; }
+    var cls = ['gold', 'silver', 'bronze'];
+    el.innerHTML = top.map(function(p, i) {
+      return '<button type="button" class="lv-podium-card ' + cls[i] + '" data-id="' + esc(p.owner_id) + '">' +
+        '<img class="lv-medal" src="' + BADGES[i] + '" alt="' + PLACE[i] + ' place">' +
+        '<span class="lv-podium-name">' + esc(p.username || 'Anonymous') + '</span>' +
+        '<span class="lv-podium-score">' + fmt(p.score) + ' ' + typeLabel(st.type).toLowerCase() + '</span></button>';
+    }).join('');
+    el.hidden = false;
+  }
+
+  function rankCell(p) {
+    if (p.rank >= 1 && p.rank <= 3) return '<img class="lv-rank-badge" src="' + BADGES[p.rank - 1] + '" alt="#' + p.rank + '">';
+    return '<span class="lv-rank' + (p.rank <= 10 ? ' top' : '') + '">#' + fmt(p.rank) + '</span>';
+  }
+
+  function more() {
+    var rows = $('lv-rows');
+    if (!st.filtered.length) {
+      rows.innerHTML = '<div class="lv-empty">' + (st.players.length ? 'No players match that filter.' : 'No leaderboard entries for this season.') + '</div>';
+      $('lv-more').hidden = true;
+      return;
+    }
+    var next = st.filtered.slice(st.shown, st.shown + PAGE_SIZE);
+    rows.insertAdjacentHTML('beforeend', next.map(function(p) {
+      return '<button type="button" class="lv-row" data-id="' + esc(p.owner_id) + '" title="Open ' + esc(p.username || 'player') + ' in Stats">' +
+        '<span class="lv-rank-cell">' + rankCell(p) + '</span>' +
+        '<span class="lv-who"><span class="lv-name"><span>' + esc(p.username || 'Anonymous') + '</span>' +
+          (p.pass ? '<span class="lv-pass">Pass</span>' : '') + '</span><span class="lv-id">' + esc(p.owner_id) + '</span></span>' +
+        '<span class="lv-num">' + fmt(p.num_score) + '</span>' +
+        '<span class="lv-score">' + fmt(p.score) + '</span></button>';
+    }).join(''));
+    st.shown += next.length;
+    $('lv-more').hidden = st.shown >= st.filtered.length;
+    $('lv-more-btn').textContent = 'Show more (' + fmt(st.filtered.length - st.shown) + ' left)';
+  }
+
+  /* ---- Init ---- */
+  var sel = $('lv-season');
+  for (var s = LATEST_SEASON; s >= 0; s--) {
+    var o = document.createElement('option');
+    o.value = s; o.textContent = s === 0 ? 'Season 0 (Launch)' : s > ARCHIVED_THROUGH ? 'Season ' + s + ' (Live)' : 'Season ' + s;
+    sel.appendChild(o);
+  }
+  var params = new URLSearchParams(location.search);
+  var ps = parseInt(params.get('season'), 10);
+  if (!isNaN(ps) && ps >= 0 && ps <= LATEST_SEASON) st.season = ps;
+  if (params.get('type') === 'points') st.type = 'points';
+  sel.value = st.season;
+  document.querySelectorAll('.lv-toggle button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.type === st.type);
+    b.addEventListener('click', function() {
+      if (st.type === b.dataset.type) return;
+      st.type = b.dataset.type;
+      document.querySelectorAll('.lv-toggle button').forEach(function(x) { x.classList.toggle('active', x === b); });
+      load();
+    });
+  });
+  sel.addEventListener('change', function() { st.season = parseInt(sel.value, 10); load(); });
+  var t = null;
+  $('lv-search').addEventListener('input', function() { clearTimeout(t); t = setTimeout(filter, 200); });
+  $('lv-more-btn').addEventListener('click', more);
+  function open(e) { var el = e.target.closest('[data-id]'); if (el) RBRHub.openPlayer(el.dataset.id); }
+  $('lv-rows').addEventListener('click', open);
+  $('lv-podium').addEventListener('click', open);
+
+  RBRHub.registerView('leaderboard', {
+    needsPlayer: false,
+    onShow: function() { if (!st.loaded) { st.loaded = true; load(); } else writeUrl(); },
+  });
+})();
+</script>
