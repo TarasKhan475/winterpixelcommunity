@@ -122,7 +122,7 @@
 
 <script>
 (function() {
-  var ARCHIVED_THROUGH = 60, LATEST_SEASON = 61, DEFAULT_SEASON = 61, PAGE_SIZE = 100;   // 0-60 archived, 61 = live
+  var ARCHIVED_THROUGH = 60, LATEST_SEASON = 61, DEFAULT_SEASON = 61, PAGE_SIZE = 100, EXTRA_HEIGHT = 260;   // 0-60 archived, 61 = live
   var st = { type: 'trophies', season: DEFAULT_SEASON, players: [], filtered: [], shown: 0, loadId: 0, loaded: false };
   var esc = RBR.escHtml, fmt = RBR.fmt;
   function $(id) { return document.getElementById(id); }
@@ -139,7 +139,7 @@
     var foot = document.querySelector('.hub-footer');
     sizePattern();
     var h = window.innerHeight - top - pad - (foot ? foot.offsetHeight : 0);
-    root.style.height = Math.max(h, 320) + 'px';
+    root.style.height = (Math.max(h, 320) + EXTRA_HEIGHT) + 'px';   // deliberately longer than the viewport so the page scrolls
   }
 
   /* Keep the panel pattern at no more than half the box width, so at least two tiles show across. */
