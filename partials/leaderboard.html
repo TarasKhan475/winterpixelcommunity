@@ -3,13 +3,13 @@
   /* Game-style leaderboard: a rounded box tiled with ui/panel-pattern.png, double outline
      (#FFC589 inside, black outside). All text is one size, white with a black outline.
      The page itself never scrolls: JS sizes the root to the viewport and only the list scrolls. */
-  [data-view-root] {
+  [data-view-root="leaderboard"] {
     --lv-tan: #FFC589;
     --lv-pass: #FFD83D;
     --lv-text: 15px;
     display: flex; flex-direction: column; gap: 10px; min-height: 0;
   }
-  [data-view-root] button, [data-view-root] input { font-family: inherit; }
+  [data-view-root="leaderboard"] button, [data-view-root="leaderboard"] input { font-family: inherit; }
 
   /* Outlined text: white fill, black outline */
   .lv-t {
@@ -54,7 +54,7 @@
   .lv-toggle { display: flex; gap: 2px; padding: 3px; }
   .lv-toggle button { border: none; background: none; border-radius: 4px; padding: 0 14px; cursor: pointer; }
   .lv-toggle button.active { background: rgba(255,255,255,0.5); }
-  [data-view-root] :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  [data-view-root="leaderboard"] :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
   /* Box */
   .lv-box {
@@ -94,7 +94,7 @@
   }
 </style>
 
-<div data-view-root>
+<div data-view-root="leaderboard">
   <div class="lv-controls">
     <label class="lv-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20.5 20.5"/></svg>
@@ -122,7 +122,7 @@
 
 <script>
 (function() {
-  var ARCHIVED_THROUGH = 60, LATEST_SEASON = 61, DEFAULT_SEASON = 61, PAGE_SIZE = 100, EXTRA_HEIGHT = 260;   // 0-60 archived, 61 = live
+  var ARCHIVED_THROUGH = 60, LATEST_SEASON = 61, DEFAULT_SEASON = 61, PAGE_SIZE = 100;   // 0-60 archived, 61 = live
   var st = { type: 'trophies', season: DEFAULT_SEASON, players: [], filtered: [], shown: 0, loadId: 0, loaded: false };
   var esc = RBR.escHtml, fmt = RBR.fmt;
   function $(id) { return document.getElementById(id); }
@@ -131,7 +131,7 @@
 
   /* Fill the viewport exactly so the page never scrolls; only .lv-list does. */
   function fit() {
-    var root = document.querySelector('[data-view-root]');
+    var root = document.querySelector('#view-leaderboard [data-view-root="leaderboard"]');
     if (!root || !root.offsetParent) return;
     var top = root.getBoundingClientRect().top + window.pageYOffset;
     var wrap = root.closest('.hub-wrap');
@@ -139,13 +139,13 @@
     var foot = document.querySelector('.hub-footer');
     sizePattern();
     var h = window.innerHeight - top - pad - (foot ? foot.offsetHeight : 0);
-    root.style.height = (Math.max(h, 320) + EXTRA_HEIGHT) + 'px';   // deliberately longer than the viewport
+    root.style.height = Math.max(h, 320) + 'px';
   }
 
   /* Keep the panel pattern at no more than half the box width, so at least two tiles show across. */
   var tileW = 0;
   function sizePattern() {
-    var box = document.querySelector('.lv-box');
+    var box = document.querySelector('#view-leaderboard .lv-box');
     if (!box || !tileW) return;
     box.style.backgroundSize = Math.min(tileW, box.clientWidth / 2) + 'px auto';
   }

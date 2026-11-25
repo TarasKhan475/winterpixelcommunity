@@ -3,14 +3,14 @@
   /* Game-style Stats tab. Same language as the leaderboard: boxes tiled with ui/panel-pattern.png, a #FFC589
      inner outline plus a black outer outline pushed slightly down, one text size, white text with a black
      outline, #FFC589 labels in translucent dark header bands, flat dark controls. */
-  [data-view-root] {
+  [data-view-root="stats"] {
     --tan: #FFC589;
     padding: 8px 8px 14px;
     font-size: 15px; font-weight: 800; line-height: 1.25; color: #fff;
     paint-order: stroke fill; -webkit-text-stroke: 4px #000; text-shadow: 0 2px 0 #000;
   }
-  [data-view-root] button { font: inherit; color: inherit; cursor: pointer; }
-  [data-view-root] :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  [data-view-root="stats"] button { font: inherit; color: inherit; cursor: pointer; }
+  [data-view-root="stats"] :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
   /* Boxes */
   .sv-box {
@@ -158,7 +158,7 @@
   }
 </style>
 
-<div data-view-root>
+<div data-view-root="stats">
   <div class="sv-top" id="sv-top">
     <div class="sv-subtabs" role="tablist">
       <button class="sv-subtab active" data-sub="overview">Overview</button>
@@ -320,7 +320,7 @@
   var tileW = 0;
   function tileBoxes() {
     if (!tileW) return;
-    document.querySelectorAll('[data-view-root] .sv-box').forEach(function(b) {
+    document.querySelectorAll('[data-view-root="stats"] .sv-box').forEach(function(b) {
       if (b.clientWidth) b.style.backgroundSize = Math.min(tileW, b.clientWidth / 2) + 'px auto';
     });
   }
