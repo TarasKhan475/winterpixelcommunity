@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Goober generator | Pixel Community</title>
+  <meta name="description" content="Mix every Goober Dash color, suit, hat, hand and eyes, then save the result as a PNG." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Goober generator | Pixel Community" />
+  <meta property="og:description" content="Mix every Goober Dash color, suit, hat, hand and eyes, then save the result as a PNG." />
+  <meta property="og:image" content="https://winterpixelcommunity.netlify.app/ui/banner.png" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+/* ── Hero (same tiled, scrolling background as tools.html) ── */
+.gg-hero{position:relative;overflow:hidden;background-image:url('ui/tile.png');background-repeat:repeat;animation:gg-tile-pan 30s linear infinite;text-align:center;padding:26px 1.5rem 30px}
+.gg-hero::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,1) 100%)}
+.gg-hero h1,.gg-hero p{position:relative;z-index:1}
+.gg-hero h1{font-size:clamp(26px,4vw,36px);line-height:1.15;font-weight:800;color:var(--blue-deep)}
+.gg-hero p{margin-top:.4rem;font-size:16px;font-weight:700;color:var(--blue-deep)}
+@keyframes gg-tile-pan{from{background-position:0 0}to{background-position:400px 400px}}
+@media(prefers-reduced-motion:reduce){.gg-hero{animation:none}}
+
+.gg-page{max-width:1100px;margin:0 auto;padding:1rem 1.25rem 3rem}
+.gg-panel{background:#fff;border:2px solid var(--gray-border,#DBEAFE);border-bottom-width:4px;border-radius:16px;padding:1rem}
+.gg-btn{display:inline-flex;align-items:center;justify-content:center;font:inherit;font-weight:800;font-size:16px;cursor:pointer;color:#fff;background:var(--blue-mid,#1D4ED8);border:0;border-bottom:4px solid var(--blue-deep,#1E3A8A);border-radius:12px;padding:.55rem 1.2rem;transition:transform .15s,filter .15s}
+.gg-btn:hover{filter:brightness(1.08)}
+.gg-btn:active{transform:translateY(2px);border-bottom-width:2px;margin-bottom:2px}
+.gg-btn.secondary{color:var(--blue-mid,#1D4ED8);background:#fff;border:2px solid var(--gray-border,#DBEAFE);border-bottom:4px solid var(--gray-border,#DBEAFE)}
+:focus-visible{outline:3px solid var(--blue-mid,#1D4ED8);outline-offset:2px;border-radius:4px}
+
+/* ── Layout: viewer column + picker column; both stretch to the same height on desktop ── */
+.gg-stage{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.5rem;align-items:stretch}
+@media(max-width:880px){.gg-stage{grid-template-columns:1fr}}
+
+/* Round viewer container: header-blue gradient + scrolling pattern. Never sticky or overlaying. */
+.gg-preview{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;align-items:center;min-width:300px;
+  border-radius:22px;
+  /* fixed height, natural width: the wide sky is centred and cropped at the sides */
+  background:#9fdcff url('ui/cloudsky.png') center / auto 100% no-repeat}
+.gg-figure{flex:none;display:flex;flex-direction:column;align-items:center;max-width:100%;padding:16px 12px 84px}
+/* Goober stage: JS sets its size to at least the default and grows it for bigger cosmetics.
+   The canvas keeps its real pixel size and is anchored to the stage centre, so it never rescales. */
+.gg-goober{position:relative;z-index:2;flex:none}
+.gg-goober canvas{position:absolute;display:block;max-width:none;width:auto;height:auto}
+/* Pillar fills whatever height is left and is cut off there (hidden on mobile) */
+.gg-pillar-wrap{flex:1 1 0;min-height:0;width:100%;overflow:hidden;display:flex;justify-content:center;margin-top:calc(var(--gg-pillar-up,116px) * -1);position:relative;z-index:1}
+.gg-pillar{display:block;width:260px;max-width:90%;height:auto;align-self:flex-start;margin-top:0;pointer-events:none}
+@media(max-width:880px){.gg-pillar-wrap{display:none}}
+/* White fade at the bottom of the viewer (over the pillar too); buttons sit on top of it */
+.gg-fade{position:absolute;left:0;right:0;bottom:0;height:150px;z-index:3;pointer-events:none;background:linear-gradient(to top,#fff 0%,rgba(255,255,255,0) 100%)}
+.gg-actions{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;padding:0 12px 16px}
+
+/* Category bar: its own navy strip above the cosmetics box */
+.gg-picker{min-width:0;display:flex;flex-direction:column}
+.gg-picker .gg-panel{flex:1;min-height:0}
+.gg-tabs{display:flex;gap:.4rem;padding:.4rem;margin-bottom:.75rem;background:#002B57;border-radius:14px}
+.gg-tabs button{flex:1;display:grid;place-items:center;height:52px;padding:0;background:transparent;border:0;border-radius:10px;cursor:pointer}
+.gg-tabs button[aria-selected="true"]{background:#fff}
+.gg-tabs button:focus-visible{outline-color:#fff;outline-offset:-3px}
+/* Icons are plain white PNGs, used as a mask so CSS can recolour them (no canvas reads) */
+.gg-ico{display:block;width:30px;height:30px;background-color:#fff;-webkit-mask:var(--ico) center/contain no-repeat;mask:var(--ico) center/contain no-repeat}
+.gg-tabs button[aria-selected="true"] .gg-ico{background-color:#002B57}
+
+/* Cosmetics: fixed card width, height follows card.png; outline follows the image's own shape */
+.gg-options{display:grid;grid-template-columns:repeat(auto-fill,var(--gg-card-w,92px));justify-content:center;gap:14px;padding:14px}
+@media(min-width:881px){.gg-options{max-height:440px;overflow-y:auto}}
+.gg-option{--oc:#000;position:relative;display:block;width:var(--gg-card-w,92px);padding:0;border:0;background:none;cursor:pointer;transition:transform .12s}
+.gg-card{display:block;width:100%;height:auto;
+  filter:drop-shadow(2px 0 0 var(--oc)) drop-shadow(-2px 0 0 var(--oc)) drop-shadow(0 2px 0 var(--oc)) drop-shadow(0 -2px 0 var(--oc))
+         drop-shadow(1.5px 1.5px 0 var(--oc)) drop-shadow(-1.5px -1.5px 0 var(--oc)) drop-shadow(1.5px -1.5px 0 var(--oc)) drop-shadow(-1.5px 1.5px 0 var(--oc))}
+.gg-item{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.gg-option:hover{transform:translateY(-2px)}
+.gg-option[aria-pressed="true"]{--oc:#1D4ED8;transform:scale(1.04)}
+</style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="hub-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="ui/logo.png" alt="Pixel Community Logo" onerror="this.style.display='none'" />
+      <span class="logo-name">Pixel<span>Community</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="forum.html">Forum</a>
+      <a href="tools.html" class="active">Tools</a>
+      <a href="gallery.html">Gallery</a>
+    </nav>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-btn" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="index.html">Home</a>
+    <a href="news.html">News</a>
+    <a href="forum.html">Forum</a>
+    <a href="tools.html" class="active">Tools</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="https://discord.gg/rU92jZcX4S" class="discord-mobile" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.013.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.030z"/></svg>
+      Join Discord
+    </a>
+  </nav>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<div class="gg-hero">
+  <h1>Goober generator</h1>
+  <p>Build a goober and download it as a transparent PNG.</p>
+</div>
+
+<!-- ===================== MAIN ===================== -->
+<main class="gg-page" id="main">
+  <div class="gg-stage">
+    <div class="gg-preview">
+      <div class="gg-figure">
+        <div class="gg-goober" id="goober-wrap"><canvas id="goober-canvas" width="1" height="1" aria-label="Your goober"></canvas></div>
+      </div>
+      <div class="gg-pillar-wrap"><img class="gg-pillar" src="ui/icons/gd/pillar.png" alt="" /></div>
+      <div class="gg-fade"></div>
+      <div class="gg-actions">
+        <button id="randomize" class="gg-btn secondary" type="button">Randomize</button>
+        <button id="save" class="gg-btn" type="button">Save PNG</button>
+      </div>
+    </div>
+    <div class="gg-picker">
+      <div id="tabs" class="gg-tabs" role="group" aria-label="Customization category"></div>
+      <div class="gg-panel">
+        <div id="options" class="gg-options" aria-live="polite">Loading items...</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="hub-footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+  </div>
+</footer>
+
+<script src="js/bottom-bar-loader.js"></script>
+<script>
+/* ── Hamburger ── */
+(function() {
+  var btn  = document.getElementById('hamburger');
+  var menu = document.getElementById('mobile-menu');
+  btn.addEventListener('click', function() {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded','false');
+      menu.setAttribute('aria-hidden','true');
+    });
+  });
+})();
+</script>
+<script>
+
+/* Goober Generator - composes a Goober from layered PNGs on a canvas.
+   Port of the Python/PIL generator; layer order and rules are unchanged. */
+(function () {
+  var ROOT = 'ui/icons/gd/';   // contains layers/ and items/
+  var ITEMS_JSON = 'data/items.json';
+  var ICONS = 'ui/icons/gd/';
+  var CATEGORIES = [
+    { key: 'color', label: 'Color', icon: 'icon_body' }, { key: 'suit', label: 'Suit', icon: 'icon_suit' },
+    { key: 'hat', label: 'Hat', icon: 'icon_hat' }, { key: 'hand', label: 'Hand', icon: 'icon_hold' },
+    { key: 'eyes', label: 'Eyes', icon: 'icon_smile' }
+  ];
+  /* Default goober stage in CSS pixels. Bigger cosmetics grow the stage; the goober itself is never rescaled. */
+  var STAGE_W = 240, STAGE_H = 300, ground = null;
+  var SUIT_BACK = ['suit_angel','suit_archer','suit_beaver','suit_bee','suit_bunny','suit_cat','suit_devil','suit_dino','suit_dog','suit_fly','suit_koala','suit_lion','suit_monkey','suit_polar'];
+  var HAT_BACK = ['hat_alien','hat_antennae','hat_bunny','hat_monkey','hat_polar','hat_robot','hat_wig'];
+  var HAND_BACK = ['hand_bow', 'hand_sai'];
+  var SUIT_FRONT = ['suit_viking', 'suit_wizard'];
+
+  var state = {};
+  var items = {};
+  var cache = {};
+
+  function layersFor(hat, suit, hand, color, eyes) {
+    var L = [];
+    if (color !== 'color_skelly') {
+      if (suit === 'suit_robot') L.push('0_left_hand/left_hand_robot');
+      else if (suit !== 'suit_fly' && suit !== 'suit_penguin') L.push('0_left_hand/left_hand');
+      L.push(suit === 'suit_robot' ? '1_left_leg/left_leg_robot' : '1_left_leg/left_leg');
+    }
+    if (SUIT_BACK.indexOf(suit) > -1) L.push('2_suit_back/' + suit);
+    if (HAT_BACK.indexOf(hat) > -1) L.push('3_hat_back/' + hat);
+    if (HAND_BACK.indexOf(hand) > -1) L.push('4_hand_back/' + hand);
+    L.push('5_color/' + (color || 'color_default'));
+    if (color !== 'color_skelly' && suit !== 'suit_penguin') L.push('6_mouth/mouth');
+    if (color !== 'color_skelly') L.push('7_eyes/' + eyes);
+    L.push('8_suit/' + suit);
+    if (color !== 'color_skelly') L.push(suit === 'suit_robot' ? '9_right_leg/right_leg_robot' : '9_right_leg/right_leg');
+    if (hat !== 'hat_fly') L.push('10_hat/' + hat);
+    if (hat === 'hat_devil') L.push('10_hat/hat_devil_ear');
+    L.push('11_hand/' + hand);
+    if (suit === 'suit_robot') L.push('12_right_hand/right_hand_robot');
+    else if (color === 'color_skelly') L.push('12_right_hand/right_hand_skelly');
+    else if (suit !== 'suit_penguin') L.push('12_right_hand/right_hand');
+    if (SUIT_FRONT.indexOf(suit) > -1) L.push('13_suit_front/' + suit);
+    if (hat === 'hat_fly') L.push('14_hat_front/' + hat);
+    return L;
+  }
+
+  function loadImage(path) {
+    if (cache[path]) return cache[path];
+    cache[path] = new Promise(function (resolve) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { resolve(null); };   // a missing layer is skipped, as the item may not use it
+      img.src = ROOT + 'layers/' + path + '.png';
+    });
+    return cache[path];
+  }
+
+  function tinted(img, tint) {
+    var c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    var x = c.getContext('2d'); x.drawImage(img, 0, 0);
+    var d = x.getImageData(0, 0, c.width, c.height), p = d.data, ta = tint[3];
+    for (var i = 0; i < p.length; i += 4) {
+      p[i]   = (p[i]   * (255 - ta) + tint[0] * ta) / 255;
+      p[i+1] = (p[i+1] * (255 - ta) + tint[1] * ta) / 255;
+      p[i+2] = (p[i+2] * (255 - ta) + tint[2] * ta) / 255;
+    }
+    x.putImageData(d, 0, 0);
+    return c;
+  }
+
+  function trim(canvas) {
+    var x = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
+    var p = x.getImageData(0, 0, w, h).data, minX = w, minY = h, maxX = -1, maxY = -1;
+    for (var y = 0; y < h; y++) for (var i = 0; i < w; i++) {
+      if (p[(y * w + i) * 4 + 3] > 0) { if (i < minX) minX = i; if (i > maxX) maxX = i; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    }
+    if (maxX < 0) { canvas.minX = 0; canvas.maxX = w - 1; canvas.minY = 0; canvas.maxY = h - 1; return canvas; }
+    var out = document.createElement('canvas'); out.width = maxX - minX + 1; out.height = maxY - minY + 1;
+    out.getContext('2d').drawImage(canvas, minX, minY, out.width, out.height, 0, 0, out.width, out.height);
+    out.minX = minX; out.maxX = maxX; out.minY = minY; out.maxY = maxY;
+    return out;
+  }
+
+  var token = 0;
+  async function render() {
+    var mine = ++token;
+    var names = layersFor(state.hat, state.suit, state.hand, state.color, state.eyes);
+    var imgs = (await Promise.all(names.map(loadImage)));
+    if (mine !== token) return;
+    var base = imgs.find(Boolean);
+    if (!base) return;
+    var canvas = document.createElement('canvas'); canvas.width = base.width; canvas.height = base.height;
+    var ctx = canvas.getContext('2d');
+    imgs.forEach(function (img) { if (img) ctx.drawImage(img, 0, 0); });
+
+    if (state.hat === 'hat_devil') {
+      var px = ctx.getImageData(190, 220, 1, 1).data;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      imgs.forEach(function (img, i) {
+        if (!img) return;
+        ctx.drawImage(names[i] === '10_hat/hat_devil_ear' ? tinted(img, [px[0], px[1], px[2], px[3]]) : img, 0, 0);
+      });
+    }
+
+    var out = trim(canvas), view = document.getElementById('goober-canvas');
+    view.width = out.width; view.height = out.height;
+    view.getContext('2d').clearRect(0, 0, out.width, out.height);
+    view.getContext('2d').drawImage(out, 0, 0);
+
+    /* Anchor to the full layer frame (not the trimmed box) so the body stays put when cosmetics change size */
+    var left = out.minX - base.width / 2, right = out.maxX + 1 - base.width / 2;
+    var gap = base.height - (out.maxY + 1);
+    if (ground === null) ground = gap;
+    var lift = gap - ground;                       // 0 for normal feet, negative if an item hangs lower
+    var wrap = document.getElementById('goober-wrap');
+    var W = Math.max(STAGE_W, Math.ceil(2 * Math.max(-left, right)));
+    var H = Math.max(STAGE_H, out.height + Math.max(lift, 0));
+    wrap.style.width = W + 'px'; wrap.style.height = H + 'px';
+    view.style.left = (W / 2 + left) + 'px';
+    view.style.top = (H - out.height - lift) + 'px';
+  }
+
+  function pick(cat, name) {
+    state[cat] = name;
+    document.querySelectorAll('#options .gg-option').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.dataset.name === name ? 'true' : 'false');
+    });
+    render();
+  }
+
+  function showTab(cat) {
+    document.querySelectorAll('#tabs button').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.cat === cat ? 'true' : 'false'); });
+    var box = document.getElementById('options'); box.textContent = '';
+    items[cat].forEach(function (name) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'gg-option'; b.dataset.name = name; b.title = name.replace(/^[a-z]+_/, '').replace(/_/g, ' ');
+      b.setAttribute('aria-pressed', state[cat] === name ? 'true' : 'false');
+      var card = document.createElement('img'); card.className = 'gg-card'; card.src = ICONS + 'card.png'; card.alt = '';
+      var img = document.createElement('img'); img.className = 'gg-item'; img.src = ROOT + 'items/' + cat + '/' + name + '.png'; img.alt = b.title; img.loading = 'lazy';
+      b.appendChild(card); b.appendChild(img);
+      b.addEventListener('click', function () { pick(cat, name); });
+      box.appendChild(b);
+    });
+  }
+
+  function randomize() {
+    CATEGORIES.forEach(function (c) { var list = items[c.key]; state[c.key] = list[Math.floor(Math.random() * list.length)]; });
+    var current = document.querySelector('#tabs button[aria-selected="true"]').dataset.cat;
+    showTab(current); render();
+  }
+
+  fetch(ITEMS_JSON).then(function (r) { return r.json(); }).then(function (data) {
+    items = data;
+    CATEGORIES.forEach(function (c) { state[c.key] = items[c.key][0]; });
+    var tabs = document.getElementById('tabs');
+    CATEGORIES.forEach(function (c, i) {
+      var b = document.createElement('button'); b.type = 'button'; b.dataset.cat = c.key; b.title = c.label; b.setAttribute('aria-label', c.label);
+      var ico = document.createElement('span'); ico.className = 'gg-ico'; ico.style.setProperty('--ico', 'url(' + ICONS + c.icon + '.png)'); b.appendChild(ico);
+      b.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+      b.addEventListener('click', function () { showTab(c.key); });
+      tabs.appendChild(b);
+    });
+    showTab('color'); render();
+  }).catch(function () {
+    document.getElementById('options').textContent = 'Could not load the item list.';
+  });
+
+  document.getElementById('randomize').addEventListener('click', randomize);
+  document.getElementById('save').addEventListener('click', function () {
+    var a = document.createElement('a');
+    a.download = 'goober.png'; a.href = document.getElementById('goober-canvas').toDataURL('image/png'); a.click();
+  });
+})();
+</script>
+</body>
+</html>

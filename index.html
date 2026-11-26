@@ -358,6 +358,10 @@
         <img loading="lazy" decoding="async" src="ui/thumbnails/gdstats.png" alt="Goober Dash User Stats" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
         <div class="tool-list-btn-placeholder" style="display:none;">Goober Dash User Stats</div>
       </a>
+      <a href="goobercreator.html" class="tool-list-btn" data-search-name="GD Create a Goober" data-search-sub="Create a goober dash character and download as image!">
+        <img loading="lazy" decoding="async" src="ui/thumbnails/gdgoobercreator.png" alt="Create a goober dash character and download as image!" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="tool-list-btn-placeholder" style="display:none;">GD Create a Goober</div>
+      </a>
       <a href="moddedrbr.html" class="tool-list-btn" data-search-name="Play modded rbr" data-search-sub="Play modded versions of rocket bot royale by SPG_Adrien">
         <img loading="lazy" decoding="async" src="ui/thumbnails/rbrmodded.png" alt="Modded rocket bot royale by SPG_Adrien" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
         <div class="tool-list-btn-placeholder" style="display:none;">Play modded rbr</div>
@@ -670,7 +674,7 @@
       <a href="about.html">About</a>
       <a href="contact.html">Contact</a>
     </div>
-    <p class="footer-copy">Not affiliated with or endorsed by Winterpixel</p>
+    <p class="footer-copy">Winterpixel Community is not affiliated with or endorsed by Winterpixel Games.</p>
   </div>
 </footer>
 
@@ -903,6 +907,51 @@ filterMiniGallery();
   });
 })();
 
+</script>
+
+
+<!-- ===================== DISCLAIMER POPUP (shows once, never returns after closing) ===================== -->
+<div id="disclaimer-overlay" role="dialog" aria-modal="true" aria-labelledby="disclaimer-title"
+     style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:99999;background:rgba(0,20,40,0.65);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));box-sizing:border-box;">
+  <div style="min-height:100%;display:flex;align-items:center;justify-content:center;">
+    <div style="position:relative;box-sizing:border-box;width:100%;max-width:480px;background:#ffffff;border-radius:20px;padding:clamp(20px,5vw,32px);text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.35);font-family:'Baloo 2',cursive,sans-serif;color:#1a3a5c;">
+      <img src="ui/logo.png" alt="Winterpixel Community logo" onerror="this.style.display='none'"
+           style="display:block;margin:0 auto 12px;width:clamp(64px,22vw,96px);height:auto;object-fit:contain;" />
+      <h2 id="disclaimer-title" style="margin:0 0 12px;font-size:clamp(20px,5.5vw,24px);font-weight:800;line-height:1.2;">Disclaimer</h2>
+      <p style="margin:0 0 12px;font-size:16px;line-height:1.5;font-weight:700;">
+        Winterpixel Community is a fansite not affiliated with or endorsed by Winterpixel Games.
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;line-height:1.5;font-weight:500;text-align:left;">
+        Winterpixel Games assets on this site are used under the permission granted in their official press kit, for promotional and content creation purposes.
+      </p>
+      <p style="margin:0 0 20px;font-size:15px;line-height:1.5;font-weight:500;text-align:left;">
+        If you use or share any assets from this site, you must follow the same rules.
+      </p>
+      <button type="button" id="disclaimer-ok"
+              style="display:block;width:100%;min-height:48px;border:none;border-radius:999px;background:var(--blue,#1fa8d8);color:#ffffff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;padding:10px 20px;outline:none;-webkit-tap-highlight-color:transparent;">
+        I understand
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var KEY = 'wpc_disclaimer_dismissed';
+  var overlay = document.getElementById('disclaimer-overlay');
+  if (!overlay) return;
+  var dismissed = false;
+  try { dismissed = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  if (dismissed) return;
+
+  function close() {
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  overlay.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('disclaimer-ok').addEventListener('click', close);
+})();
 </script>
 
 </body>
